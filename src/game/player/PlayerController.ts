@@ -27,6 +27,7 @@ export const PLAYER = defineTuning("player", "Player movement", {
   fastFallRolls: { default: 1, min: 0, max: 1, step: 1, label: "Fast-fall lands into roll (0/1)" },
   rollSeconds: { default: 0.65, min: 0.2, max: 1.5, step: 0.01, label: "Roll duration", unit: "s" },
   jumpBufferSeconds: { default: 0.2, min: 0, max: 0.6, step: 0.01, label: "Jump input buffer (airborne)", unit: "s" },
+  stumbleGraceSeconds: { default: 0.4, min: 0, max: 2, step: 0.01, label: "Stumble grace (no repeat bump)", unit: "s" },
   runCyclesPerSecond: { default: 1.55, min: 0.5, max: 4, step: 0.05, label: "Run cycles/s at reference speed", unit: "Hz" },
   runCycleRefSpeed: { default: 12, min: 1, max: 40, step: 0.5, label: "Run cycle reference speed", unit: "m/s" },
 });
@@ -50,6 +51,8 @@ declare module "../../core/events" {
     "player:rollEnd": { cancelled: boolean };
     "player:fastFall": { vy: number };
     "player:crash": { cause: string };
+    /** Light bump (side of a train, outer wall): bounces back toward the previous lane when `bounce`. */
+    "player:stumble": { cause: string; bounce: boolean };
   }
 }
 
@@ -61,6 +64,7 @@ const evRoll = { fromAir: false };
 const evRollEnd = { cancelled: false };
 const evFast = { vy: 0 };
 const evCrash = { cause: "" };
+const evStumble = { cause: "", bounce: false };
 
 export class PlayerController implements RunSystem {
   readonly id = "player";
@@ -91,6 +95,12 @@ export class PlayerController implements RunSystem {
   sinceLand = 10;
   runPhase = 0;
   crashCause = "";
+  /** Lane the last switch started from (stumble bounce-back target). */
+  prevLane = 0;
+  /** > 0 while a new stumble is ignored. */
+  stumbleCooldown = 0;
+  /** Seconds since the last stumble (for animation). */
+  sinceStumble = 10;
 
   private ctx!: RunContext;
 
@@ -117,6 +127,9 @@ export class PlayerController implements RunSystem {
     this.sinceLand = 10;
     this.runPhase = 0;
     this.crashCause = "";
+    this.prevLane = 0;
+    this.stumbleCooldown = 0;
+    this.sinceStumble = 10;
     this.setState(ctx.state.mode === "idle" ? "idle" : "run");
   }
 
@@ -158,6 +171,8 @@ export class PlayerController implements RunSystem {
     this.prevY = this.y;
     this.stateTime += dt;
     this.sinceLand += dt;
+    this.sinceStumble += dt;
+    if (this.stumbleCooldown > 0) this.stumbleCooldown = Math.max(0, this.stumbleCooldown - dt);
     const mode = ctx.state.mode;
     if (mode === "idle" || mode === "ended") return;
 
@@ -209,6 +224,27 @@ export class PlayerController implements RunSystem {
     this.ctx.bus.emit("player:crash", evCrash);
   }
 
+  /**
+   * Light bump. Returns false (ignored) inside the grace window. With `bounce`, eases back to the
+   * lane the current switch started from.
+   */
+  stumble(cause: string, bounce: boolean): boolean {
+    if (this.state === "crash" || this.stumbleCooldown > 0) return false;
+    this.stumbleCooldown = PLAYER.stumbleGraceSeconds;
+    this.sinceStumble = 0;
+    if (bounce && this.prevLane !== this.lane) {
+      this.switchFrom = this.x;
+      this.switchTo = laneX(this.prevLane);
+      this.switchDir = Math.sign(this.prevLane - this.lane);
+      this.switchT = 0;
+      this.lane = this.prevLane;
+    }
+    evStumble.cause = cause;
+    evStumble.bounce = bounce;
+    this.ctx.bus.emit("player:stumble", evStumble);
+    return true;
+  }
+
   /** Sim-space hitbox swept over this tick's forward motion. */
   getHitbox(out: Aabb): Aabb {
     const st = this.ctx.state;
@@ -244,6 +280,7 @@ export class PlayerController implements RunSystem {
     this.switchTo = laneX(target);
     this.switchT = 0;
     this.switchDir = dir;
+    this.prevLane = this.lane;
     this.lane = target;
     this.ctx.bus.emit("player:laneChange", evLane);
   }

@@ -91,7 +91,7 @@
       "maps": { "map": "tex.train.side" },
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "One freight/commuter car occupying a full lane: 2.3 m wide, 3.6 m tall, 13 m long along Z, origin at bottom centre of its footprint, front faces -Z (toward the runner when oncoming). <= 3k tris, 1 material, 1024x512 texture."
+      "spec": "One freight/commuter car occupying a full lane: 2.3 m wide, 3.6 m tall, 13 m long along Z, origin at bottom centre of its footprint, cab/windscreen end faces +Z (toward the approaching runner and camera; oncoming trains drive toward +Z). <= 3k tris, 1 material, 1024x512 texture."
     },
     {
       "id": "tex.train.side",

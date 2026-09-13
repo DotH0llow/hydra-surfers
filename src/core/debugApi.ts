@@ -37,7 +37,7 @@ export interface GameState {
     switching: boolean;
   };
   camera: { x: number; y: number; z: number; fov: number; pitch: number };
-  chaser: { dist: number };
+  chaser: { dist: number; near: boolean };
   activePowerups: Array<{ id: string; remaining: number }>;
   screen: string;
   obstacles: number;
@@ -64,6 +64,14 @@ export interface DebugHost {
   listScenarios(): Array<{ id: string; description: string }>;
   assetReport(): unknown;
   profile(): unknown;
+  entities(): EntitiesDump;
+}
+
+/** Sim-space snapshot of live track content (debug/tests; allocates, not for per-frame use). */
+export interface EntitiesDump {
+  distance: number;
+  obstacles: Array<{ uid: number; type: string; lane: number; s: number; length: number; speed: number }>;
+  coins: Array<{ lane: number; s: number; y: number }>;
 }
 
 export interface GameDebugApi {
@@ -86,6 +94,8 @@ export interface GameDebugApi {
   scenarios(): Array<{ id: string; description: string }>;
   assets(): unknown;
   profile(): unknown;
+  /** Live obstacles and coins in sim space. */
+  entities(): EntitiesDump;
   isReady(): boolean;
 }
 
@@ -129,6 +139,7 @@ export function installDebugApi(): { api: GameDebugApi; attach(host: DebugHost):
     scenarios: () => need().listScenarios(),
     assets: () => need().assetReport(),
     profile: () => need().profile(),
+    entities: () => need().entities(),
     isReady: () => host !== null,
   };
   window.__game = api;

@@ -51,6 +51,8 @@ declare module "../core/events" {
     "run:action": { action: Action };
     "run:running": { time: number };
     "run:crash": { cause: string; distance: number };
+    /** Accepted light bump; `caught` when it ends the run because the chaser was near. */
+    "run:stumble": { cause: string; caught: boolean };
     "run:end": RunResult;
     "run:pause": { time: number };
     "run:resume": { time: number };
@@ -60,6 +62,7 @@ declare module "../core/events" {
 const QUEUE_CAP = 32;
 const evAction = { action: "tap" as Action };
 const evCrash = { cause: "", distance: 0 };
+const evStumble = { cause: "", caught: false };
 const evTime = { time: 0 };
 
 export interface RunDeps {
@@ -120,6 +123,7 @@ export class Run {
       renderDistance: 0,
       renderAlpha: 1,
       crash: (cause: string) => self.crash(cause),
+      stumble: (cause: string, bounce: boolean) => self.stumble(cause, bounce),
       getSystem: <T extends RunSystem>(id: string) => self.byId.get(id) as T | undefined,
     };
     this.systems = [
@@ -226,6 +230,18 @@ export class Run {
     this.ctx.bus.emit("run:crash", evCrash);
   }
 
+  /** Light bump (see collision/CollisionSystem.ts). Second bump while the chaser is near = caught. */
+  stumble(cause: string, bounce: boolean): void {
+    const st = this.state;
+    if (st.mode !== "running" && st.mode !== "intro") return;
+    if (!this.player.stumble(cause, bounce)) return;
+    const caught = this.chaser.onStumble() && !st.god;
+    evStumble.cause = cause;
+    evStumble.caught = caught;
+    this.ctx.bus.emit("run:stumble", evStumble);
+    if (caught) this.crash("caught");
+  }
+
   /** Queue an input action; applied at the start of the next fixed tick. */
   enqueue(action: Action): void {
     if (this.state.paused) return;
@@ -314,5 +330,6 @@ export class Run {
 
   private resetSystems(opts: ResolvedRunOptions): void {
     for (const s of this.systems) s.reset?.(this.ctx, opts);
+    for (const s of this.systems) s.afterReset?.(this.ctx, opts);
   }
 }

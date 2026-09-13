@@ -7,7 +7,7 @@ import brand from "./brand/brand.json";
 import type { AssetLibrary } from "./assets/AssetLibrary";
 import { AudioBus } from "./audio/AudioBus";
 import { registerCheat } from "./core/cheats";
-import type { DebugHost, GameState, StartRunArgs } from "./core/debugApi";
+import type { DebugHost, EntitiesDump, GameState, StartRunArgs } from "./core/debugApi";
 import { bus } from "./core/events";
 import { flags } from "./core/flags";
 import { Loop, type ClockMode } from "./core/loop";
@@ -318,7 +318,7 @@ export class App implements ScreenHost, DebugHost {
         switching: p.switchT < 1,
       },
       camera: { x: cam.x, y: cam.y, z: cam.z, fov: cam.effectiveFov(), pitch: cam.pitch() },
-      chaser: { dist: this.run.chaser.gap },
+      chaser: { dist: this.run.chaser.gap, near: this.run.chaser.near },
       activePowerups: [],
       screen: this.screen,
       obstacles: this.run.obstacles.active.length,
@@ -342,6 +342,22 @@ export class App implements ScreenHost, DebugHost {
 
   profile(): unknown {
     return this.store.export();
+  }
+
+  entities(): EntitiesDump {
+    const coins = this.run.coins;
+    const out: EntitiesDump = {
+      distance: this.run.state.distance,
+      obstacles: this.run.obstacles.active
+        .map((o) => ({ uid: o.uid, type: o.type.id, lane: o.lane, s: o.s, length: o.length, speed: o.speed }))
+        .sort((a, b) => a.s - b.s),
+      coins: [],
+    };
+    for (let i = 0; i < coins.status.length; i++) {
+      if (coins.status[i] === 1) out.coins.push({ lane: coins.lane[i], s: coins.s[i], y: coins.y[i] });
+    }
+    out.coins.sort((a, b) => a.s - b.s);
+    return out;
   }
 }
 

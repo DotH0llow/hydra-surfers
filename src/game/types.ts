@@ -69,6 +69,8 @@ export interface RunContext {
   renderAlpha: number;
   /** Request a crash (ignored in god mode or when not running). */
   crash(cause: string): void;
+  /** Light bump: stumbles the runner (optional bounce back); caught if the chaser is near. */
+  stumble(cause: string, bounce: boolean): void;
   getSystem<T extends RunSystem>(id: string): T | undefined;
 }
 
@@ -84,6 +86,11 @@ export interface RunSystem {
   init?(ctx: RunContext): void;
   /** At every run start and when returning to idle (home). */
   reset?(ctx: RunContext, opts: ResolvedRunOptions): void;
+  /**
+   * After EVERY system has reset (in order). Place initial content here (e.g. scenario layouts),
+   * otherwise a later system's reset (obstacles/coins pools) would clear it.
+   */
+  afterReset?(ctx: RunContext, opts: ResolvedRunOptions): void;
   /** Deterministic sim step (fixed dt). Must not allocate. */
   fixedUpdate?(ctx: RunContext, dt: number): void;
   /** Visual update. Must not mutate sim state. Must not allocate. */

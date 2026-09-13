@@ -29,7 +29,14 @@ async function boot(): Promise<void> {
       document.getElementById("ui")!,
     );
     app.init();
-    bootEl?.classList.add("hidden");
+    if (bootEl) {
+      // Manual clock (captures): remove instantly so the first captured frame is clean.
+      if (flags.clock === "manual") bootEl.remove();
+      else {
+        bootEl.classList.add("hidden");
+        bootEl.addEventListener("transitionend", () => bootEl.remove(), { once: true });
+      }
+    }
     bus.emit("app:ready", { placeholders: assets.report().placeholders.length });
     debug?.attach(app);
 

@@ -67,6 +67,17 @@ registerScenario({
 });
 
 registerScenario({
+  id: "train-side",
+  description: "Three-car train in the left lane from 24 m (to ~65 m). Swipe left while alongside = stumble + bounce; twice quickly = caught.",
+  procedural: false,
+  build(api) {
+    api.obstacle("train", -1, 24, 13);
+    api.obstacle("train", -1, 37.8, 13);
+    api.obstacle("train", -1, 51.6, 13);
+  },
+});
+
+registerScenario({
   id: "coin-line",
   description: "Ten coins in the centre lane from 16 m, 2 m apart.",
   procedural: false,

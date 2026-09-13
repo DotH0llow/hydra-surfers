@@ -196,19 +196,21 @@ registerMeshPlaceholder("train-car", ({ entry, getTexture }) => {
   const bodyMat = lambert(map ? "#ffffff" : entry.color ?? "#2d6cdf", { map });
   const roof = lambert("#c9ced6");
   const under = lambert("#23262d");
-  const face = lambert("#1b2233");
+  const face = lambert(entry.color ? shade(entry.color, -0.12) : "#23508f");
+  const rear = lambert("#3a4150");
   const glass = lambert("#9fd3f0");
   const len = 13;
   g.add(box(2.3, 2.9, len, bodyMat, 0, 0.5 + 1.45, 0, "car", 8));
   g.add(box(2.1, 0.2, len - 0.2, roof, 0, 3.5, 0, "roof", 8));
   g.add(box(1.9, 0.5, len - 1.5, under, 0, 0.25, 0, "bogies", 4));
-  // front (-Z) and back (+Z) end faces with a window band for readability
-  g.add(box(2.32, 2.9, 0.05, face, 0, 1.95, -len / 2 - 0.02));
-  g.add(box(1.7, 0.8, 0.05, glass, 0, 2.6, -len / 2 - 0.05));
-  g.add(box(2.32, 2.9, 0.05, face, 0, 1.95, len / 2 + 0.02));
+  // Cab end faces +Z — toward the approaching runner and camera — so it reads at a glance.
+  g.add(box(2.32, 2.9, 0.05, face, 0, 1.95, len / 2 + 0.02, "cab"));
+  g.add(box(1.7, 0.8, 0.05, glass, 0, 2.6, len / 2 + 0.05));
+  g.add(box(2.2, 0.12, 0.06, lambert("#f2c14e"), 0, 1.55, len / 2 + 0.05));
   const lamp = lambert("#fff3b0", { emissive: new Color("#fff3b0") });
-  g.add(box(0.3, 0.18, 0.06, lamp, -0.7, 1.2, -len / 2 - 0.06));
-  g.add(box(0.3, 0.18, 0.06, lamp, 0.7, 1.2, -len / 2 - 0.06));
+  g.add(box(0.3, 0.18, 0.06, lamp, -0.7, 1.2, len / 2 + 0.06));
+  g.add(box(0.3, 0.18, 0.06, lamp, 0.7, 1.2, len / 2 + 0.06));
+  g.add(box(2.32, 2.9, 0.05, rear, 0, 1.95, -len / 2 - 0.02));
   return g;
 });
 
@@ -373,7 +375,7 @@ registerSpritePlaceholder("icon-trophy", (e) =>
 );
 registerSpritePlaceholder("wordmark", () =>
   svg(
-    `<text x="200" y="92" text-anchor="middle" font-family="Arial Rounded MT Bold, Arial Black, sans-serif" font-weight="900" font-size="84" fill="${brand.palette.primary}" stroke="${brand.palette.ink}" stroke-width="10" paint-order="stroke" letter-spacing="2">${brand.name.toUpperCase()}</text>`,
+    `<text x="200" y="90" text-anchor="middle" textLength="370" lengthAdjust="spacingAndGlyphs" font-family="Arial Rounded MT Bold, Arial Black, sans-serif" font-weight="900" font-size="72" fill="${brand.palette.primary}" stroke="${brand.palette.ink}" stroke-width="10" paint-order="stroke">${brand.name.toUpperCase()}</text>`,
     "0 0 400 130",
   ),
 );

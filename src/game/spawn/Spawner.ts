@@ -39,7 +39,11 @@ export class Spawner implements RunSystem, SpawnApi {
     const live = ctx.state.mode !== "idle";
     this.procedural = live && sc.procedural;
     this.nextS = sc.proceduralStart ?? SPAWN.safeStart;
-    if (live && sc.build) sc.build(this);
+  }
+
+  /** Scenario layouts are placed after obstacle/coin pools have been cleared by their own reset. */
+  afterReset(ctx: RunContext, opts: ResolvedRunOptions): void {
+    if (ctx.state.mode !== "idle" && opts.scenario.build) opts.scenario.build(this);
   }
 
   fixedUpdate(ctx: RunContext): void {
