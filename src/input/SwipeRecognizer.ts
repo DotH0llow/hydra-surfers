@@ -9,7 +9,8 @@ import type { Action, InputSource } from "./actions";
 export const INPUT = defineTuning("input", "Input", {
   swipeThresholdPx: { default: 26, min: 4, max: 160, step: 1, label: "Swipe distance threshold", unit: "px" },
   swipeAngleTolerance: { default: 38, min: 5, max: 45, step: 1, label: "Swipe angle tolerance from axis", unit: "°" },
-  swipeMaxSeconds: { default: 0.5, min: 0, max: 3, step: 0.05, label: "Swipe max duration (0 = unlimited)", unit: "s" },
+  // 0 by default: a slow or janky (late pointermove) gesture must never lose the action.
+  swipeMaxSeconds: { default: 0, min: 0, max: 3, step: 0.05, label: "Swipe max duration (0 = unlimited)", unit: "s" },
   swipeRearm: { default: 1, min: 0, max: 1, step: 1, label: "Allow chained swipes in one touch (0/1)" },
   tapMaxMovePx: { default: 14, min: 0, max: 80, step: 1, label: "Tap max movement", unit: "px" },
   tapMaxSeconds: { default: 0.3, min: 0.05, max: 2, step: 0.01, label: "Tap max duration", unit: "s" },

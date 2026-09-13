@@ -190,7 +190,7 @@ body {
 .home .tap {
   font-size: 30px;
   font-weight: 900;
-  margin-bottom: 18%;
+  margin-bottom: 42%;
   text-shadow: 0 3px 0 rgba(0, 0, 0, 0.4);
   animation: yd-pulse 1.1s ease-in-out infinite;
 }
