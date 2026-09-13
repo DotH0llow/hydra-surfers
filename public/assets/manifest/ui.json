@@ -1,0 +1,50 @@
+{
+  "part": "ui",
+  "description": "UI sprites and icons. Owned by lane C.",
+  "assets": [
+    {
+      "id": "ui.logo",
+      "type": "sprite",
+      "src": "ui/logo.svg",
+      "placeholder": "wordmark",
+      "spec": "Game wordmark, SVG or 1024x384 PNG with transparency, reads at 240 px wide."
+    },
+    {
+      "id": "ui.icon.coin",
+      "type": "sprite",
+      "src": "ui/icons/coin.svg",
+      "placeholder": "icon-coin",
+      "color": "#ffc83d",
+      "spec": "Coin currency icon, square SVG or 128x128 PNG, transparent background."
+    },
+    {
+      "id": "ui.icon.pause",
+      "type": "sprite",
+      "src": "ui/icons/pause.svg",
+      "placeholder": "icon-pause",
+      "spec": "Pause button glyph, square SVG or 128x128 PNG, white on transparent."
+    },
+    {
+      "id": "ui.icon.play",
+      "type": "sprite",
+      "src": "ui/icons/play.svg",
+      "placeholder": "icon-play",
+      "spec": "Play/resume glyph, square SVG or 128x128 PNG, white on transparent."
+    },
+    {
+      "id": "ui.icon.home",
+      "type": "sprite",
+      "src": "ui/icons/home.svg",
+      "placeholder": "icon-home",
+      "spec": "Home glyph, square SVG or 128x128 PNG, white on transparent."
+    },
+    {
+      "id": "ui.icon.trophy",
+      "type": "sprite",
+      "src": "ui/icons/trophy.svg",
+      "placeholder": "icon-trophy",
+      "color": "#ffc83d",
+      "spec": "Best-score trophy icon, square SVG or 128x128 PNG, transparent background."
+    }
+  ]
+}

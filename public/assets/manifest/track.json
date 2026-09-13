@@ -1,0 +1,116 @@
+{
+  "part": "track",
+  "description": "Track, environment, obstacles and collectibles. Owned by lane B (world pieces by lane A).",
+  "assets": [
+    {
+      "id": "tex.track.ballast",
+      "type": "texture",
+      "src": "textures/track/ballast.png",
+      "placeholder": "gravel",
+      "color": "#8a8174",
+      "repeat": [1, 4],
+      "srgb": true,
+      "spec": "Tileable crushed-stone ballast under one lane of track. 512x512 PNG/JPG, seamless both axes, viewed from a low grazing angle; tile covers 2.5 m x 2.5 m."
+    },
+    {
+      "id": "tex.ground.yard",
+      "type": "texture",
+      "src": "textures/track/yard_ground.png",
+      "placeholder": "dirt",
+      "color": "#6f7a5a",
+      "repeat": [12, 40],
+      "srgb": true,
+      "spec": "Tileable packed-earth / weedy concrete ground beside the tracks. 512x512, seamless, tile covers ~5 m."
+    },
+    {
+      "id": "env.track.rail",
+      "type": "gltf",
+      "src": "models/track/rail.glb",
+      "placeholder": "rail",
+      "color": "#b9bec6",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "One steel rail, 1 m long along -Z (tiled by the engine), 0.07 m wide, 0.12 m tall, origin at bottom centre. <= 100 tris."
+    },
+    {
+      "id": "env.track.sleeper",
+      "type": "gltf",
+      "src": "models/track/sleeper.glb",
+      "placeholder": "sleeper",
+      "color": "#5b4636",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "One timber/concrete sleeper (tie) across a lane: 2.3 m wide (X), 0.24 m deep (Z), 0.12 m tall, origin at bottom centre. <= 60 tris, instanced."
+    },
+    {
+      "id": "env.building.block",
+      "type": "gltf",
+      "src": "models/env/yard_block.glb",
+      "placeholder": "building-block",
+      "color": "#9aa5b1",
+      "maps": { "map": "tex.env.wall" },
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Generic yard building/warehouse block, authored as a 1x1x1 m unit cube (scaled per instance), origin at bottom centre. <= 200 tris, uses tex.env.wall."
+    },
+    {
+      "id": "tex.env.wall",
+      "type": "texture",
+      "src": "textures/env/wall.png",
+      "placeholder": "wall-panels",
+      "color": "#9aa5b1",
+      "srgb": true,
+      "spec": "Tileable corrugated/brick wall panels. 512x512, seamless horizontally."
+    },
+    {
+      "id": "obstacle.barrier.low",
+      "type": "gltf",
+      "src": "models/obstacles/barrier_low.glb",
+      "placeholder": "barrier-low",
+      "color": "#f2f2f2",
+      "maps": { "map": "tex.barrier.stripes" },
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Low striped track barrier spanning one lane: 2.2 m wide, plank from 0.55 m to 1.05 m above ground, posts at both ends, 0.3 m deep. Must read as 'jump over or roll under'. Origin bottom centre. <= 800 tris."
+    },
+    {
+      "id": "tex.barrier.stripes",
+      "type": "texture",
+      "src": "textures/obstacles/barrier_stripes.png",
+      "placeholder": "hazard-stripes",
+      "color": "#e5484d",
+      "srgb": true,
+      "spec": "Diagonal hazard stripes (two high-contrast colours), 256x64, tileable horizontally."
+    },
+    {
+      "id": "obstacle.train.car",
+      "type": "gltf",
+      "src": "models/obstacles/train_car.glb",
+      "placeholder": "train-car",
+      "color": "#2d6cdf",
+      "maps": { "map": "tex.train.side" },
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "One freight/commuter car occupying a full lane: 2.3 m wide, 3.6 m tall, 13 m long along Z, origin at bottom centre of its footprint, front faces -Z (toward the runner when oncoming). <= 3k tris, 1 material, 1024x512 texture."
+    },
+    {
+      "id": "tex.train.side",
+      "type": "texture",
+      "src": "textures/obstacles/train_side.png",
+      "placeholder": "train-side",
+      "color": "#2d6cdf",
+      "srgb": true,
+      "spec": "Side livery of a train car with windows/doors. 1024x512, wraps once around the car."
+    },
+    {
+      "id": "collect.coin",
+      "type": "gltf",
+      "src": "models/collectibles/coin.glb",
+      "placeholder": "coin",
+      "color": "#ffc83d",
+      "pivot": "center",
+      "forward": "-z",
+      "spec": "Collectible coin, 0.7 m diameter disc facing -Z, 0.08 m thick, origin at centre. <= 300 tris, rendered instanced (single mesh, single material)."
+    }
+  ]
+}

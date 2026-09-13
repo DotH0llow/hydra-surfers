@@ -1,0 +1,38 @@
+{
+  "part": "core",
+  "description": "Characters, chaser and shared effects. Owned by lane D (additive for others).",
+  "assets": [
+    {
+      "id": "char.runner.default",
+      "type": "gltf",
+      "src": "models/characters/runner_default.glb",
+      "placeholder": "capsule-runner",
+      "color": "#ff7a1a",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "spec": "Playable runner. Height 1.7 m, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop, ~0.6 s stride), Jump, Roll, Stumble, Death, Idle (loop), LeanLeft, LeanRight."
+    },
+    {
+      "id": "char.chaser.guard",
+      "type": "gltf",
+      "src": "models/characters/chaser_guard.glb",
+      "placeholder": "capsule-chaser",
+      "color": "#3d5a80",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "animations": { "run": "Run", "catch": "Catch", "idle": "Idle" },
+      "spec": "Yard warden who chases the runner. Height 1.85 m, stocky, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop), Catch, Idle."
+    },
+    {
+      "id": "fx.shadow.blob",
+      "type": "texture",
+      "src": "textures/fx/shadow_blob.png",
+      "placeholder": "radial-shadow",
+      "srgb": false,
+      "spec": "Soft round contact shadow. 128x128 PNG, white-to-transparent alpha radial falloff (used as alpha), no colour."
+    }
+  ]
+}

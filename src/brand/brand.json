@@ -1,0 +1,37 @@
+{
+  "id": "yard-dash",
+  "name": "Yard Dash",
+  "tagline": "Outrun the yard.",
+  "palette": {
+    "sky": "#8fc3e8",
+    "fog": "#b9d6e8",
+    "ink": "#1b2233",
+    "paper": "#fff8ec",
+    "primary": "#ff7a1a",
+    "primaryDark": "#c9540a",
+    "accent": "#2fc4b2",
+    "coin": "#ffc83d",
+    "danger": "#e5484d",
+    "panel": "rgba(20, 26, 40, 0.78)"
+  },
+  "fonts": {
+    "display": "\"Arial Rounded MT Bold\", \"Nunito\", \"Segoe UI\", system-ui, sans-serif",
+    "body": "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+  },
+  "copy": {
+    "tapToPlay": "Tap to run",
+    "keyboardHint": "← → / A D  switch  ·  ↑ / W / Space  jump  ·  ↓ / S  roll",
+    "best": "Best",
+    "score": "Score",
+    "coins": "Coins",
+    "paused": "Paused",
+    "resume": "Resume",
+    "home": "Home",
+    "gameOver": "Caught out!",
+    "playAgain": "Run again",
+    "newBest": "New best!",
+    "comingSoon": "Coming soon",
+    "back": "Back",
+    "loading": "Loading…"
+  }
+}

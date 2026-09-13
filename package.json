@@ -1,0 +1,30 @@
+{
+  "name": "yard-dash",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Yard Dash: an original mobile-first 3-lane endless runner (Vite + TypeScript + three.js).",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "assets:doc": "node tools/assets-doc.mjs",
+    "assets:check": "node tools/assets-check.mjs"
+  },
+  "dependencies": {
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "@types/three": "^0.186.0",
+    "playwright-core": "^1.63.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0"
+  }
+}

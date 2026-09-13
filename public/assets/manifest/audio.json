@@ -1,0 +1,13 @@
+{
+  "part": "audio",
+  "description": "Sound effects and music. Owned by lane D.",
+  "assets": [
+    { "id": "sfx.coin", "type": "audio", "src": "audio/sfx/coin.ogg", "placeholder": "synth-coin", "volume": 0.5, "spec": "Bright short coin pickup chime, < 150 ms, mono OGG/MP3 44.1 kHz, peak -3 dBFS. Engine pitches it up across consecutive pickups." },
+    { "id": "sfx.jump", "type": "audio", "src": "audio/sfx/jump.ogg", "placeholder": "synth-jump", "volume": 0.6, "spec": "Springy jump whoosh, < 250 ms, mono." },
+    { "id": "sfx.land", "type": "audio", "src": "audio/sfx/land.ogg", "placeholder": "synth-land", "volume": 0.4, "spec": "Soft landing thud on gravel, < 150 ms, mono." },
+    { "id": "sfx.roll", "type": "audio", "src": "audio/sfx/roll.ogg", "placeholder": "synth-roll", "volume": 0.6, "spec": "Quick tumble/whoosh, < 300 ms, mono." },
+    { "id": "sfx.swipe", "type": "audio", "src": "audio/sfx/swipe.ogg", "placeholder": "synth-swipe", "volume": 0.35, "spec": "Light air swish for lane change, < 150 ms, mono." },
+    { "id": "sfx.crash", "type": "audio", "src": "audio/sfx/crash.ogg", "placeholder": "synth-crash", "volume": 0.8, "spec": "Impact crash (body into metal), < 600 ms, mono." },
+    { "id": "sfx.ui.tap", "type": "audio", "src": "audio/sfx/ui_tap.ogg", "placeholder": "synth-tap", "volume": 0.5, "spec": "UI button click/pop, < 80 ms, mono." }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "version": 1,
+  "parts": ["manifest/core.json", "manifest/track.json", "manifest/ui.json", "manifest/audio.json"]
+}
