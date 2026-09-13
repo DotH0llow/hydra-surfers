@@ -38,7 +38,7 @@ export class App implements ScreenHost, DebugHost {
   readonly loop: Loop;
   readonly run: Run;
   readonly ui: UiRoot;
-  readonly input: InputRouter;
+  readonly inputRouter: InputRouter;
   readonly audio: AudioBus;
   lastResult: LastResult | null = null;
   private seedOverride: number | undefined = flags.seed;
@@ -63,7 +63,7 @@ export class App implements ScreenHost, DebugHost {
       render: (alpha, frameDt) => this.render(alpha, frameDt),
     });
     this.ui = new UiRoot(uiContainer, this);
-    this.input = new InputRouter(playfield, bus);
+    this.inputRouter = new InputRouter(playfield, bus);
     this.audio = new AudioBus(assets, bus, store, flags.mute);
   }
 
@@ -282,7 +282,7 @@ export class App implements ScreenHost, DebugHost {
 
   input(action: string): void {
     if (!isAction(action)) throw new Error(`[__game] unknown action "${action}"`);
-    this.input.dispatch(action, "debug");
+    this.inputRouter.dispatch(action, "debug");
   }
 
   getState(): GameState {
