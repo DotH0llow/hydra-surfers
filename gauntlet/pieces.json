@@ -1,0 +1,142 @@
+{
+  "lanes": {
+    "F": { "name": "Foundation", "port": 5100, "branch": "main" },
+    "A": { "name": "Run feel", "port": 5101, "branch": "lane/a-run-feel" },
+    "B": { "name": "Track content", "port": 5102, "branch": "lane/b-track" },
+    "C": { "name": "UI & meta", "port": 5103, "branch": "lane/c-ui-meta" },
+    "D": { "name": "Platform & tools", "port": 5104, "branch": "lane/d-platform" }
+  },
+  "pieces": [
+    { "id": "F1-foundation", "lane": "F", "kind": "engineering", "title": "Foundation scaffold",
+      "criteria": [
+        "npm ci && npm run build && npm run typecheck && npm test all pass on a clean checkout",
+        "PLAN.md §2 layout exists with real (not empty-stub) core: loop (realtime+manual clock), events, rng, tuning registry, store with versioning, flags, debugApi implementing every §4 method",
+        "A playable greybox run: 3 lanes, forward motion, left/right/jump/roll via keyboard and touch swipe, one obstacle type, coins, crash ends run, restart works",
+        "tools/capture.mjs implements §5 including --touch and --perf; tools/contact-sheet.mjs works; at least 3 scenarios exist and produce frames+contact.png+trace.json",
+        "public/assets/manifest.json + placeholder fallback: deleting/renaming any src never breaks the game; swapping one texture file changes the render with zero code edits",
+        "wrangler.jsonc (Workers static assets + worker/ for /api/*) and .github/workflows/deploy.yml exist; `npx wrangler deploy --dry-run` succeeds",
+        "Devtools are dynamically imported only when flags.devtools; a production build with VITE_DEVTOOLS unset contains no dev panel code",
+        "No Subway Surfers names, art, sounds or trademarks anywhere in the repo"
+      ] },
+
+    { "id": "A1-camera-framing", "lane": "A", "kind": "compare", "title": "Camera & world framing",
+      "dimension": "Still frames mid-run on a straight section: camera height, distance behind runner, pitch, FOV, where the runner sits on screen, lane width vs runner size, track/rail proportions, curved-world horizon bend, draw distance, fog/atmosphere depth cues, portrait composition. Art fidelity excluded.",
+      "evidence": "6 still frames each: running centre lane, left lane, right lane, mid-jump apex, rolling, approaching a train." },
+    { "id": "A2-lane-switch", "lane": "A", "kind": "compare", "title": "Lane switching feel",
+      "dimension": "Frame strips at 30 fps of single and rapid double lane changes: switch duration in frames, easing curve, body lean, camera follow lag and roll, reversal mid-switch, snap/overshoot, how instantly motion begins.",
+      "evidence": "Strips: one switch L, one switch R, fast double switch, reversal mid-switch; ≥2 s each." },
+    { "id": "A3-jump", "lane": "A", "kind": "compare", "title": "Jump arc & fast-fall",
+      "dimension": "Frame strips at 30 fps: jump apex height relative to runner height, airtime frames, arc shape (rise vs fall asymmetry), camera vertical follow, lane change while airborne, swipe-down fast fall into roll, landing recovery.",
+      "evidence": "Strips: plain jump, jump + lane change, jump then slam-down into roll." },
+    { "id": "A4-roll", "lane": "A", "kind": "compare", "title": "Roll",
+      "dimension": "Frame strips at 30 fps: roll duration, pose height, entry/exit timing, roll → jump cancel, lane change while rolling, camera response.",
+      "evidence": "Strips: plain roll, roll then jump cancel, roll + lane change." },
+    { "id": "A5-input-response", "lane": "A", "kind": "compare+engineering", "title": "Input responsiveness & chaining",
+      "dimension": "How crisply rapid input sequences execute (e.g. left,left,jump,roll within ~1 s): no dropped or delayed actions, motion begins on the first frame after the gesture, buffered actions fire at the right moment.",
+      "criteria": [
+        "Swipe fires when the finger crosses the distance threshold during the move (not on release); threshold and angle tolerance are tunable",
+        "Measured input-to-first-motion ≤ 1 sim frame in --touch capture; keyboard identical",
+        "Actions issued during a switch/jump/roll are buffered per tuning window and never lost",
+        "Works with touch, mouse-drag and keyboard (arrows + WASD + space/shift); no page scroll or zoom on mobile"
+      ],
+      "evidence": "Touch capture of a scripted rapid sequence; trace + strips." },
+    { "id": "A6-speed-pacing", "lane": "A", "kind": "compare", "title": "Forward speed & pacing curve",
+      "dimension": "Perceived and measured forward speed at run start, ~30 s, ~60 s, ~120 s, ~180 s (sleepers/ties passed per second relative to runner size), acceleration smoothness, top speed.",
+      "evidence": "1-second strips sampled at 0, 30, 60, 120, 180 s." },
+    { "id": "A7-character-motion", "lane": "A", "kind": "compare", "title": "Runner motion states",
+      "dimension": "Readability and timing of runner poses/animation: run cycle cadence, lean into lane change, jump tuck, roll ball, landing squash, stumble recoil, crash. Judged on motion/timing/silhouette, not model quality.",
+      "evidence": "Strips of each state." },
+
+    { "id": "B1-obstacle-kit", "lane": "B", "kind": "compare", "title": "Obstacle kit & proportions",
+      "dimension": "Set of obstacle types and their proportions vs runner and lanes: low barrier (jump or roll), high barrier (roll only), stationary train, oncoming moving train, ramp onto train roofs, roof running, tunnels/overpasses, readability of which action each demands at a glance.",
+      "evidence": "Stills of each obstacle type from gameplay camera at ~2 s and ~0.7 s before contact." },
+    { "id": "B2-track-generation", "lane": "B", "kind": "compare", "title": "Track generation & difficulty ramp",
+      "dimension": "Contact sheets sampled every 2 s over the first 3 minutes: obstacle density, pattern variety, fairness (always a path), use of train roofs, coin guidance lines, difficulty ramp.",
+      "evidence": "Two 3-minute runs (autopilot/god-mode), frame every 2 s." },
+    { "id": "B3-collision-stumble", "lane": "B", "kind": "compare", "title": "Collisions, stumble & crash",
+      "dimension": "Frame strips: side-bump stumble (runner deflects back to lane, chaser closes in), second stumble within window = caught, frontal crash sequence, roof edge / ramp leniency, hit-box fairness.",
+      "evidence": "Strips: side bump, double stumble catch, frontal train crash, barrier crash." },
+    { "id": "B4-chaser", "lane": "B", "kind": "compare", "title": "Chaser (guard + dog)",
+      "dimension": "Run start chase, how long chaser stays on screen before falling back, return on stumble, catch sequence, on-screen size/position.",
+      "evidence": "Strips: run start 0-6 s, stumble return, catch." },
+    { "id": "B5-coins", "lane": "B", "kind": "compare", "title": "Coins & pickup feedback",
+      "dimension": "Coin line layouts (straight, lane-changing, arcs over barriers, on roofs), spacing, height, spin, pickup feedback (flash/sparkle/HUD tick) and pacing of collection.",
+      "evidence": "Strips collecting a coin line, an arc over a barrier, a roof line." },
+    { "id": "B6-powerups", "lane": "B", "kind": "compare", "title": "Power-ups",
+      "dimension": "Jetpack (lift, sky coin line, descent), super sneakers (higher jumps), coin magnet (pull radius/feel), 2x multiplier; pickup presentation, duration timers, end transitions.",
+      "evidence": "Strips of each power-up pickup, active state and ending." },
+    { "id": "B7-hoverboard", "lane": "B", "kind": "compare", "title": "Hoverboard",
+      "dimension": "Activation (double-tap), board visual state, duration, crash absorbed with board-break effect and brief invulnerability, HUD indicator.",
+      "evidence": "Strips: activate, ride, crash absorbed." },
+
+    { "id": "C1-hud", "lane": "C", "kind": "compare", "title": "In-run HUD",
+      "dimension": "Layout, hierarchy and readability at phone size: score + multiplier, coin counter, pause, power-up timers, hoverboard indicator, mission toast; safe areas; number animation.",
+      "evidence": "Stills mid-run with and without active power-ups at 540x960." },
+    { "id": "C2-home-and-start", "lane": "C", "kind": "compare", "title": "Home screen & run start",
+      "dimension": "Home screen composition (runner idle on track, tap-to-play, navigation to shop/missions/leaderboard/profile/settings, currency display) and the transition from tap into a running game.",
+      "evidence": "Home still + strip of tap → running (0-4 s)." },
+    { "id": "C3-pause-revive-results", "lane": "C", "kind": "compare", "title": "Pause, revive & results flow",
+      "dimension": "Pause overlay and resume countdown; crash → revive offer (keys) with countdown; results screen (score, coins, best, mission progress, play again/home); timing and clarity of the flow.",
+      "evidence": "Stills + strip of crash → revive → results → home." },
+    { "id": "C4-missions-multiplier", "lane": "C", "kind": "compare", "title": "Missions & score multiplier",
+      "dimension": "Mission sets (3 at a time), in-run completion toast, multiplier increase on set completion, daily challenge (original equivalent), clarity of progress UI.",
+      "evidence": "Missions screen still, in-run toast strip, multiplier-up moment." },
+    { "id": "C5-shop-progression", "lane": "C", "kind": "compare", "title": "Shop, currencies & upgrades",
+      "dimension": "Currencies (coins, keys), character & board catalog with skins, power-up upgrade levels, purchase/equip UX and feedback, progression pacing.",
+      "evidence": "Shop stills (characters, boards, upgrades), purchase flow strip." },
+    { "id": "C6-leaderboards", "lane": "C", "kind": "compare+engineering", "title": "Leaderboards & online layer",
+      "dimension": "Leaderboard/league UI: ranks, player row highlight, tiers/brackets, weekly reset timer, rewards preview.",
+      "criteria": [
+        "LeaderboardService interface with Mock and Http providers selected by VITE_ONLINE_PROVIDER; unit tests for both (Http tested against the Worker via wrangler/miniflare or a fetch mock)",
+        "worker/ implements /api/scores (POST, validated, rate-limited) and /api/leaderboard (GET scopes) on D1 with schema.sql and migrations; returns 503 JSON when DB unbound and client falls back to mock",
+        "docs/ONLINE.md explains connecting a real D1 database in < 10 steps"
+      ],
+      "evidence": "Leaderboard stills + test output." },
+
+    { "id": "D1-cheats-panel", "lane": "D", "kind": "engineering", "title": "Dev cheats panel",
+      "criteria": [
+        "Toggle via ` key and a 3-finger tap / corner long-press on mobile; usable one-handed at 375x812",
+        "God mode, no-clip, give coins/keys, unlock all, reset profile, spawn any power-up, activate hoverboard, set speed, time scale (0.1-3x), jump to distance/difficulty, force specific obstacle pattern, show hitboxes, show lane grid, FPS/frame-time/draw-call/memory overlay",
+        "Every cheat also callable through window.__game.cheat(name, ...) and covered by a smoke test",
+        "Excluded from production bundle unless VITE_DEVTOOLS=1"
+      ] },
+    { "id": "D2-editor", "lane": "D", "kind": "engineering", "title": "In-game editor",
+      "criteria": [
+        "Auto-generated from the tuning registry (grouped, searchable, sliders with min/max/step, reset per field) — adding a tuning entry needs zero editor code",
+        "Edits player stats, physics/feel, camera, speed curve, spawn weights/difficulty, power-up durations & upgrade tables, skins/equipped items, catalog prices, missions, currencies and profile progression",
+        "Live apply mid-run without restart; presets save/load/export/import JSON; persisted across reloads",
+        "Usable on a phone (375x812) and desktop; does not tank frame rate while open"
+      ] },
+    { "id": "D3-asset-pipeline", "lane": "D", "kind": "engineering", "title": "Asset swap pipeline",
+      "criteria": [
+        "Every visual/audio/UI asset used by the game is referenced only through the manifest (grep proves no hard-coded asset paths)",
+        "docs/ASSETS.md generated from manifest lists every asset with id, file path, format, dimensions/poly budget, pivot/orientation, animation clip names, and a style brief",
+        "npm run assets:check validates presence, formats, sizes, glTF clip names and reports placeholders still in use",
+        "A critic acting as the art AI swaps one character glb, one texture, one UI icon, one sfx using only docs and succeeds with zero code edits"
+      ] },
+    { "id": "D4-audio", "lane": "D", "kind": "engineering", "title": "Audio",
+      "criteria": [
+        "AudioBus on WebAudio with unlock-on-first-gesture, music + sfx buses, mute/volume settings persisted",
+        "Synthesized placeholder SFX for jump, roll, lane switch, coin (pitch rises across consecutive pickups), power-up, hoverboard, stumble, crash, UI clicks; every sound swappable via manifest",
+        "No audio work on the hot path allocates; pauses with visibility"
+      ] },
+    { "id": "D5-perf-mobile", "lane": "D", "kind": "engineering", "title": "Performance & mobile polish",
+      "criteria": [
+        "--perf capture with 4x CPU throttle at 540x960: p50 ≥ 58 fps, p95 frame ≤ 20 ms over a 60 s run; draw calls ≤ 120; no GC sawtooth > 5 MB",
+        "Initial JS ≤ 250 KB gzip (excluding devtools chunk); first playable ≤ 2.5 s on Fast 4G emulation",
+        "PWA manifest + icons, standalone portrait, safe-area insets, no rubber-band scroll / double-tap zoom, wake lock during run, pause on visibility change, DPR cap tunable",
+        "Landscape/desktop layout letterboxes the portrait playfield gracefully with keyboard hints"
+      ] },
+    { "id": "D6-cloudflare-deploy", "lane": "D", "kind": "engineering", "title": "Cloudflare deploy from GitHub",
+      "criteria": [
+        "wrangler.jsonc: Workers static assets (SPA fallback) + API worker on /api/*, D1 binding optional",
+        ".github/workflows/deploy.yml builds, tests and deploys with cloudflare/wrangler-action on push to main and preview deploys on PRs",
+        "npx wrangler deploy --dry-run passes; worker unit tests pass",
+        "docs/DEPLOY.md: both GitHub Actions and Cloudflare dashboard Git integration paths, required secrets, custom domain, D1 setup"
+      ] },
+
+    { "id": "Z1-full-run", "lane": "F", "kind": "compare", "title": "Full-run gestalt (after merge)",
+      "dimension": "Whole-loop comparison: home → start → 3-minute run → crash → revive → results → home. Pacing, flow, responsiveness, feedback density, clarity. Art fidelity excluded.",
+      "evidence": "Contact sheets every 2 s plus key-moment strips." }
+  ]
+}
