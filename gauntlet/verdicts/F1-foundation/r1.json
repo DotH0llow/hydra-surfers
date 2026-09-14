@@ -1,0 +1,62 @@
+{
+  "piece": "F1-foundation",
+  "stage": "critic",
+  "round": 1,
+  "commit": "72f88c9",
+  "verdict": "FAIL",
+  "passed": 7,
+  "total": 8,
+  "criteria": [
+    {
+      "criterion": "npm ci && npm run build && npm run typecheck && npm test all pass on a clean checkout",
+      "pass": true,
+      "evidence": "Fresh git worktree of 72f88c9: npm ci exit 0 (0 vulnerabilities); vite build exit 0 (index chunk 678 KB / 177.5 KB gzip); typecheck (app + worker tsconfig) exit 0; vitest 8 files / 65 tests passed."
+    },
+    {
+      "criterion": "PLAN.md §2 layout exists with real (not empty-stub) core: loop (realtime+manual clock), events, rng, tuning registry, store with versioning, flags, debugApi implementing every §4 method",
+      "pass": true,
+      "evidence": "All src/core files are real: loop 138 lines (integer-microsecond 120 Hz fixed step), rng mulberry32, tuning registry with 157 live paths, store with version, migrations and deep-fill, flags, debugApi. Every §4 method checked live. realtime advanced 43 frames in 600 ms; manual stayed frozen. step(10) gave 10 frames / 20 ticks and step(3,30) gave 12 ticks. setSeed(4242) was applied to the next run. Same seed gave identical entities; a different seed differed. startRun({scenario,seed,skipIntro}) worked. goto() reached all 8 screens with the matching DOM visible. input() accepted all 7 actions and left/right/jump/roll/pause took effect. getState had every §4 field. setTuning/getTuning round-tripped; an unknown path returned false. cheat('setSpeed',21) gave speed 21; an unknown cheat threw. §8b module augmentation is used in 6 owning modules. Missing §2 paths are lane-owned: game/powerups, game/hoverboard, src/meta, online/HttpProvider.ts, public/assets/{models,textures,audio,ui}."
+    },
+    {
+      "criterion": "A playable greybox run: 3 lanes, forward motion, left/right/jump/roll via keyboard and touch swipe, one obstacle type, coins, crash ends run, restart works",
+      "pass": true,
+      "evidence": "Contact sheets show 3 lanes, forward motion, a jump arc, an airborne lane change, slam into roll (ball) and roll-jump cancel. Real keyboard: ArrowLeft→lane -1, KeyD→lane 0, Space→y 0.55, Shift→roll. Real CDP touch swipes: left -1, right 0, up y 0.98, down roll. touch-rapid gave 7 flicks, exactly 1 action each, motion after 0 frames. Two obstacle types (barrierLow, train). coin-line collected 10 coins; god-mode run collected 42. barrier-ahead crashed at 2.93 s → gameover at 4.03 s. Unaided realtime run crashed by 102 m. Restart worked by real mouse click on Play again, keyboard Enter, and touch tap on Play again. Tap-to-start on home passed 60/60 fresh-page CDP trials."
+    },
+    {
+      "criterion": "tools/capture.mjs implements §5 including --touch and --perf; tools/contact-sheet.mjs works; at least 3 scenarios exist and produce frames+contact.png+trace.json",
+      "pass": true,
+      "evidence": "8 scenarios. On --port 5109, run-straight, lane-switch, jump, roll, crash, touch-rapid --touch, lane-switch --touch and dev-panel (--devtools auto-build) each wrote frames/, contact.png, trace.json and meta.json. Frame and trace counts match: 90/180/150/150/180/135/180/30. --perf --throttle 4: p50 75 fps, p95 13.4 ms, 82 draw calls, heap drop 2.65 MB, plus perf.json. Standalone contact-sheet.mjs --dir jump/frames produced a 91-tile sheet."
+    },
+    {
+      "criterion": "public/assets/manifest.json + placeholder fallback: deleting/renaming any src never breaks the game; swapping one texture file changes the render with zero code edits",
+      "pass": true,
+      "evidence": "Served a copy of dist with Workers-style SPA fallback. Dropped a magenta/yellow 256² PNG at textures/track/yard_ground.png. assets().loaded gained tex.ground.yard, 129/5184 downscaled pixels changed, and the ground visibly became checker (screenshots compared). Then: renaming that src in track.json, renaming the file on disk, prefixing every src in all 4 parts with nope/, deleting the ui.json part, and garbage bytes at png/glb/svg/ogg srcs each still reached screen=run with distance > 0 and zero page errors."
+    },
+    {
+      "criterion": "wrangler.jsonc (Workers static assets + worker/ for /api/*) and .github/workflows/deploy.yml exist; `npx wrangler deploy --dry-run` succeeds",
+      "pass": true,
+      "evidence": "wrangler.jsonc: main worker/index.ts, assets ./dist with single-page-application fallback, run_worker_first [/api/*], D1 commented as optional. deploy.yml: npm ci, typecheck, test, build, check:devstrip, dry-run, and wrangler-action deploy on push to main. `npx wrangler deploy --dry-run` read 15 asset files, bundled 7.19 KiB, bound ASSETS and APP_VERSION, exit 0."
+    },
+    {
+      "criterion": "Devtools are dynamically imported only when flags.devtools; a production build with VITE_DEVTOOLS unset contains no dev panel code",
+      "pass": true,
+      "evidence": "main.ts has `if (__DEVTOOLS_BUILD__ && flags.devtools) await import('./dev/index')`, and vite define sets __DEVTOOLS_BUILD__ false. Production dist JS has 0 matches for installDevtools, devPanel, yd-dev, dev-panel or the import. The .map sources list has no src/dev; installDevtools appears only in main.ts sourcesContent. check-devstrip: prod 0 marker hits; VITE_DEVTOOLS=1 build has a separate dev-*.js chunk."
+    },
+    {
+      "criterion": "No Subway Surfers names, art, sounds or trademarks anywhere in the repo",
+      "pass": false,
+      "evidence": "`git grep -i -E 'subway|surfers|sybo' HEAD` finds 5 committed lines. gauntlet/board.html:114 is visible copy on the progress page ('judged blind against the shipped Subway Surfers'). Also PLAN.md:5,134,138 and gauntlet/pieces.json:19. The name is in history via commits 8a6b778 and 9c55a01. No art, audio or file names matched; .reference/ is ignored; the .captures PNG byte match is untracked and ignored."
+    }
+  ],
+  "biggest_gap": "The name 'Subway Surfers' is in 5 committed lines, and the criterion says 'anywhere in the repo'. gauntlet/board.html:114 is visible text on the progress page. PLAN.md:5,134,138 and gauntlet/pieces.json:19 carry it too, and it is in the history of commits 8a6b778 and 9c55a01. Fix: replace every occurrence with a neutral term (e.g. 'the reference game') in all tracked files. PLAN.md and pieces.json are the orchestrator's binding contracts, so the orchestrator must approve those edits. Scrubbing history needs a rewrite, which the orchestrator must also decide.",
+  "other_gaps": [
+    "PLAN §2 layout is incomplete: src/game/powerups, src/game/hoverboard, src/meta, src/online/HttpProvider.ts and public/assets/{models,textures,audio,ui}/ are missing. getState().activePowerups is hard-coded [] in App.ts:322.",
+    "Not one real asset file ships: all 27 manifest entries are placeholders, so every boot logs 27x 404 plus a warning. The swap path was only proven by this critic's dropped texture.",
+    "AssetLibrary.loadSprite only checks content-type. Garbage bytes at ui/icons/coin.svg are reported as 'loaded' with no placeholder, so the HUD gets a broken <img>. Corrupt png/glb do fall back.",
+    "vite.config.ts sets build.sourcemap: true, so production dist ships .js.map files with full sourcesContent, and wrangler uploads them. The whole client source is public.",
+    "The results screen says 'Caught out!' after a frontal barrier crash with no chaser catch (crash contact sheet f121+). Copy does not match the event.",
+    "The index chunk is 678 KB raw / 177.5 KB gzip, and chunkSizeWarningLimit is raised to 900 to hide Vite's warning. That leaves about 70 KB under the D5 250 KB gzip budget before any UI/meta/audio work.",
+    "capture.mjs's touch `tap` gesture sends touchStart→touchEnd with zero hold and a single rAF flush. 2 of ~70 ad-hoc probes read screen=home right after such a tap; 60/60 passed with a 200 ms settle. Most likely probe timing, but --touch tap timeline items may be flaky.",
+    "`git worktree add` fails under the long scratchpad path ('$GIT_DIR' too big); the critic used C:/Users/Pichau/AppData/Local/Temp/claude/f1cr1. This is an environment note, not a repo defect."
+  ]
+}
