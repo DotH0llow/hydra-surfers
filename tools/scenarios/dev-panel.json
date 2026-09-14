@@ -1,0 +1,12 @@
+{
+  "description": "Devtools build (VITE_DEVTOOLS=1, ?dev=1): open the minimal dev panel over a running game, then close it via the cheat.",
+  "devtools": true,
+  "seed": 1,
+  "setup": [
+    ["startRun", { "scenario": "flat-straight", "skipIntro": true }],
+    ["cheat", "devPanel", true]
+  ],
+  "timeline": [{ "frame": 24, "call": ["cheat", "devPanel", false], "label": "close panel" }],
+  "seconds": 1,
+  "fps": 30
+}

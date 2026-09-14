@@ -38,12 +38,17 @@ async function boot(): Promise<void> {
       }
     }
     bus.emit("app:ready", { placeholders: assets.report().placeholders.length });
-    debug?.attach(app);
 
+    // Devtools first, so `__game.ready` only resolves once dev cheats (e.g. devPanel) are registered.
     if (__DEVTOOLS_BUILD__ && flags.devtools) {
-      const dev = await import("./dev/index");
-      dev.installDevtools(app);
+      try {
+        const dev = await import("./dev/index");
+        dev.installDevtools(app);
+      } catch (err) {
+        console.error("[boot] devtools failed to load", err);
+      }
     }
+    debug?.attach(app);
   } catch (err) {
     console.error("[boot] failed", err);
     if (bootEl) bootEl.textContent = "Failed to start. Please reload.";
