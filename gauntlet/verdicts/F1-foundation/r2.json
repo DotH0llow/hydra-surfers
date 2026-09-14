@@ -1,0 +1,75 @@
+{
+  "piece": "F1-foundation",
+  "stage": "critic",
+  "round": 2,
+  "commit": "96162dc",
+  "verdict": "PASS",
+  "passed": 8,
+  "total": 8,
+  "criteria": [
+    {
+      "criterion": "npm ci && npm run build && npm run typecheck && npm test all pass on a clean checkout",
+      "pass": true,
+      "evidence": "Fresh worktree K:/yard-dash-data/wt/f1-critic-r2 @96162dc. npm ci exit 0 (0 vulnerabilities). vite build exit 0: [budget] PASS initial JS 177.8 kB gzip / 250. typecheck (app + worker) exit 0. vitest 10 files / 73 tests passed."
+    },
+    {
+      "criterion": "PLAN.md §2 layout exists with real (not empty-stub) core: loop (realtime+manual clock), events, rng, tuning registry, store with versioning, flags, debugApi implementing every §4 method",
+      "pass": true,
+      "evidence": "All §2 paths now exist with real code: game/powerups (PowerupSystem 138 + registry 49), hoverboard 102, meta/progression 33, online/HttpProvider 59 with 503 fallback, and public/assets/{models,textures,audio,ui}. Since r1, src/core changed only 4 lines in debugApi. §8b module augmentation is used in 8 owning modules. Live probe on a served prod dist: realtime clock advanced 46 frames in 600 ms, manual stayed at 0. step(10) gave 10 frames / 20 ticks; step(3,30) gave 3 frames / 12 ticks. setSeed(4242) applied: same seed gave identical entities, seed 99 differed, startRun seed:777 honoured. startRun barrier-ahead reported scenario and seed. goto reached all 8 screens and the matching [data-screen] was visible. input: left→-1, right→0, jump y 0.98, roll, hoverboard active, pause→paused, tap on home→run. getState has every §4 field; activePowerups is now read from PowerupSystem. setTuning player.jumpHeight 1.65 read back (163 entries); an unknown path returned false. cheat setSpeed 21 gave speed 21; an unknown cheat threw."
+    },
+    {
+      "criterion": "A playable greybox run: 3 lanes, forward motion, left/right/jump/roll via keyboard and touch swipe, one obstacle type, coins, crash ends run, restart works",
+      "pass": true,
+      "evidence": "Contact sheets:\n- jump: 3-lane track, forward motion, jump arc, airborne left move to lane -1, slam into roll ball.\n- crash: barrier approaches, frontal hit at f88, results screen at f121 reading 'Wiped out!'.\nReal Playwright keys: ArrowLeft→lane -1, KeyD→0, Space→y 0.98 jump, ArrowDown→roll.\nReal CDP touch swipes:\n- touch-rapid trace: 1→0→-1→jump→roll→0→1, 7 flicks, each received once as */touch.\n- lane-switch --touch: lane sequence identical to the keyboard run.\nObstacles barrierLow and train are both seen in the seeded run. coin-line scenario: coins 0→3→9→10, score 69.\nUnaided realtime run ended in gameover at 90 m.\nRestart works by real click on [data-id=play-again] (screen run), by Enter (run), and by touch tap (touch-tap trace home→run→gameover→run)."
+    },
+    {
+      "criterion": "tools/capture.mjs implements §5 including --touch and --perf; tools/contact-sheet.mjs works; at least 3 scenarios exist and produce frames+contact.png+trace.json",
+      "pass": true,
+      "evidence": "9 scenarios. On --port 5109, all exited 0 and wrote frames/, contact.png, trace.json and meta.json with frame counts matching trace counts:\n- run-straight 90\n- lane-switch 180\n- jump 150\n- roll 150\n- crash 180\n- touch-rapid --touch 135\n- touch-tap --touch 180\n- lane-switch --touch 180\n- dev-panel --devtools 30 (auto-built .capture/dist-devtools)\nperf-run --perf --throttle 4 wrote perf.json: p50 75 fps, p95 26.7 ms, 82 draw calls, heap max drop 3.15 MB, plus D5 budget lines. contact-sheet.mjs produced every sheet (90/92/30 tiles)."
+    },
+    {
+      "criterion": "public/assets/manifest.json + placeholder fallback: deleting/renaming any src never breaks the game; swapping one texture file changes the render with zero code edits",
+      "pass": true,
+      "evidence": "A 256² magenta/yellow checker PNG at textures/track/yard_ground.png changed the render with zero code or manifest edits in each of these cases:\n- public/ + vite build: tex.ground.yard loaded, 244/2304 downscaled pixels differ from base.\n- dropped into a dist served by vite preview (live index): same diff.\n- files.json absent: same diff.\nEach of these still reached screen=run, distance 18.2, 0 page errors, 0 broken HUD <img> (SPA-fallback static server like Workers):\n- src renamed in track.json\n- file renamed on disk while still indexed\n- every src prefixed nope/\n- manifest/ui.json deleted\n- garbage bytes at every glb/png/svg/ogg src, in both SPA and 404 modes\nBase boot makes 0 failed requests and logs 0 warnings."
+    },
+    {
+      "criterion": "wrangler.jsonc (Workers static assets + worker/ for /api/*) and .github/workflows/deploy.yml exist; `npx wrangler deploy --dry-run` succeeds",
+      "pass": true,
+      "evidence": "wrangler.jsonc: main worker/index.ts, assets ./dist with single-page-application fallback, run_worker_first [/api/*]. deploy.yml: npm ci, typecheck, test, build, check:devstrip, check:brand, dry-run, then wrangler-action deploy on push to main. `npx wrangler deploy --dry-run` exit 0: read 23 asset files, 7.19 KiB upload, bindings ASSETS and APP_VERSION."
+    },
+    {
+      "criterion": "Devtools are dynamically imported only when flags.devtools; a production build with VITE_DEVTOOLS unset contains no dev panel code",
+      "pass": true,
+      "evidence": "main.ts gates the dev/index import on `if (__DEVTOOLS_BUILD__ && flags.devtools)`, and vite define sets __DEVTOOLS_BUILD__ false unless dev or VITE_DEVTOOLS=1. Production dist: 0 files matching installDevtools, devPanel, yd-dev, dev-panel, CheatsPanel or sourceMappingURL; 0 .map files; check:devstrip PASS (6 files). The VITE_DEVTOOLS=1 build has a separate dev-CEegh2Hd.js chunk, and the dev-panel scenario ran on it."
+    },
+    {
+      "criterion": "No Subway Surfers / SYBO names, art, sounds or trademarks in shipped game code, assets, UI text, docs/ or build output (dist/). Only the internal planning files PLAN.md and gauntlet/ may name the benchmark as the comparison target; .reference/ stays git-ignored",
+      "pass": true,
+      "evidence": "`git grep -i -E 'subway|surfers|sybo' HEAD -- . ':!PLAN.md' ':!gauntlet/'` returned 0 lines. `grep -rniE` over the prod dist returned 0. npm run check:brand PASS (131 files, dist included), and a spaced test string in docs/ made it FAIL with exit 1. public/assets has only .gitkeep files, so no art or audio ships. .reference/ is ignored by .gitignore:4, and `git ls-files .reference .gauntlet .captures` = 0."
+    }
+  ],
+  "r1_other_gaps_rechecked": {
+    "fixed": [
+      "PLAN §2 layout: powerups, hoverboard, meta, HttpProvider and the public asset folders now exist with real code; activePowerups is read from PowerupSystem.",
+      "Boot 404s: 0 responses >= 400 and 0 warnings on boot (files.json index).",
+      "Garbage bytes at the SVG sprite: HUD shows 0 broken <img> (decode check falls back).",
+      "Source maps: 0 .map files in prod dist (VITE_SOURCEMAP opt-in).",
+      "'Caught out!' after a frontal crash: the copy now reads 'Wiped out!'.",
+      "Touch tap flakiness: 6/6 touch-tap captures gave identical home→run(f3)→gameover(f141)→run(f160).",
+      "Worktree path: git worktree on K: works."
+    ],
+    "still_open": [
+      "No real asset file ships: 27/27 ids are placeholders.",
+      "Initial JS gzip headroom is unchanged at 72.2 kB; a gate was added but nothing was reduced."
+    ]
+  },
+  "biggest_gap": "none",
+  "other_gaps": [
+    "tools/check-brand.mjs matches with a \\b word-boundary regex, so joined forms slip through. A docs/ file containing 'SubwaySurfers' gave PASS with exit 0 (spaced form correctly failed). Binary files are skipped entirely. The CI guard is weaker than the criterion it enforces; match substrings case-insensitively, as the critic's grep does.",
+    "assets/files.json is a build-time index. A texture dropped into an already-built or deployed dist on a static host (as Workers serves it) is ignored until `npm run build`: swapDropStatic variant had pixel diff 0 and tex not loaded. It works live under dev/preview and after a rebuild. docs/ASSETS.md says 'picked up on reload' but never says a deployed dist needs a rebuild and redeploy.",
+    "Still open from r1: no real asset file ships. Boot info says 27/27 ids have no file, so the swap path is proven only by critic-dropped files.",
+    "Partially open from r1: initial JS is still 177.8 kB gzip (72.2 kB headroom under the D5 250 kB budget), the same total as r1. The fix split three.js into a vendor chunk and added a build-failing gate but reduced nothing.",
+    "Garbage bytes at audio srcs are listed in __game.assets().loaded (7 sfx ids) until lazy decode fails and falls back. The asset report overstates what is real.",
+    "perf-run --perf --throttle 4: p95 frame 26.7 ms (the tool's own D5 'p95 <= 20 ms' line FAILs), p99 106.7 ms, 36 frames over 50 ms. Not an F1 criterion, but a warning for D5."
+  ]
+}
