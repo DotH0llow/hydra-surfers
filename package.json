@@ -16,6 +16,7 @@
     "capture": "node tools/capture.mjs",
     "contact-sheet": "node tools/contact-sheet.mjs",
     "check:devstrip": "node tools/check-devstrip.mjs",
+    "check:brand": "node tools/check-brand.mjs",
     "assets:doc": "node tools/assets-doc.mjs",
     "assets:check": "node tools/assets-check.mjs",
     "docs:tuning": "node tools/tuning-doc.mjs",
