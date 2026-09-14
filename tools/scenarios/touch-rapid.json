@@ -1,16 +1,17 @@
 {
-  "description": "Real touch swipes (CDP touch events): left, left, jump, roll within ~0.8 s, then right, right. Measures input-to-first-motion.",
+  "description": "Real touch swipes (CDP touch events, 90 px flicks): from the right lane swipe left, left, up, down within ~0.8 s, then right, right. Each flick must produce exactly one action; reports input-to-first-motion.",
   "touch": true,
   "seed": 1,
   "setup": [["startRun", { "scenario": "flat-straight", "skipIntro": true }]],
   "timeline": [
-    { "frame": 20, "input": "left", "label": "swipe left" },
-    { "frame": 26, "input": "left", "label": "swipe left" },
-    { "frame": 34, "input": "jump", "label": "swipe up" },
-    { "frame": 44, "input": "roll", "label": "swipe down" },
-    { "frame": 80, "input": "right", "label": "swipe right" },
-    { "frame": 84, "input": "right", "label": "swipe right" }
+    { "frame": 4, "input": "right", "label": "swipe right (to right lane)" },
+    { "frame": 30, "input": "left", "label": "swipe left" },
+    { "frame": 36, "input": "left", "label": "swipe left" },
+    { "frame": 44, "input": "jump", "label": "swipe up" },
+    { "frame": 54, "input": "roll", "label": "swipe down" },
+    { "frame": 90, "input": "right", "label": "swipe right" },
+    { "frame": 94, "input": "right", "label": "swipe right" }
   ],
-  "seconds": 4,
+  "seconds": 4.5,
   "fps": 30
 }

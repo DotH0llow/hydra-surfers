@@ -11,7 +11,10 @@ export const INPUT = defineTuning("input", "Input", {
   swipeAngleTolerance: { default: 38, min: 5, max: 45, step: 1, label: "Swipe angle tolerance from axis", unit: "°" },
   // 0 by default: a slow or janky (late pointermove) gesture must never lose the action.
   swipeMaxSeconds: { default: 0, min: 0, max: 3, step: 0.05, label: "Swipe max duration (0 = unlimited)", unit: "s" },
-  swipeRearm: { default: 1, min: 0, max: 1, step: 1, label: "Allow chained swipes in one touch (0/1)" },
+  // 1 = one touch can chain actions, but only on a DIRECTION CHANGE (e.g. left then up without lifting).
+  // Continuing to drag in the same direction never repeats the action: a normal 60-150 px flick is
+  // exactly one lane change.
+  swipeRearm: { default: 1, min: 0, max: 1, step: 1, label: "Chain swipes in one touch on direction change (0/1)" },
   tapMaxMovePx: { default: 14, min: 0, max: 80, step: 1, label: "Tap max movement", unit: "px" },
   tapMaxSeconds: { default: 0.3, min: 0.05, max: 2, step: 0.01, label: "Tap max duration", unit: "s" },
   doubleTapSeconds: { default: 0.32, min: 0.05, max: 1, step: 0.01, label: "Double-tap window (hoverboard)", unit: "s" },
@@ -28,6 +31,8 @@ interface Slot {
   tSeg: number;
   maxMove: number;
   fired: boolean;
+  /** Last action fired by this touch (same-direction continuation does not repeat it). */
+  lastAction: Action | null;
   source: InputSource;
 }
 
@@ -41,7 +46,7 @@ export class SwipeRecognizer {
     private readonly el: HTMLElement,
     private readonly sink: ActionSink,
   ) {
-    for (let i = 0; i < SLOTS; i++) this.slots.push({ id: -1, x0: 0, y0: 0, t0: 0, tSeg: 0, maxMove: 0, fired: false, source: "touch" });
+    for (let i = 0; i < SLOTS; i++) this.slots.push({ id: -1, x0: 0, y0: 0, t0: 0, tSeg: 0, maxMove: 0, fired: false, lastAction: null, source: "touch" });
     this.listen("pointerdown", this.onDown as EventListener);
     this.listen("pointermove", this.onMove as EventListener);
     this.listen("pointerup", this.onUp as EventListener);
@@ -76,6 +81,7 @@ export class SwipeRecognizer {
     slot.t0 = slot.tSeg = e.timeStamp;
     slot.maxMove = 0;
     slot.fired = false;
+    slot.lastAction = null;
     slot.source = e.pointerType === "mouse" ? "mouse" : e.pointerType === "pen" ? "pen" : "touch";
     try {
       this.el.setPointerCapture(e.pointerId);
@@ -108,14 +114,17 @@ export class SwipeRecognizer {
     if (adx >= ady) action = dx < 0 ? "left" : "right";
     else action = dy < 0 ? "jump" : "roll";
     if (INPUT.swipeRearm >= 0.5) {
+      // re-arm from here: the next action needs another threshold of travel from this point
       slot.x0 = e.clientX;
       slot.y0 = e.clientY;
       slot.tSeg = e.timeStamp;
       slot.fired = false;
       slot.maxMove = Math.max(slot.maxMove, INPUT.tapMaxMovePx + 1);
+      if (action === slot.lastAction) return; // still the same flick: never repeat the action
     } else {
       slot.fired = true;
     }
+    slot.lastAction = action;
     this.sink(action, slot.source);
     if (e.cancelable) e.preventDefault();
   };

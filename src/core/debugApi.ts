@@ -7,6 +7,7 @@
  */
 import type { ClockMode } from "./loop";
 import { listCheats, runCheat } from "./cheats";
+import { bus } from "./events";
 import { tuning, type TuningEntry } from "./tuning";
 
 export interface GameState {
@@ -96,7 +97,21 @@ export interface GameDebugApi {
   profile(): unknown;
   /** Live obstacles and coins in sim space. */
   entities(): EntitiesDump;
+  /**
+   * Abstract input actions emitted (any source: touch, mouse, keyboard, debug), oldest first, with
+   * a monotonically increasing `seq`. Pass the last seen `seq` to get only newer entries. Keeps 500.
+   */
+  inputLog(since?: number): InputLogEntry[];
   isReady(): boolean;
+}
+
+export interface InputLogEntry {
+  seq: number;
+  action: string;
+  source: string;
+  /** Sim tick / rendered frame when the action was emitted (-1 before the app is ready). */
+  tick: number;
+  frame: number;
 }
 
 declare global {
@@ -117,6 +132,14 @@ export function installDebugApi(): { api: GameDebugApi; attach(host: DebugHost):
     if (!host) throw new Error("[__game] not ready yet — await window.__game.ready");
     return host;
   };
+  // Debug-only input log (allocates per input event; never installed without ?debug=1 / dev).
+  const inputLog: InputLogEntry[] = [];
+  let seq = 0;
+  bus.on("input:action", ({ action, source }) => {
+    const st = host ? host.getState() : null;
+    inputLog.push({ seq: ++seq, action, source, tick: st ? st.tick : -1, frame: st ? st.frame : -1 });
+    if (inputLog.length > 500) inputLog.splice(0, inputLog.length - 500);
+  });
   const api: GameDebugApi = {
     ready,
     setClock: (mode) => need().setClock(mode === "manual" ? "manual" : "realtime"),
@@ -140,6 +163,7 @@ export function installDebugApi(): { api: GameDebugApi; attach(host: DebugHost):
     assets: () => need().assetReport(),
     profile: () => need().profile(),
     entities: () => need().entities(),
+    inputLog: (since = 0) => inputLog.filter((e) => e.seq > since).map((e) => ({ ...e })),
     isReady: () => host !== null,
   };
   window.__game = api;

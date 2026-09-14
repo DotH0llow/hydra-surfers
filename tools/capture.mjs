@@ -182,7 +182,7 @@ function analyzeResponses(fired, trace, initial) {
         break;
       }
     }
-    out.push({ frame: ev.frame, action, source: ev.source, label: ev.label, firstResponseFrame: hit, latencyFrames: hit === null ? null : hit - ev.frame });
+    out.push({ frame: ev.frame, action, source: ev.source, label: ev.label, dispatched: ev.dispatched ?? null, firstResponseFrame: hit, latencyFrames: hit === null ? null : hit - ev.frame });
   }
   return out;
 }
@@ -295,11 +295,20 @@ async function main() {
       seed: sc.seed ?? null,
       events: [],
     };
-    const record = (item, frame) => {
+    const record = (item, frame, dispatched) => {
       const source = item.call ? "debug" : item.key ? "keyboard" : item.gesture || (touch && item.input) ? "touch" : "debug";
-      const ev = { frame, label: labelOf(item, touch), action: item.input ?? (item.gesture ? item.gesture.dir : null), source };
+      const ev = { frame, label: labelOf(item, touch), action: item.input ?? (item.gesture ? item.gesture.dir : null), source, dispatched };
       fired.push(ev);
       meta.events.push({ frame, label: ev.label });
+    };
+    // Actions the game actually received for each timeline item (window.__game.inputLog).
+    const hasInputLog = await page.evaluate(() => typeof window.__game.inputLog === "function");
+    let lastSeq = hasInputLog ? await page.evaluate(() => window.__game.inputLog().reduce((m, e) => Math.max(m, e.seq), 0)) : 0;
+    const takeDispatched = async () => {
+      if (!hasInputLog) return undefined;
+      const entries = await page.evaluate((s) => window.__game.inputLog(s), lastSeq);
+      if (entries.length) lastSeq = entries[entries.length - 1].seq;
+      return entries.map((e) => `${e.action}/${e.source}`);
     };
 
     if (!perf) {
@@ -312,7 +321,7 @@ async function main() {
         let t = Date.now();
         while (ti < timeline.length && timeline[ti].frame === f) {
           await fire(page, timeline[ti], ctx, true);
-          record(timeline[ti], f);
+          record(timeline[ti], f, await takeDispatched());
           ti++;
         }
         timing.fireMs += Date.now() - t;
@@ -437,7 +446,11 @@ async function main() {
       log(`contact sheet: ${relative(ROOT, sheet.out)} (${sheet.tiles} tiles, ${Date.now() - tSheet} ms)`);
     }
     if (meta.responses?.length) {
-      for (const r of meta.responses) log(`response f${pad(r.frame)} ${r.label}: ${r.latencyFrames === null ? "NO VISIBLE RESPONSE" : `${r.latencyFrames} frame(s)`}`);
+      for (const r of meta.responses) {
+        const got = r.dispatched ? ` · game received [${r.dispatched.join(", ")}]` : "";
+        const warn = r.dispatched && r.dispatched.length !== 1 ? "  <-- expected exactly 1 action" : "";
+        log(`response f${pad(r.frame)} ${r.label}: ${r.latencyFrames === null ? "no visible motion" : `motion after ${r.latencyFrames} frame(s)`}${got}${warn}`);
+      }
     }
     // 404s for manifest files not yet authored are expected: those assets use placeholders.
     const errors = consoleMessages.filter((m) => m.type !== "warning" && !/status of 404/.test(m.text));
