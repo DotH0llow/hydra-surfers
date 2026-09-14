@@ -11,20 +11,29 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p worker/tsconfig.json",
+    "test": "vitest run",
+    "capture": "node tools/capture.mjs",
+    "contact-sheet": "node tools/contact-sheet.mjs",
+    "check:devstrip": "node tools/check-devstrip.mjs",
     "assets:doc": "node tools/assets-doc.mjs",
-    "assets:check": "node tools/assets-check.mjs"
+    "assets:check": "node tools/assets-check.mjs",
+    "docs:tuning": "node tools/tuning-doc.mjs",
+    "worker:dev": "wrangler dev",
+    "deploy:dry": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "three": "^0.186.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260911.1",
     "@types/node": "^22.20.2",
     "@types/three": "^0.186.0",
     "playwright-core": "^1.63.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.0",
+    "wrangler": "^4.131.1"
   }
 }
