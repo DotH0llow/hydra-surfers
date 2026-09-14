@@ -127,7 +127,15 @@ function createGestures(page, cdp) {
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   };
   const tap = async (g = {}) => {
-    const p = await gesturePoint();
+    // `selector`: tap the centre of that element (e.g. "[data-id=play-again]"); else x/y or the playfield point.
+    const p = g.selector
+      ? await page.evaluate((sel) => {
+          const el = document.querySelector(sel);
+          const r = el?.getBoundingClientRect();
+          return r && r.width > 0 && r.height > 0 ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null;
+        }, g.selector)
+      : await gesturePoint();
+    if (!p) throw new Error(`tap: no visible element matches "${g.selector}"`);
     await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: tp(g.x ?? p.x, g.y ?? p.y) });
     // A real finger rests briefly; a zero-length contact plus one rAF occasionally raced the tap handler.
     await new Promise((r) => setTimeout(r, num(g.hold, 40)));

@@ -43,7 +43,7 @@ lines.push("2. Put your file at the listed path under `public/assets/` (or edit 
 lines.push("3. Run `npm run assets:check`. It validates the format, image size, glTF triangle budget and animation clip names, and lists the ids that still use placeholders.");
 lines.push("4. Run `npm run assets:doc` to refresh this page, then `npm run dev` and look at it in the game.");
 lines.push("");
-lines.push("A missing or broken file never breaks the game. The engine falls back to the entry's procedural `placeholder` and logs one console warning.");
+lines.push("A missing or broken file never breaks the game. The engine falls back to the entry's procedural `placeholder`. Which files exist comes from `assets/files.json`, generated from `public/assets/` by the build and answered live by `npm run dev` / `vite preview`, so ids without a file make no network request (one info line on boot) and a newly dropped file is picked up on reload. A file that is listed but unreadable logs one console warning.");
 lines.push("");
 lines.push("### Conventions");
 lines.push("");

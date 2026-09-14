@@ -47,6 +47,12 @@ export interface ManifestRoot {
   version: number;
   /** Relative to the manifest root directory. */
   parts: string[];
+  /**
+   * Generated list of the files that exist under the assets base (`files.json`, written by the
+   * build and answered live by the dev/preview servers). Entries whose `src` is not listed use
+   * their placeholder without a network request. Omit to probe every `src`.
+   */
+  fileIndex?: string;
 }
 
 export interface Manifest {
@@ -55,7 +61,21 @@ export interface Manifest {
   entries: Map<string, AssetEntry>;
   /** Which part each id came from. */
   partOf: Map<string, string>;
+  /** Asset files known to exist (paths relative to `base`), or null = unknown, probe every src. */
+  files: Set<string> | null;
   warnings: string[];
+}
+
+/** Normalises a src for file-index lookups ("./a/b.png" → "a/b.png"). */
+export function indexKey(src: string): string {
+  return src.replace(/\\/g, "/").replace(/^(\.\/)+/, "");
+}
+
+/** Parses a `files.json` payload; null when it is not a valid index. */
+export function parseFileIndex(data: unknown): Set<string> | null {
+  const files = (data as { files?: unknown } | null)?.files;
+  if (!Array.isArray(files) || !files.every((f) => typeof f === "string")) return null;
+  return new Set(files.map(indexKey));
 }
 
 const TYPES: readonly AssetType[] = ["gltf", "texture", "sprite", "audio", "font", "json"];
@@ -92,7 +112,7 @@ export function mergeParts(version: number, base: string, parts: Array<{ name: s
       partOf.set(raw.id, name);
     });
   }
-  return { version, base, entries, partOf, warnings };
+  return { version, base, entries, partOf, files: null, warnings };
 }
 
 export async function loadManifest(url = "assets/manifest.json"): Promise<Manifest> {
@@ -106,6 +126,7 @@ export async function loadManifest(url = "assets/manifest.json"): Promise<Manife
   } catch (err) {
     warnings.push(`manifest root ${url} failed to load (${String(err)}); every asset will use placeholders`);
   }
+  const indexPromise = root.fileIndex ? fetchFileIndex(base + root.fileIndex) : Promise.resolve(null);
   const parts = await Promise.all(
     (root.parts ?? []).map(async (p) => {
       try {
@@ -119,7 +140,20 @@ export async function loadManifest(url = "assets/manifest.json"): Promise<Manife
     }),
   );
   const m = mergeParts(root.version ?? 1, base, parts);
+  m.files = await indexPromise;
+  if (root.fileIndex && !m.files) console.info(`[assets] file index ${base + root.fileIndex} unavailable; probing every src`);
   m.warnings.unshift(...warnings);
   for (const w of m.warnings) console.warn(`[assets] ${w}`);
   return m;
+}
+
+async function fetchFileIndex(url: string): Promise<Set<string> | null> {
+  try {
+    const res = await fetch(url, { cache: "no-cache" });
+    // SPA fallbacks answer unknown paths with index.html: no index.
+    if (!res.ok || (res.headers.get("content-type") ?? "").includes("text/html")) return null;
+    return parseFileIndex(await res.json());
+  } catch {
+    return null;
+  }
 }

@@ -1,0 +1,13 @@
+{
+  "description": "Real touch taps (CDP touchStart/touchEnd with a short hold): tap the home screen to start a run, run into the frontal barrier until the results screen, then tap the Play again button. Trace must show home → run after the first tap and gameover → run after the second.",
+  "touch": true,
+  "seed": 1,
+  "setup": [["goto", "home"]],
+  "timeline": [
+    { "frame": 3, "input": "tap", "label": "tap home to start" },
+    { "frame": 20, "call": ["startRun", { "scenario": "barrier-ahead", "skipIntro": true }], "label": "barrier-ahead run" },
+    { "frame": 160, "gesture": { "type": "tap", "selector": "[data-id=play-again]" }, "label": "tap Play again" }
+  ],
+  "seconds": 6,
+  "fps": 30
+}

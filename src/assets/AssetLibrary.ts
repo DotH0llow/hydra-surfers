@@ -17,7 +17,7 @@ import {
   type Material,
   type Object3D,
 } from "three";
-import type { AssetEntry, AssetType, Manifest } from "./manifest";
+import { indexKey, type AssetEntry, type AssetType, type Manifest } from "./manifest";
 import {
   buildMeshPlaceholder,
   buildSfxPlaceholder,
@@ -39,6 +39,10 @@ export interface AssetReport {
   total: number;
   loaded: string[];
   placeholders: string[];
+  /** Placeholders whose src is not in the file index (no request was made). */
+  noFile: string[];
+  /** File index in use (false = probing every src). */
+  fileIndex: boolean;
   unknownRequested: string[];
 }
 
@@ -52,6 +56,8 @@ export class AssetLibrary {
   private readonly json = new Map<string, unknown>();
   private readonly fromFile = new Set<string>();
   private readonly failed = new Set<string>();
+  /** Ids whose src is absent from the file index (never requested). */
+  private readonly noFile = new Set<string>();
   private readonly warned = new Set<string>();
   private readonly unknown = new Set<string>();
   private skeletonClone: CloneFn | null = null;
@@ -87,11 +93,17 @@ export class AssetLibrary {
       total: ids.length,
       loaded: ids.filter((id) => this.fromFile.has(id)),
       placeholders: ids.filter((id) => !this.fromFile.has(id)),
+      noFile: ids.filter((id) => this.noFile.has(id)),
+      fileIndex: this.manifest.files !== null,
       unknownRequested: [...this.unknown],
     };
   }
 
-  /** Fetch + parse every manifest entry (in parallel). Missing files resolve to placeholders. */
+  /**
+   * Fetch + parse every manifest entry (in parallel). Entries whose src is not in the manifest's
+   * file index are never requested (placeholder by design, one info line); files that were
+   * requested but are missing or broken fall back to placeholders with one warning.
+   */
   async preload(onProgress?: (done: number, total: number) => void): Promise<void> {
     const entries = [...this.manifest.entries.values()];
     let done = 0;
@@ -106,11 +118,11 @@ export class AssetLibrary {
         onProgress?.(++done, entries.length);
       }),
     );
-    const ph = entries.filter((e) => !this.fromFile.has(e.id)).map((e) => e.id);
-    if (ph.length) {
-      for (const id of ph) this.warned.add(id);
-      console.warn(`[assets] ${ph.length}/${entries.length} assets missing → using placeholders: ${ph.join(", ")}`);
-    }
+    const noFile = entries.filter((e) => this.noFile.has(e.id)).map((e) => e.id);
+    const broken = entries.filter((e) => !this.fromFile.has(e.id) && !this.noFile.has(e.id)).map((e) => e.id);
+    for (const id of [...noFile, ...broken]) this.warned.add(id);
+    if (noFile.length) console.info(`[assets] ${noFile.length}/${entries.length} ids have no file yet → procedural placeholders`);
+    if (broken.length) console.warn(`[assets] ${broken.length}/${entries.length} assets missing or unreadable → using placeholders: ${broken.join(", ")}`);
   }
 
   /** Generic accessor by entry type. */
@@ -236,6 +248,11 @@ export class AssetLibrary {
 
   private async fetchFile(e: AssetEntry): Promise<Response | null> {
     if (!e.src) return null;
+    const files = this.manifest.files;
+    if (files && !/^[a-z][a-z0-9+.-]*:/i.test(e.src) && !files.has(indexKey(e.src))) {
+      this.noFile.add(e.id);
+      return null;
+    }
     try {
       const res = await fetch(this.url(e));
       if (!res.ok) return null;
