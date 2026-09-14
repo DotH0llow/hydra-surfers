@@ -16,7 +16,7 @@
         "public/assets/manifest.json + placeholder fallback: deleting/renaming any src never breaks the game; swapping one texture file changes the render with zero code edits",
         "wrangler.jsonc (Workers static assets + worker/ for /api/*) and .github/workflows/deploy.yml exist; `npx wrangler deploy --dry-run` succeeds",
         "Devtools are dynamically imported only when flags.devtools; a production build with VITE_DEVTOOLS unset contains no dev panel code",
-        "No Subway Surfers names, art, sounds or trademarks anywhere in the repo"
+        "No Subway Surfers / SYBO names, art, sounds or trademarks in shipped game code, assets, UI text, docs/ or build output (dist/). Only the internal planning files PLAN.md and gauntlet/ may name the benchmark as the comparison target; .reference/ stays git-ignored"
       ] },
 
     { "id": "A1-camera-framing", "lane": "A", "kind": "compare", "title": "Camera & world framing",
