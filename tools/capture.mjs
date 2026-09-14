@@ -266,8 +266,10 @@ async function main() {
     }
     const url = `${server.url}?${params}`;
     log(`${name}: ${perf ? `perf ${seconds}s realtime, CPU x${throttle}` : `${totalFrames} frames @ ${fps} fps`}, ${viewport.width}x${viewport.height}@${dpr}${touch ? ", touch" : ""} → ${relative(ROOT, out)}`);
+    const tLoad = Date.now();
     await page.goto(url, { waitUntil: "load" });
     await waitForGame(page);
+    log(`page ready in ${Date.now() - tLoad} ms`);
     const ctx = { touch, gestures: touch ? createGestures(page, cdp) : null };
 
     if (!perf) await callGame(page, ["setClock", "manual"]);
@@ -304,20 +306,31 @@ async function main() {
       // ------------------------------------------------------------ deterministic manual capture
       const initial = await callGame(page, ["getState"]);
       const trace = [];
+      const timing = { fireMs: 0, stepMs: 0, shotMs: 0 };
       let ti = 0;
       for (let f = 0; f < totalFrames; f++) {
+        let t = Date.now();
         while (ti < timeline.length && timeline[ti].frame === f) {
           await fire(page, timeline[ti], ctx, true);
           record(timeline[ti], f);
           ti++;
         }
+        timing.fireMs += Date.now() - t;
+        t = Date.now();
         const state = await page.evaluate((stepFps) => {
           window.__game.step(1, stepFps);
           return window.__game.getState();
         }, fps);
         trace.push(state);
-        await page.screenshot({ path: join(framesDir, `${pad(f)}.png`) });
+        timing.stepMs += Date.now() - t;
+        t = Date.now();
+        // CDP capture (composited page incl. DOM UI); faster than page.screenshot's extra waits.
+        const shot = await cdp.send("Page.captureScreenshot", { format: "png", optimizeForSpeed: true });
+        writeFileSync(join(framesDir, `${pad(f)}.png`), Buffer.from(shot.data, "base64"));
+        timing.shotMs += Date.now() - t;
       }
+      meta.timing = timing;
+      log(`timing: fire ${timing.fireMs} ms · step+state ${timing.stepMs} ms · screenshots ${timing.shotMs} ms`);
       meta.responses = analyzeResponses(fired, trace, initial);
       writeFileSync(join(out, "trace.json"), JSON.stringify(trace));
       const last = trace[trace.length - 1];
@@ -419,13 +432,15 @@ async function main() {
     meta.generatedAt = new Date().toISOString();
     writeFileSync(join(out, "meta.json"), JSON.stringify(meta, null, 2));
     if (!a.noContact) {
+      const tSheet = Date.now();
       const sheet = await buildContactSheet({ dir: framesDir, out: join(out, "contact.png"), fps, meta, browser });
-      log(`contact sheet: ${relative(ROOT, sheet.out)} (${sheet.tiles} tiles)`);
+      log(`contact sheet: ${relative(ROOT, sheet.out)} (${sheet.tiles} tiles, ${Date.now() - tSheet} ms)`);
     }
     if (meta.responses?.length) {
       for (const r of meta.responses) log(`response f${pad(r.frame)} ${r.label}: ${r.latencyFrames === null ? "NO VISIBLE RESPONSE" : `${r.latencyFrames} frame(s)`}`);
     }
-    const errors = consoleMessages.filter((m) => m.type !== "warning");
+    // 404s for manifest files not yet authored are expected: those assets use placeholders.
+    const errors = consoleMessages.filter((m) => m.type !== "warning" && !/status of 404/.test(m.text));
     if (errors.length) log(`page errors (${errors.length}):\n  ${errors.map((e) => e.text.split("\n")[0]).join("\n  ")}`);
     log(`done in ${((Date.now() - t0) / 1000).toFixed(1)} s → ${relative(ROOT, out)}`);
   } catch (err) {
