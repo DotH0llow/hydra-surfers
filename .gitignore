@@ -8,3 +8,5 @@ lanes/
 .env
 .dev.vars
 gauntlet/progress.jsonl
+.captures/
+.capture/

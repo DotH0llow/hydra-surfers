@@ -1,0 +1,16 @@
+{
+  "description": "Single switch left, back right, single right, fast double left, then a reversal mid-switch.",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "flat-straight", "skipIntro": true }]],
+  "timeline": [
+    { "frame": 15, "input": "left", "label": "left" },
+    { "frame": 45, "input": "right", "label": "right (back to centre)" },
+    { "frame": 75, "input": "right", "label": "right" },
+    { "frame": 105, "input": "left", "label": "double left 1" },
+    { "frame": 108, "input": "left", "label": "double left 2" },
+    { "frame": 140, "input": "right", "label": "right" },
+    { "frame": 143, "input": "left", "label": "reversal mid-switch" }
+  ],
+  "seconds": 6,
+  "fps": 30
+}

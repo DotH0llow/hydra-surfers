@@ -1,0 +1,16 @@
+{
+  "description": "Real touch swipes (CDP touch events): left, left, jump, roll within ~0.8 s, then right, right. Measures input-to-first-motion.",
+  "touch": true,
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "flat-straight", "skipIntro": true }]],
+  "timeline": [
+    { "frame": 20, "input": "left", "label": "swipe left" },
+    { "frame": 26, "input": "left", "label": "swipe left" },
+    { "frame": 34, "input": "jump", "label": "swipe up" },
+    { "frame": 44, "input": "roll", "label": "swipe down" },
+    { "frame": 80, "input": "right", "label": "swipe right" },
+    { "frame": 84, "input": "right", "label": "swipe right" }
+  ],
+  "seconds": 4,
+  "fps": 30
+}

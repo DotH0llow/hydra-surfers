@@ -1,0 +1,19 @@
+{
+  "description": "Procedural seeded run in god mode for --perf (realtime clock): obstacles, coins, lane changes every second.",
+  "seed": 7,
+  "setup": [
+    ["cheat", "god", true],
+    ["startRun", { "scenario": "default", "skipIntro": true }]
+  ],
+  "timeline": [
+    { "frame": 30, "input": "left" },
+    { "frame": 60, "input": "right" },
+    { "frame": 90, "input": "jump" },
+    { "frame": 120, "input": "right" },
+    { "frame": 150, "input": "left" },
+    { "frame": 180, "input": "roll" }
+  ],
+  "repeatTimelineEvery": 180,
+  "seconds": 20,
+  "fps": 30
+}

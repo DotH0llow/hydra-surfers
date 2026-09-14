@@ -1,0 +1,8 @@
+{
+  "description": "Run straight into the centre-lane low barrier with no input: frontal crash, then the results screen.",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "barrier-ahead", "skipIntro": true }]],
+  "timeline": [],
+  "seconds": 6,
+  "fps": 30
+}

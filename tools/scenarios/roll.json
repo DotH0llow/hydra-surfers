@@ -1,0 +1,14 @@
+{
+  "description": "Plain roll; roll then jump cancel; roll + lane change.",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "flat-straight", "skipIntro": true }]],
+  "timeline": [
+    { "frame": 10, "input": "roll", "label": "roll" },
+    { "frame": 55, "input": "roll", "label": "roll" },
+    { "frame": 62, "input": "jump", "label": "jump cancels roll" },
+    { "frame": 105, "input": "roll", "label": "roll" },
+    { "frame": 109, "input": "right", "label": "right while rolling" }
+  ],
+  "seconds": 5,
+  "fps": 30
+}

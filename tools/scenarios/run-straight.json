@@ -1,0 +1,8 @@
+{
+  "description": "Straight empty track, no input: framing, speed and run-cycle reference.",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "flat-straight", "skipIntro": true }]],
+  "timeline": [],
+  "seconds": 3,
+  "fps": 30
+}

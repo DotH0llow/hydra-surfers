@@ -1,0 +1,14 @@
+{
+  "description": "Plain jump; jump + lane change while airborne; jump then swipe-down slam into roll.",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "flat-straight", "skipIntro": true }]],
+  "timeline": [
+    { "frame": 10, "input": "jump", "label": "jump" },
+    { "frame": 60, "input": "jump", "label": "jump" },
+    { "frame": 65, "input": "left", "label": "left while airborne" },
+    { "frame": 110, "input": "jump", "label": "jump" },
+    { "frame": 118, "input": "roll", "label": "slam down -> roll" }
+  ],
+  "seconds": 5,
+  "fps": 30
+}
