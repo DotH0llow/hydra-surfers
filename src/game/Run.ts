@@ -11,6 +11,8 @@ import { defineTuning } from "../core/tuning";
 import type { AssetLibrary } from "../assets/AssetLibrary";
 import type { Action } from "../input/actions";
 import "./obstacles/builtin";
+import "./powerups/PowerupSystem";
+import "./hoverboard/Hoverboard";
 import { Atmosphere } from "./world/Atmosphere";
 import { Track } from "./world/Track";
 import { Environment } from "./world/Environment";
@@ -41,6 +43,8 @@ export interface RunResult {
   seed: number;
   scenario: string;
   reason: string;
+  /** Crash cause when reason === "crash" ("caught" = chaser caught the runner; else the obstacle/cheat). */
+  cause: string;
 }
 
 declare module "../core/events" {
@@ -214,12 +218,15 @@ export class Run {
       seed: st.seed,
       scenario: st.scenario,
       reason,
+      cause: st.crashCause,
     });
   }
 
   crash(cause: string): void {
     const st = this.state;
     if (st.god || (st.mode !== "running" && st.mode !== "intro")) return;
+    const systems = this.systems;
+    for (let i = 0; i < systems.length; i++) if (systems[i].absorbCrash?.(this.ctx, cause)) return;
     st.mode = "crashed";
     st.modeTime = 0;
     st.speed = 0;

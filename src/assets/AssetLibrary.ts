@@ -327,7 +327,21 @@ export class AssetLibrary {
     if (!res) return;
     const ct = res.headers.get("content-type") ?? "";
     if (!ct.startsWith("image/")) return;
-    // Use the URL directly so the browser caches it; the fetch proved it exists.
+    // The file must actually decode (garbage bytes served as image/svg+xml would give a broken <img>).
+    if (typeof Image !== "undefined" && typeof URL !== "undefined" && "createObjectURL" in URL) {
+      const blobUrl = URL.createObjectURL(await res.blob());
+      try {
+        const img = new Image();
+        img.src = blobUrl;
+        await img.decode();
+        if (!img.naturalWidth && !img.naturalHeight && !ct.includes("svg")) return;
+      } catch {
+        return;
+      } finally {
+        URL.revokeObjectURL(blobUrl);
+      }
+    }
+    // Use the URL directly so the browser caches it; the fetch + decode proved it is a usable image.
     this.sprites.set(e.id, this.url(e));
     this.fromFile.add(e.id);
   }

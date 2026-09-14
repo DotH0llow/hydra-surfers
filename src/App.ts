@@ -14,6 +14,9 @@ import { Loop, type ClockMode } from "./core/loop";
 import type { ProfileStore } from "./core/store";
 import { defineTuning, tuning } from "./core/tuning";
 import { Run, type RunResult } from "./game/Run";
+import type { HoverboardSystem } from "./game/hoverboard/Hoverboard";
+import type { PowerupSystem } from "./game/powerups/PowerupSystem";
+import { applyRunResult } from "./meta/progression";
 import { DEFAULT_SCENARIO, getScenario, listScenarios } from "./game/spawn/scenarios";
 import { updateCurveUniforms } from "./game/world/curve";
 import type { StartRunOptions } from "./game/types";
@@ -168,17 +171,11 @@ export class App implements ScreenHost, DebugHost {
   }
 
   private onRunEnd(r: RunResult): void {
-    const prevBest = this.store.get().stats.bestScore;
-    const newBest = r.score > prevBest;
+    let outcome = { newBest: false, best: this.store.get().stats.bestScore };
     this.store.update((p) => {
-      p.stats.runs++;
-      p.stats.totalCoins += r.coins;
-      p.stats.totalDistance += r.distance;
-      p.stats.bestScore = Math.max(p.stats.bestScore, r.score);
-      p.stats.bestDistance = Math.max(p.stats.bestDistance, r.distance);
-      p.currencies.coins += r.coins;
+      outcome = applyRunResult(p, r);
     });
-    this.lastResult = { ...r, newBest, best: Math.max(prevBest, r.score) };
+    this.lastResult = { ...r, newBest: outcome.newBest, best: outcome.best };
     this.show("gameover");
   }
 
@@ -319,7 +316,8 @@ export class App implements ScreenHost, DebugHost {
       },
       camera: { x: cam.x, y: cam.y, z: cam.z, fov: cam.effectiveFov(), pitch: cam.pitch() },
       chaser: { dist: this.run.chaser.gap, near: this.run.chaser.near },
-      activePowerups: [],
+      activePowerups: this.run.ctx.getSystem<PowerupSystem>("powerups")?.snapshot() ?? [],
+      hoverboard: this.run.ctx.getSystem<HoverboardSystem>("hoverboard")?.snapshot() ?? null,
       screen: this.screen,
       obstacles: this.run.obstacles.active.length,
       coinsLive: this.run.coins.live,

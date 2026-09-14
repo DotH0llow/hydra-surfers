@@ -20,9 +20,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (157 fields in 24 groups)
+## Registry (163 fields in 26 groups)
 
-[Lanes](#lanes) · [Obstacle: low barrier](#obsBarrierLow) · [Obstacle: train](#obsTrain) · [Atmosphere & light](#atmosphere) · [Curved world](#curve) · [Track](#track) · [Environment](#env) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [Display](#display)
+[Lanes](#lanes) · [Obstacle: low barrier](#obsBarrierLow) · [Obstacle: train](#obsTrain) · [Power-ups](#powerups) · [Hoverboard](#hoverboard) · [Atmosphere & light](#atmosphere) · [Curved world](#curve) · [Track](#track) · [Environment](#env) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [Display](#display)
 
 <a id="lanes"></a>
 ### Lanes (`lanes`)
@@ -50,6 +50,24 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `obsTrain.height` | Collider height | 3.6 | 1 | 6 | 0.05 | m |
 | `obsTrain.carLength` | Car length | 13 | 4 | 30 | 0.5 | m |
 | `obsTrain.carGap` | Gap between cars | 0.8 | 0 | 5 | 0.05 | m |
+
+<a id="powerups"></a>
+### Power-ups (`powerups`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `powerups.jetpackSeconds` | Jetpack duration | 8 | 1 | 30 | 0.5 | s |
+| `powerups.sneakersSeconds` | Super sneakers duration | 10 | 1 | 30 | 0.5 | s |
+| `powerups.magnetSeconds` | Coin magnet duration | 10 | 1 | 30 | 0.5 | s |
+| `powerups.multiplierSeconds` | 2x multiplier duration | 10 | 1 | 30 | 0.5 | s |
+
+<a id="hoverboard"></a>
+### Hoverboard (`hoverboard`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `hoverboard.durationSeconds` | Ride duration | 30 | 1 | 120 | 1 | s |
+| `hoverboard.breakInvulnSeconds` | Invulnerability after the board breaks | 1 | 0 | 5 | 0.05 | s |
 
 <a id="atmosphere"></a>
 ### Atmosphere & light (`atmosphere`)
@@ -325,12 +343,15 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `display.dprCap` | Device pixel ratio cap | 2 | 0.5 | 4 | 0.25 |  |
 | `display.maxAspect` | Widest playfield aspect (w/h) before letterboxing | 0.625 | 0.4 | 2.5 | 0.005 |  |
 
-## Cheats (7)
+## Cheats (10)
 
 Callable as `window.__game.cheat(name, ...args)` and from the dev panel (see DEVTOOLS.md).
 
 | name | label | group |
 |---|---|---|
+| `powerup` | Give power-up | Power-ups |
+| `clearPowerups` | Clear power-ups | Power-ups |
+| `hoverboard` | Activate hoverboard | Hoverboard |
 | `god` | God mode | Run |
 | `setSpeed` | Set speed (0 = curve) | Run |
 | `timeScale` | Time scale | Run |

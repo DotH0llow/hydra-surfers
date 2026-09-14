@@ -129,7 +129,11 @@ function createGestures(page, cdp) {
   const tap = async (g = {}) => {
     const p = await gesturePoint();
     await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: tp(g.x ?? p.x, g.y ?? p.y) });
+    // A real finger rests briefly; a zero-length contact plus one rAF occasionally raced the tap handler.
+    await new Promise((r) => setTimeout(r, num(g.hold, 40)));
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await flush();
+    await flush();
   };
   return { swipe, tap, flush };
 }

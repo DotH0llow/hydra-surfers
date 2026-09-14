@@ -36,13 +36,14 @@ registerScreen("gameover", (host) => {
   const coins = h("span", { text: "0" });
   const best = h("span", { text: "0" });
   const flag = h("div", { class: "best-flag", text: host.brand.copy.newBest });
+  const title = h("h1", { text: host.brand.copy.gameOver, attrs: { "data-id": "gameover-title" } });
   const el = h(
     "div",
     { class: "screen overlay", attrs: { "data-screen": "gameover" } },
     h(
       "div",
       { class: "panel" },
-      h("h1", { text: host.brand.copy.gameOver }),
+      title,
       score,
       flag,
       h("div", { class: "row" }, h("span", { text: host.brand.copy.coins }), coins),
@@ -55,6 +56,8 @@ registerScreen("gameover", (host) => {
     el,
     show() {
       const r = host.lastResult;
+      const copy = host.brand.copy;
+      setText(title, r?.reason === "crash" ? (r.cause === "caught" ? copy.gameOverCaught : copy.gameOverCrash) : copy.gameOver);
       setText(score, formatInt(r?.score ?? 0));
       setText(coins, formatInt(r?.coins ?? 0));
       setText(best, formatInt(r?.best ?? host.store.get().stats.bestScore));

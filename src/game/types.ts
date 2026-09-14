@@ -95,6 +95,8 @@ export interface RunSystem {
   fixedUpdate?(ctx: RunContext, dt: number): void;
   /** Visual update. Must not mutate sim state. Must not allocate. */
   render?(ctx: RunContext, alpha: number, frameDt: number): void;
+  /** Asked (in order) before a crash is applied; return true to absorb it (e.g. hoverboard). */
+  absorbCrash?(ctx: RunContext, cause: string): boolean;
 }
 
 /** Axis-aligned box in sim space (x lateral, y up, s forward). */

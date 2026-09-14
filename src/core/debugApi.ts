@@ -39,7 +39,9 @@ export interface GameState {
   };
   camera: { x: number; y: number; z: number; fov: number; pitch: number };
   chaser: { dist: number; near: boolean };
-  activePowerups: Array<{ id: string; remaining: number }>;
+  activePowerups: Array<{ id: string; remaining: number; duration?: number }>;
+  /** Additive: hoverboard ride state (null when the hoverboard system is not registered). */
+  hoverboard?: { active: boolean; remaining: number; invulnerable: number } | null;
   screen: string;
   obstacles: number;
   coinsLive: number;

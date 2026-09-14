@@ -16,7 +16,8 @@ export default defineConfig(({ mode }) => {
     preview: { port, strictPort: true, host: true },
     build: {
       target: "es2022",
-      sourcemap: true,
+      // Source maps are opt-in (VITE_SOURCEMAP=1) so production dist never publishes the client source.
+      sourcemap: env.VITE_SOURCEMAP === "1",
       chunkSizeWarningLimit: 900,
     },
   };
