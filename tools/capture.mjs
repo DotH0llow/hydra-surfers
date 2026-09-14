@@ -136,10 +136,15 @@ function createGestures(page, cdp) {
         }, g.selector)
       : await gesturePoint();
     if (!p) throw new Error(`tap: no visible element matches "${g.selector}"`);
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: tp(g.x ?? p.x, g.y ?? p.y) });
     // A real finger rests briefly; a zero-length contact plus one rAF occasionally raced the tap handler.
-    await new Promise((r) => setTimeout(r, num(g.hold, 40)));
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    const hold = num(g.hold, 40);
+    // Explicit event timestamps, like a real device's: the recognizer measures press length from
+    // event.timeStamp, and CDP would otherwise stamp touchEnd when it is sent, which is only after the
+    // renderer acked touchStart. Under load that ack can take > tapMaxSeconds and the tap was lost.
+    const ts0 = Date.now() / 1000;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: tp(g.x ?? p.x, g.y ?? p.y), timestamp: ts0 });
+    await new Promise((r) => setTimeout(r, hold));
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [], timestamp: ts0 + hold / 1000 });
     await flush();
     await flush();
   };
