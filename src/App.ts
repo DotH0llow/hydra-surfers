@@ -15,6 +15,7 @@ import type { ProfileStore } from "./core/store";
 import { defineTuning, tuning } from "./core/tuning";
 import { Run, type RunResult } from "./game/Run";
 import type { HoverboardSystem } from "./game/hoverboard/Hoverboard";
+import type { PlayerAnimator } from "./game/player/PlayerAnimator";
 import type { PowerupSystem } from "./game/powerups/PowerupSystem";
 import { applyRunResult } from "./meta/progression";
 import { DEFAULT_SCENARIO, getScenario, listScenarios } from "./game/spawn/scenarios";
@@ -313,6 +314,7 @@ export class App implements ScreenHost, DebugHost {
         grounded: p.grounded,
         rolling: p.rolling,
         switching: p.switchT < 1,
+        head: this.run.ctx.getSystem<PlayerAnimator>("playerView")?.headScreen(this.camera3) ?? null,
       },
       camera: { x: cam.x, y: cam.y, z: cam.z, fov: cam.effectiveFov(), pitch: cam.pitch() },
       chaser: { dist: this.run.chaser.gap, near: this.run.chaser.near },

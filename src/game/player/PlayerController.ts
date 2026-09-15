@@ -13,12 +13,14 @@
  */
 import { defineTuning } from "../../core/tuning";
 import { clampLane, laneX } from "../world/coords";
+import { SWITCH_FEEL, switchHop, switchLean, switchTimeScale } from "./switchMotion";
 import type { Aabb, RunContext, RunSystem } from "../types";
 import type { Action } from "../../input/actions";
 
 export const PLAYER = defineTuning("player", "Player movement", {
-  laneSwitchSeconds: { default: 0.18, min: 0.05, max: 0.6, step: 0.005, label: "Lane switch duration", unit: "s" },
-  laneSwitchEasePower: { default: 3, min: 1, max: 6, step: 0.1, label: "Lane switch ease-out power", help: "x = 1-(1-t)^p; 1 = linear" },
+  laneSwitchSeconds: { default: 0.1, min: 0.03, max: 0.6, step: 0.005, label: "Lane switch duration", unit: "s" },
+  laneSwitchEasePower: { default: 2.5, min: 1, max: 6, step: 0.1, label: "Lane switch ease-out power", help: "x = 1-(1-t)^p; 1 = linear" },
+  bounceSwitchSeconds: { default: 0.2, min: 0.03, max: 0.8, step: 0.005, label: "Bounce-back return duration", unit: "s" },
   jumpHeight: { default: 1.5, min: 0.5, max: 4, step: 0.05, label: "Jump apex height", unit: "m" },
   jumpSeconds: { default: 0.65, min: 0.3, max: 1.5, step: 0.01, label: "Jump airtime (at fall gravity ×1)", unit: "s" },
   fallGravityScale: { default: 1, min: 0.5, max: 3, step: 0.05, label: "Fall gravity multiplier" },
@@ -86,6 +88,16 @@ export class PlayerController implements RunSystem {
   switchFrom = 0;
   switchTo = 0;
   switchDir = 0;
+  /** Duration (s) of the current lateral move (normal switch or bounce-back). */
+  switchSeconds = 0.1;
+  /** Feel seconds since the last lean retarget (switch or bounce); see switchMotion.ts. */
+  leanT = 10;
+  leanDir = 0;
+  leanAmp = 0;
+  leanFrom = 0;
+  /** Feel seconds since the last switch hop started. */
+  hopT = 10;
+  hopFrom = 0;
   rolling = false;
   rollTimer = 0;
   fastFalling = false;
@@ -118,6 +130,13 @@ export class PlayerController implements RunSystem {
     this.switchT = 1;
     this.switchFrom = this.switchTo = this.x;
     this.switchDir = 0;
+    this.switchSeconds = PLAYER.laneSwitchSeconds;
+    this.leanT = 10;
+    this.leanDir = 0;
+    this.leanAmp = 0;
+    this.leanFrom = 0;
+    this.hopT = 10;
+    this.hopFrom = 0;
     this.rolling = false;
     this.rollTimer = 0;
     this.fastFalling = false;
@@ -140,6 +159,16 @@ export class PlayerController implements RunSystem {
 
   gravity(): number {
     return (8 * PLAYER.jumpHeight) / (PLAYER.jumpSeconds * PLAYER.jumpSeconds);
+  }
+
+  /** Signed lane-switch body lean (-1..1, + = right) for animation. */
+  leanAt(): number {
+    return switchLean(this.leanT, this.leanDir, this.leanAmp, this.leanFrom);
+  }
+
+  /** Normalised visual switch hop (0..1) for animation; multiply by SWITCH_FEEL.hopHeight. */
+  hopAt(): number {
+    return switchHop(this.hopT, this.hopFrom);
   }
 
   /** Apply one abstract action. Called by Run at the start of a tick. */
@@ -182,10 +211,13 @@ export class PlayerController implements RunSystem {
     }
 
     this.runPhase += dt * PLAYER.runCyclesPerSecond * Math.sqrt(Math.max(0, ctx.state.speed) / PLAYER.runCycleRefSpeed);
+    const feelDt = dt / switchTimeScale(ctx.state.speed);
+    if (this.leanT < 10) this.leanT += feelDt;
+    if (this.hopT < 10) this.hopT += feelDt;
 
     // lateral
     if (this.switchT < 1) {
-      this.switchT = Math.min(1, this.switchT + dt / PLAYER.laneSwitchSeconds);
+      this.switchT = Math.min(1, this.switchT + dt / this.switchSeconds);
       const e = 1 - Math.pow(1 - this.switchT, PLAYER.laneSwitchEasePower);
       this.x = this.switchFrom + (this.switchTo - this.switchFrom) * e;
       if (this.switchT >= 1) this.switchDir = 0;
@@ -237,6 +269,8 @@ export class PlayerController implements RunSystem {
       this.switchTo = laneX(this.prevLane);
       this.switchDir = Math.sign(this.prevLane - this.lane);
       this.switchT = 0;
+      this.switchSeconds = PLAYER.bounceSwitchSeconds;
+      this.retargetLean(this.switchDir, SWITCH_FEEL.bounceLean);
       this.lane = this.prevLane;
     }
     evStumble.cause = cause;
@@ -280,9 +314,21 @@ export class PlayerController implements RunSystem {
     this.switchTo = laneX(target);
     this.switchT = 0;
     this.switchDir = dir;
+    this.switchSeconds = PLAYER.laneSwitchSeconds;
+    this.retargetLean(dir, 1);
+    this.hopFrom = this.hopAt();
+    this.hopT = 0;
     this.prevLane = this.lane;
     this.lane = target;
     this.ctx.bus.emit("player:laneChange", evLane);
+  }
+
+  /** Restart the lean curve toward `dir`, continuing from the current lean (no pose snap). */
+  private retargetLean(dir: number, amp: number): void {
+    this.leanFrom = this.leanAt();
+    this.leanDir = dir;
+    this.leanAmp = amp;
+    this.leanT = 0;
   }
 
   private jump(buffered: boolean): void {

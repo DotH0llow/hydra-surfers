@@ -10,12 +10,15 @@ import {
   Mesh,
   MeshBasicMaterial,
   PlaneGeometry,
+  Vector3,
   type AnimationAction,
+  type Camera,
   type Object3D,
 } from "three";
 import { defineTuning } from "../../core/tuning";
 import { curveObject } from "../world/curve";
 import { PLAYER } from "./PlayerController";
+import { SWITCH_FEEL } from "./switchMotion";
 import type { RunContext, RunSystem } from "../types";
 
 export const ANIM = defineTuning("anim", "Runner animation", {
@@ -23,8 +26,9 @@ export const ANIM = defineTuning("anim", "Runner animation", {
   armSwing: { default: 0.85, min: 0, max: 2, step: 0.01, label: "Arm swing", unit: "rad" },
   bob: { default: 0.07, min: 0, max: 0.4, step: 0.005, label: "Run bob", unit: "m" },
   forwardLean: { default: 0.2, min: -0.5, max: 0.8, step: 0.01, label: "Run forward lean", unit: "rad" },
-  switchLean: { default: 0.28, min: 0, max: 1, step: 0.01, label: "Lane-switch lean", unit: "rad" },
-  switchYaw: { default: 0.3, min: 0, max: 1, step: 0.01, label: "Lane-switch yaw", unit: "rad" },
+  switchLean: { default: 0.5, min: 0, max: 1.2, step: 0.01, label: "Lane-switch lean", unit: "rad" },
+  switchLeanPivot: { default: 0.75, min: 0, max: 1.7, step: 0.01, label: "Lane-switch lean pivot height", help: "tilt pivot above the feet; > 0 swings the legs out behind the lean", unit: "m" },
+  switchYaw: { default: 0.22, min: 0, max: 1, step: 0.01, label: "Lane-switch yaw", unit: "rad" },
   jumpTuck: { default: 1.2, min: 0, max: 2.5, step: 0.01, label: "Jump knee tuck", unit: "rad" },
   rollTurns: { default: 1.6, min: 0, max: 5, step: 0.1, label: "Roll ball turns" },
   landSquash: { default: 0.14, min: 0, max: 0.5, step: 0.01, label: "Landing squash" },
@@ -86,8 +90,14 @@ export class HumanoidRig {
     if (torso) torso.rotation.set(0, 0, 0);
 
     const lean = p.lean;
-    body.rotation.z = -lean * ANIM.switchLean;
+    const tilt = -lean * ANIM.switchLean;
+    body.rotation.z = tilt;
     body.rotation.y = -lean * ANIM.switchYaw;
+    // tilt about a point above the feet: position = P - R·P for P = (0, pivot)
+    const pivot = ANIM.switchLeanPivot;
+    body.position.x = pivot * Math.sin(tilt);
+    body.position.y = pivot * (1 - Math.cos(tilt));
+    const baseY = body.position.y;
 
     switch (p.mode) {
       case "idle": {
@@ -95,7 +105,7 @@ export class HumanoidRig {
         legL.rotation.x = legR.rotation.x = 0;
         armL.rotation.set(0, 0, 0.12 + b * 0.03);
         armR.rotation.set(0, 0, -0.12 - b * 0.03);
-        body.position.y = b * 0.01;
+        body.position.y = baseY + b * 0.01;
         break;
       }
       case "run": {
@@ -104,7 +114,7 @@ export class HumanoidRig {
         legR.rotation.set(-s * ANIM.legSwing, 0, 0);
         armL.rotation.set(-s * ANIM.armSwing, 0, 0.1);
         armR.rotation.set(s * ANIM.armSwing, 0, -0.1);
-        body.position.y = Math.abs(Math.cos(p.phase * TAU)) * ANIM.bob;
+        body.position.y = baseY + Math.abs(Math.cos(p.phase * TAU)) * ANIM.bob;
         if (torso) torso.rotation.x = -ANIM.forwardLean;
         body.scale.y = 1 - p.squash * ANIM.landSquash;
         break;
@@ -186,13 +196,14 @@ export class PlayerAnimator implements RunSystem {
     this.time += frameDt;
     const x = p.prevX + (p.x - p.prevX) * alpha;
     const y = p.prevY + (p.y - p.prevY) * alpha;
-    this.root.position.set(x, y, 0);
+    const hop = p.state === "crash" ? 0 : p.hopAt() * SWITCH_FEEL.hopHeight;
+    this.root.position.set(x, y + hop, 0);
 
     const mode = ctx.state.mode;
     pose.mode = mode === "idle" ? "idle" : p.state === "crash" ? "crash" : p.rolling ? "roll" : p.grounded ? (p.state === "idle" ? "idle" : "run") : "jump";
     if (mode === "ended" && p.state !== "crash") pose.mode = "idle";
     pose.phase = p.runPhase;
-    pose.lean = p.switchT < 1 ? p.switchDir * Math.sin(Math.PI * p.switchT) : 0;
+    pose.lean = p.state === "crash" ? 0 : p.leanAt();
     const v0 = p.jumpVelocity();
     pose.tuck = p.grounded ? 0 : Math.min(1, p.airTime / 0.1) * (1 - 0.6 * Math.min(1, Math.max(0, -p.vy) / v0));
     pose.roll = p.rolling ? 1 - p.rollTimer / PLAYER.rollSeconds : 0;
@@ -204,11 +215,19 @@ export class PlayerAnimator implements RunSystem {
     else this.rig.pose(pose);
 
     // contact shadow shrinks with height
-    const h = Math.max(0, y - p.groundY);
+    const h = Math.max(0, y + hop - p.groundY);
     const k = 1 / (1 + h * 0.6);
     this.shadow.position.set(x, p.groundY + 0.02, 0);
     this.shadow.scale.set(ANIM.shadowSize * k, ANIM.shadowSize * k, 1);
     (this.shadow.material as MeshBasicMaterial).opacity = ANIM.shadowOpacity * k;
+  }
+
+  /** Debug/capture only (allocates): head centre on screen as a viewport fraction (0..1, y down). */
+  headScreen(camera: Camera): { sx: number; sy: number } | null {
+    const head = this.model?.getObjectByName("head");
+    if (!head) return null;
+    const v = head.getWorldPosition(new Vector3()).project(camera);
+    return { sx: (v.x + 1) / 2, sy: (1 - v.y) / 2 };
   }
 
   private animateClips(mode: RigMode, dt: number): void {

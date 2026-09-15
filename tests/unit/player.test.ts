@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { EventBus, type EventMap } from "../../src/core/events";
 import { tuning } from "../../src/core/tuning";
 import { PLAYER, PLAYER_HITBOX, PlayerController } from "../../src/game/player/PlayerController";
-import { laneX } from "../../src/game/world/coords";
+import { LANES, laneX } from "../../src/game/world/coords";
 import type { Action } from "../../src/input/actions";
 import type { Aabb, RunContext, RunMode } from "../../src/game/types";
 import { makeAabb } from "../../src/game/types";
@@ -108,7 +108,8 @@ describe("PlayerController state machine", () => {
     h.act("right");
     expect(h.p.lane).toBe(0);
     h.tick(1);
-    expect(Math.abs(h.p.x - mid)).toBeLessThan(0.3);
+    // one 120 Hz tick of the fastest (ease-out) part of the move: a small step, never a jump
+    expect(Math.abs(h.p.x - mid)).toBeLessThan(0.2 * LANES.spacing);
     h.seconds(0.5);
     expect(h.p.x).toBe(laneX(0));
   });

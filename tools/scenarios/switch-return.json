@@ -1,0 +1,12 @@
+{
+  "description": "Switch-return strip: switch into a train side (bounce back to the starting lane), then a reversal one frame into a switch (2 s at 30 fps).",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "train-side", "skipIntro": true }], ["step", 75, 30]],
+  "timeline": [
+    { "frame": 15, "input": "left", "label": "switch begins" },
+    { "frame": 40, "input": "right", "label": "switch begins" },
+    { "frame": 41, "input": "left", "label": "reverses mid-switch" }
+  ],
+  "seconds": 2,
+  "fps": 30
+}
