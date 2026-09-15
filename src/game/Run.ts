@@ -165,6 +165,31 @@ export class Run {
     return this.systems.map((s) => `${s.order}:${s.id}`);
   }
 
+  /**
+   * Adds a system after construction (e.g. devtools overlays loaded by dynamic import). It is
+   * initialised immediately (unless `init` is false, e.g. re-attaching a system taken out with
+   * removeSystem) and slotted by `order`; systems registered before boot should use
+   * game/systems.ts instead. Returns false when the id is taken.
+   */
+  addSystem(system: RunSystem, init = true): boolean {
+    if (this.byId.has(system.id)) return false;
+    if (init) system.init?.(this.ctx);
+    let i = this.systems.length;
+    while (i > 0 && this.systems[i - 1].order > system.order) i--;
+    this.systems.splice(i, 0, system);
+    this.byId.set(system.id, system);
+    return true;
+  }
+
+  /** Removes a system added with addSystem (or any other) by id. */
+  removeSystem(id: string): boolean {
+    const s = this.byId.get(id);
+    if (!s) return false;
+    this.systems.splice(this.systems.indexOf(s), 1);
+    this.byId.delete(id);
+    return true;
+  }
+
   /** Home state: runner idle on an empty track. */
   goIdle(seed = this.state.seed): void {
     const st = this.state;
@@ -241,6 +266,8 @@ export class Run {
   stumble(cause: string, bounce: boolean): void {
     const st = this.state;
     if (st.mode !== "running" && st.mode !== "intro") return;
+    const systems = this.systems;
+    for (let i = 0; i < systems.length; i++) if (systems[i].absorbStumble?.(this.ctx, cause)) return;
     if (!this.player.stumble(cause, bounce)) return;
     const caught = this.chaser.onStumble() && !st.god;
     evStumble.cause = cause;

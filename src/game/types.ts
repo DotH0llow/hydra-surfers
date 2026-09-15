@@ -97,6 +97,8 @@ export interface RunSystem {
   render?(ctx: RunContext, alpha: number, frameDt: number): void;
   /** Asked (in order) before a crash is applied; return true to absorb it (e.g. hoverboard). */
   absorbCrash?(ctx: RunContext, cause: string): boolean;
+  /** Asked (in order) before a light stumble is applied; return true to absorb it (e.g. dev no-clip). */
+  absorbStumble?(ctx: RunContext, cause: string): boolean;
 }
 
 /** Axis-aligned box in sim space (x lateral, y up, s forward). */

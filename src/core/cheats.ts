@@ -40,3 +40,20 @@ export function runCheat(name: string, ...args: unknown[]): unknown {
 export function listCheats(): CheatDef[] {
   return [...cheats.values()];
 }
+
+/**
+ * Unlock sources for the `unlockAll` dev cheat. A module that owns unlockable content (e.g. the
+ * meta catalog) registers a function that marks all of its items owned on the given profile
+ * object. `unlockAll` runs every source inside one `store.update`. Typed loosely so core does not
+ * depend on the profile shape.
+ */
+export type UnlockSource = (profile: unknown) => void;
+const unlockSources = new Map<string, UnlockSource>();
+
+export function registerUnlockSource(id: string, source: UnlockSource): void {
+  unlockSources.set(id, source);
+}
+
+export function listUnlockSources(): Array<[string, UnlockSource]> {
+  return [...unlockSources.entries()];
+}
