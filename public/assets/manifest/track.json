@@ -222,6 +222,36 @@
       "pivot": "bottom-center",
       "forward": "-z",
       "spec": "Hoverboard ridden under the runner's feet: 0.6 m wide, 1.5 m long along Z, 0.08 m thick, origin bottom centre. <= 1k tris."
+    },
+    {
+      "id": "gear.hoverboard.flame",
+      "type": "gltf",
+      "src": "models/pickups/hoverboard_flame.glb",
+      "placeholder": "hoverboard",
+      "color": "#ff7a1a",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Shop hoverboard \"Flame\": same size and pivot as gear.hoverboard. <= 1k tris."
+    },
+    {
+      "id": "gear.hoverboard.frost",
+      "type": "gltf",
+      "src": "models/pickups/hoverboard_frost.glb",
+      "placeholder": "hoverboard",
+      "color": "#7fd1ff",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Shop hoverboard \"Frost\": same size and pivot as gear.hoverboard. <= 1k tris."
+    },
+    {
+      "id": "gear.hoverboard.royal",
+      "type": "gltf",
+      "src": "models/pickups/hoverboard_royal.glb",
+      "placeholder": "hoverboard",
+      "color": "#b57bff",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Shop hoverboard \"Royal\" (key purchase): same size and pivot as gear.hoverboard. <= 1k tris."
     }
   ]
 }

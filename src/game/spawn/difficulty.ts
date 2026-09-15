@@ -1,11 +1,16 @@
-/** Forward speed curve and difficulty ramp (functions of run time). */
+/**
+ * Forward speed curve and difficulty ramp (functions of run time).
+ * Speed shape from the reference measurements: hold the start speed for ~28 s, then a linear ramp to
+ * about twice the start speed by ~3.75 min.
+ */
 import { defineTuning } from "../../core/tuning";
 
 export const SPEED = defineTuning("speed", "Speed curve", {
   start: { default: 12, min: 2, max: 40, step: 0.5, label: "Start speed", unit: "m/s" },
-  max: { default: 26, min: 2, max: 60, step: 0.5, label: "Top speed", unit: "m/s" },
-  rampSeconds: { default: 240, min: 5, max: 1200, step: 5, label: "Time to top speed", unit: "s" },
-  rampExponent: { default: 0.85, min: 0.2, max: 3, step: 0.05, label: "Ramp curve exponent", help: "<1 front-loads acceleration" },
+  max: { default: 24, min: 2, max: 60, step: 0.5, label: "Top speed", unit: "m/s" },
+  flatSeconds: { default: 28, min: 0, max: 300, step: 1, label: "Hold the start speed for", unit: "s" },
+  rampSeconds: { default: 225, min: 5, max: 1200, step: 5, label: "Top speed reached at (run time)", unit: "s" },
+  rampExponent: { default: 1, min: 0.2, max: 3, step: 0.05, label: "Ramp curve exponent", help: "1 = linear, <1 front-loads acceleration" },
   introStartFactor: { default: 0.45, min: 0, max: 1, step: 0.05, label: "Intro: starting fraction of start speed" },
 });
 
@@ -15,7 +20,8 @@ export const DIFFICULTY = defineTuning("difficulty", "Difficulty", {
 });
 
 export function speedAt(time: number): number {
-  const u = Math.min(1, Math.max(0, time / SPEED.rampSeconds));
+  const span = Math.max(1e-6, SPEED.rampSeconds - SPEED.flatSeconds);
+  const u = Math.min(1, Math.max(0, (time - SPEED.flatSeconds) / span));
   return SPEED.start + (SPEED.max - SPEED.start) * Math.pow(u, SPEED.rampExponent);
 }
 

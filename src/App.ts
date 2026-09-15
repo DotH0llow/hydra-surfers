@@ -14,7 +14,8 @@ import { Loop, type ClockMode } from "./core/loop";
 import type { Profile, ProfileStore, StorageLike } from "./core/store";
 import { defineTuning, tuning } from "./core/tuning";
 import { Run, type RunResult } from "./game/Run";
-import type { HoverboardSystem } from "./game/hoverboard/Hoverboard";
+import type { HoverboardSystem, HoverboardView } from "./game/hoverboard/Hoverboard";
+import { equippedId } from "./meta/catalog";
 import type { PlayerAnimator } from "./game/player/PlayerAnimator";
 import type { PowerupSystem } from "./game/powerups/PowerupSystem";
 import { activeMissions, applyRunMissions, emptyRunStats, liveProgress, multiplierBonus, type ActiveMission, type MissionOutcome, type MissionStat, type RunStats } from "./meta/missions";
@@ -354,6 +355,8 @@ export class App implements ScreenHost, DebugHost {
 
   private applyProfile(p: Readonly<Profile>): void {
     syncUpgrades(p);
+    this.run.ctx.getSystem<PlayerAnimator>("playerView")?.setModel(equippedId(p, "character"));
+    this.run.ctx.getSystem<HoverboardView>("hoverboardView")?.setBoard(equippedId(p, "board"));
     const reduced = !!p.settings.reducedMotion;
     document.documentElement.classList.toggle("reduced-motion", reduced);
     const shake = "camera.shakeAmplitude";

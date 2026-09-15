@@ -295,6 +295,21 @@ export class Run {
     if (caught) this.crash("caught");
   }
 
+  /**
+   * Dev: jump a live run to `time` seconds / `distance` metres. Track content is cleared and generation
+   * restarts `gap` metres ahead, so the run continues at the matching speed and difficulty.
+   */
+  warp(time: number, distance: number, gap = 40): void {
+    const st = this.state;
+    if (st.mode !== "running" && st.mode !== "intro") return;
+    st.time = Math.max(0, time);
+    st.distance = st.prevDistance = Math.max(0, distance);
+    st.speed = st.speedOverride > 0 ? st.speedOverride : speedAt(st.time);
+    this.obstacles.clear();
+    this.coins.clear();
+    this.spawner.restartAt(st.distance + gap);
+  }
+
   /** Accept the revive offer: clears the crash site and continues the run with a short grace. */
   revive(): void {
     const st = this.state;

@@ -78,6 +78,11 @@ export class Spawner implements RunSystem, SpawnApi {
     return this.ctx.obstacles.spawn(typeId, lane, s, length, speed);
   }
 
+  /** Continue procedural generation from track position `s` (dev warp). */
+  restartAt(s: number): void {
+    this.nextS = s;
+  }
+
   pickup(kind: PickupKind, lane: number, s: number, y?: number): void {
     this.ctx.getSystem?.<PickupSystem>("pickups")?.spawn(kind, lane, s, y);
   }

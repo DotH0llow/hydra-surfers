@@ -1,5 +1,5 @@
 /**
- * Yard Dash API Worker (Cloudflare Workers + static assets).
+ * Hydra Surfers API Worker (Cloudflare Workers + static assets).
  *
  * wrangler.jsonc routes `/api/*` here first (`assets.run_worker_first`); every other path is served
  * from `dist/` by the assets binding with SPA fallback.

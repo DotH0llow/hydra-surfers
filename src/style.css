@@ -753,3 +753,23 @@ body {
   animation: none !important;
   transition: none !important;
 }
+
+.overlay .panel {
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+}
+.btn.buy.owned {
+  background: linear-gradient(#49d8c6, var(--yd-accent));
+  border-bottom-color: #1d8c7f;
+}

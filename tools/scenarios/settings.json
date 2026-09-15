@@ -1,0 +1,9 @@
+{
+  "description": "Settings screen (sound, effects and music volume, reduced motion, controls, reset).",
+  "query": "",
+  "seed": 1,
+  "setup": [["goto", "settings"]],
+  "timeline": [],
+  "seconds": 0.4,
+  "fps": 5
+}

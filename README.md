@@ -1,4 +1,4 @@
-# Yard Dash
+# Hydra Surfers
 
 An original, mobile-first three-lane endless runner for the browser. Swipe between lanes, jump barriers, roll under boards, run along train roofs, grab power-ups and outrun the yard warden.
 
@@ -54,7 +54,7 @@ The repository is ready for Cloudflare Workers. Pick **one** of these:
 2. **GitHub Actions.** Add the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets. `.github/workflows/deploy.yml` then deploys on every push to `main` and uploads a preview version for each pull request. Without the secrets the workflow only runs the checks.
 3. **From your machine.** Run `npx wrangler login`, then `npm run deploy`.
 
-The Worker name is `yard-dash` (`wrangler.jsonc`), served at `https://yard-dash.<your-subdomain>.workers.dev`. Custom domains, the optional D1 leaderboard database and all environment variables are covered in [docs/DEPLOY.md](docs/DEPLOY.md) and [docs/ONLINE.md](docs/ONLINE.md).
+The Worker name is `hydra-surfers` (`wrangler.jsonc`), served at `https://hydra-surfers.<your-subdomain>.workers.dev`. Custom domains, the optional D1 leaderboard database and all environment variables are covered in [docs/DEPLOY.md](docs/DEPLOY.md) and [docs/ONLINE.md](docs/ONLINE.md).
 
 ## Project layout
 

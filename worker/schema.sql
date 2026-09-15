@@ -1,6 +1,6 @@
--- Yard Dash leaderboard schema (Cloudflare D1 / SQLite).
--- Apply locally:   npx wrangler d1 execute yard-dash --local  --file=worker/schema.sql
--- Apply remotely:  npx wrangler d1 execute yard-dash --remote --file=worker/schema.sql
+-- Hydra Surfers leaderboard schema (Cloudflare D1 / SQLite).
+-- Apply locally:   npx wrangler d1 execute hydra-surfers --local  --file=worker/schema.sql
+-- Apply remotely:  npx wrangler d1 execute hydra-surfers --remote --file=worker/schema.sql
 -- Idempotent: safe to run more than once.
 
 CREATE TABLE IF NOT EXISTS scores (

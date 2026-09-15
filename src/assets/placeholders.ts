@@ -484,6 +484,40 @@ registerSfxPlaceholder("synth-mission", (ac) =>
     return Math.sin(TAU * f * t) * env(lt, 0.004, 0.11) + 0.3 * Math.sin(TAU * f * 3 * t) * env(lt, 0.004, 0.05);
   }, 12),
 );
+/** 8-bar loop at 128 BPM: kick, offbeat hats, bass line and an arpeggio over Am-F-C-G. */
+registerSfxPlaceholder("synth-music", (ac) => {
+  const beat = 60 / 128;
+  const bar = beat * 4;
+  const roots = [110, 87.31, 130.81, 98];
+  const arp = [1, 1.5, 2, 2.5198, 2, 1.5, 3, 2];
+  let hp = 0;
+  let lastNoise = 0;
+  return synth(
+    ac,
+    bar * 8,
+    (t, _i, noise) => {
+      const b = Math.floor(t / bar);
+      const root = roots[b % 4];
+      const inBeat = t % beat;
+      const eighth = beat / 2;
+      const inEighth = t % eighth;
+      const step = Math.floor(t / eighth) % 8;
+      const kick = Math.sin(TAU * (48 + 90 * Math.exp(-inBeat * 30)) * inBeat) * Math.exp(-inBeat * 9);
+      const n = noise();
+      hp = 0.6 * (hp + n - lastNoise);
+      lastNoise = n;
+      const hat = inEighth > eighth * 0.5 ? hp * Math.exp(-(inEighth - eighth * 0.5) * 60) * 0.35 : 0;
+      const bassF = root * (step % 2 === 0 ? 1 : 2);
+      const bassPh = (bassF * t) % 1;
+      const bass = (bassPh < 0.5 ? 0.5 : -0.5) * Math.exp(-inEighth * 6) * 0.55;
+      const leadF = root * 4 * arp[step];
+      const leadPh = (leadF * t) % 1;
+      const lead = (4 * Math.abs(leadPh - 0.5) - 1) * Math.exp(-inEighth * 10) * 0.32;
+      return kick * 0.9 + hat + bass + lead;
+    },
+    14,
+  );
+});
 registerSfxPlaceholder("synth-key", (ac) =>
   synth(ac, 0.34, (t, _i, noise) => {
     const f = 1568 + 400 * Math.sin(TAU * 18 * t);

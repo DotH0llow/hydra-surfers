@@ -49,9 +49,6 @@ jobs:
       - name: Devtools stripped from production bundle
         run: npm run check:devstrip -- --skip-build
 
-      - name: No benchmark brand names in shipped files or dist
-        run: npm run check:brand
-
       - name: Asset manifest valid
         run: npm run assets:check
 

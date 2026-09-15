@@ -15,6 +15,42 @@
       "spec": "Playable runner. Height 1.7 m, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop, ~0.6 s stride), Jump, Roll, Stumble, Death, Idle (loop), LeanLeft, LeanRight."
     },
     {
+      "id": "char.runner.spark",
+      "type": "gltf",
+      "src": "models/characters/runner_spark.glb",
+      "placeholder": "capsule-runner",
+      "color": "#2fc4b2",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "spec": "Shop character \"Spark\". Same rig, size, orientation and clips as char.runner.default. <= 6k tris, 1 material, 512x512 texture."
+    },
+    {
+      "id": "char.runner.nova",
+      "type": "gltf",
+      "src": "models/characters/runner_nova.glb",
+      "placeholder": "capsule-runner",
+      "color": "#b57bff",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "spec": "Shop character \"Nova\". Same rig, size, orientation and clips as char.runner.default. <= 6k tris, 1 material, 512x512 texture."
+    },
+    {
+      "id": "char.runner.ember",
+      "type": "gltf",
+      "src": "models/characters/runner_ember.glb",
+      "placeholder": "capsule-runner",
+      "color": "#e5484d",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "spec": "Shop character \"Ember\" (key purchase). Same rig, size, orientation and clips as char.runner.default. <= 6k tris, 1 material, 512x512 texture."
+    },
+    {
       "id": "char.chaser.guard",
       "type": "gltf",
       "src": "models/characters/chaser_guard.glb",

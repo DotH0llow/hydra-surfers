@@ -26,7 +26,12 @@ export class InputRouter {
     const prevent: EventListener = (e) => {
       if (e.cancelable) e.preventDefault();
     };
-    this.block(document, "touchmove", prevent);
+    // touch scrolling stays possible inside menu panels (they scroll when taller than the screen)
+    this.block(document, "touchmove", (e) => {
+      const target = e.target as Element | null;
+      if (target?.closest?.("[data-scroll], .overlay .panel")) return;
+      if (e.cancelable) e.preventDefault();
+    });
     this.block(document, "gesturestart", prevent);
     this.block(document, "dblclick", prevent);
     this.block(el, "contextmenu", prevent);

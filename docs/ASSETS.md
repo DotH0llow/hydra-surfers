@@ -33,7 +33,7 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 
 ## Status
 
-43 assets in 4 parts. 0 have files and 43 still use procedural placeholders.
+50 assets in 4 parts. 0 have files and 50 still use procedural placeholders.
 
 ## core (`public/assets/manifest/core.json`)
 
@@ -42,6 +42,9 @@ Characters, chaser and shared effects. Owned by lane D (additive for others).
 | id | type | file (under public/assets/) | status | pivot / facing | budget |
 |---|---|---|---|---|---|
 | `char.runner.default` | gltf | `models/characters/runner_default.glb` | placeholder (`capsule-runner`) | feet-center, faces -z | <= 6000 tris |
+| `char.runner.spark` | gltf | `models/characters/runner_spark.glb` | placeholder (`capsule-runner`) | feet-center, faces -z | <= 6000 tris |
+| `char.runner.nova` | gltf | `models/characters/runner_nova.glb` | placeholder (`capsule-runner`) | feet-center, faces -z | <= 6000 tris |
+| `char.runner.ember` | gltf | `models/characters/runner_ember.glb` | placeholder (`capsule-runner`) | feet-center, faces -z | <= 6000 tris |
 | `char.chaser.guard` | gltf | `models/characters/chaser_guard.glb` | placeholder (`capsule-chaser`) | feet-center, faces -z | <= 6000 tris |
 | `fx.shadow.blob` | texture | `textures/fx/shadow_blob.png` | placeholder (`radial-shadow`) |  |  |
 
@@ -54,6 +57,36 @@ Characters, chaser and shared effects. Owned by lane D (additive for others).
 - **Placeholder tint / palette hint:** `#ff7a1a`
 - **Placeholder:** `capsule-runner`
 - **Brief:** Playable runner. Height 1.7 m, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop, ~0.6 s stride), Jump, Roll, Stumble, Death, Idle (loop), LeanLeft, LeanRight.
+
+### `char.runner.spark`
+
+- **File:** `public/assets/models/characters/runner_spark.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#2fc4b2`
+- **Placeholder:** `capsule-runner`
+- **Brief:** Shop character "Spark". Same rig, size, orientation and clips as char.runner.default. <= 6k tris, 1 material, 512x512 texture.
+
+### `char.runner.nova`
+
+- **File:** `public/assets/models/characters/runner_nova.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#b57bff`
+- **Placeholder:** `capsule-runner`
+- **Brief:** Shop character "Nova". Same rig, size, orientation and clips as char.runner.default. <= 6k tris, 1 material, 512x512 texture.
+
+### `char.runner.ember`
+
+- **File:** `public/assets/models/characters/runner_ember.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#e5484d`
+- **Placeholder:** `capsule-runner`
+- **Brief:** Shop character "Ember" (key purchase). Same rig, size, orientation and clips as char.runner.default. <= 6k tris, 1 material, 512x512 texture.
 
 ### `char.chaser.guard`
 
@@ -100,6 +133,9 @@ Track, environment, obstacles and collectibles. Owned by lane B (world pieces by
 | `pickup.multiplier` | gltf | `models/pickups/multiplier.glb` | placeholder (`pickup-multiplier`) | center, faces -z | <= 800 tris |
 | `pickup.key` | gltf | `models/pickups/key.glb` | placeholder (`pickup-key`) | center, faces -z | <= 600 tris |
 | `gear.hoverboard` | gltf | `models/pickups/hoverboard.glb` | placeholder (`hoverboard`) | bottom-center, faces -z | <= 1000 tris |
+| `gear.hoverboard.flame` | gltf | `models/pickups/hoverboard_flame.glb` | placeholder (`hoverboard`) | bottom-center, faces -z | <= 1000 tris |
+| `gear.hoverboard.frost` | gltf | `models/pickups/hoverboard_frost.glb` | placeholder (`hoverboard`) | bottom-center, faces -z | <= 1000 tris |
+| `gear.hoverboard.royal` | gltf | `models/pickups/hoverboard_royal.glb` | placeholder (`hoverboard`) | bottom-center, faces -z | <= 1000 tris |
 
 ### `tex.track.ballast`
 
@@ -283,6 +319,30 @@ Track, environment, obstacles and collectibles. Owned by lane B (world pieces by
 - **Placeholder:** `hoverboard`
 - **Brief:** Hoverboard ridden under the runner's feet: 0.6 m wide, 1.5 m long along Z, 0.08 m thick, origin bottom centre. <= 1k tris.
 
+### `gear.hoverboard.flame`
+
+- **File:** `public/assets/models/pickups/hoverboard_flame.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#ff7a1a`
+- **Placeholder:** `hoverboard`
+- **Brief:** Shop hoverboard "Flame": same size and pivot as gear.hoverboard. <= 1k tris.
+
+### `gear.hoverboard.frost`
+
+- **File:** `public/assets/models/pickups/hoverboard_frost.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#7fd1ff`
+- **Placeholder:** `hoverboard`
+- **Brief:** Shop hoverboard "Frost": same size and pivot as gear.hoverboard. <= 1k tris.
+
+### `gear.hoverboard.royal`
+
+- **File:** `public/assets/models/pickups/hoverboard_royal.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#b57bff`
+- **Placeholder:** `hoverboard`
+- **Brief:** Shop hoverboard "Royal" (key purchase): same size and pivot as gear.hoverboard. <= 1k tris.
+
 ## ui (`public/assets/manifest/ui.json`)
 
 UI sprites and icons. Owned by lane C.
@@ -352,6 +412,7 @@ Sound effects and music. Owned by lane D.
 | `sfx.board` | audio | `audio/sfx/hoverboard.ogg` | placeholder (`synth-board`) |  |  |
 | `sfx.mission` | audio | `audio/sfx/mission.ogg` | placeholder (`synth-mission`) |  |  |
 | `sfx.key` | audio | `audio/sfx/key.ogg` | placeholder (`synth-key`) |  |  |
+| `music.run` | audio | `audio/music/run.ogg` | placeholder (`synth-music`) |  |  |
 
 ### `sfx.coin`
 
@@ -436,3 +497,10 @@ Sound effects and music. Owned by lane D.
 - **Playback volume:** 0.55
 - **Placeholder:** `synth-key`
 - **Brief:** Key pickup sparkle, < 400 ms, mono.
+
+### `music.run`
+
+- **File:** `public/assets/audio/music/run.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.32, looped
+- **Placeholder:** `synth-music`
+- **Brief:** In-run music loop: upbeat, ~128 BPM, seamless loop of 15-60 s, stereo or mono OGG/MP3 44.1 kHz, peak -6 dBFS.

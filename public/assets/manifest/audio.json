@@ -13,6 +13,7 @@
     { "id": "sfx.stumble", "type": "audio", "src": "audio/sfx/stumble.ogg", "placeholder": "synth-stumble", "volume": 0.6, "spec": "Side bump / stumble: dull thud with a scrape, < 300 ms, mono." },
     { "id": "sfx.board", "type": "audio", "src": "audio/sfx/hoverboard.ogg", "placeholder": "synth-board", "volume": 0.5, "spec": "Hoverboard power-on hum sweep, < 500 ms, mono." },
     { "id": "sfx.mission", "type": "audio", "src": "audio/sfx/mission.ogg", "placeholder": "synth-mission", "volume": 0.55, "spec": "Mission complete: two-note chime, < 500 ms, mono." },
-    { "id": "sfx.key", "type": "audio", "src": "audio/sfx/key.ogg", "placeholder": "synth-key", "volume": 0.55, "spec": "Key pickup sparkle, < 400 ms, mono." }
+    { "id": "sfx.key", "type": "audio", "src": "audio/sfx/key.ogg", "placeholder": "synth-key", "volume": 0.55, "spec": "Key pickup sparkle, < 400 ms, mono." },
+    { "id": "music.run", "type": "audio", "src": "audio/music/run.ogg", "placeholder": "synth-music", "volume": 0.32, "loop": true, "spec": "In-run music loop: upbeat, ~128 BPM, seamless loop of 15-60 s, stereo or mono OGG/MP3 44.1 kHz, peak -6 dBFS." }
   ]
 }

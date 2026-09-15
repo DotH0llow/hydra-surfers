@@ -11,6 +11,10 @@ export class AudioBus {
   private master: GainNode | null = null;
   private coinStreak = 0;
   private lastCoinAt = -1;
+  private music: AudioBufferSourceNode | null = null;
+  private musicGain: GainNode | null = null;
+  private wantMusic = false;
+  private ducked = false;
 
   constructor(
     private readonly assets: AssetLibrary,
@@ -44,6 +48,14 @@ export class AudioBus {
       this.lastCoinAt = now;
       this.play("sfx.coin", Math.pow(2, this.coinStreak / 24));
     });
+    bus.on("run:start", () => this.startMusic());
+    bus.on("run:revive", () => this.duck(false));
+    bus.on("run:crash", () => this.duck(true));
+    bus.on("run:pause", () => this.duck(true));
+    bus.on("run:resume", () => this.duck(false));
+    bus.on("run:end", () => this.stopMusic());
+    bus.on("run:idle", () => this.stopMusic());
+    store.subscribe(() => this.applyMusicVolume());
     bus.on("app:visibility", ({ hidden }) => {
       if (!this.ac) return;
       if (hidden) void this.ac.suspend();
@@ -60,9 +72,60 @@ export class AudioBus {
       this.ac = new AudioContext();
       this.master = this.ac.createGain();
       this.master.connect(this.ac.destination);
+      if (this.wantMusic) this.startMusic();
     } catch (err) {
       console.warn("[audio] WebAudio unavailable", err);
     }
+  }
+
+  /** Starts the looping run music (from the top). */
+  startMusic(): void {
+    this.wantMusic = true;
+    this.ducked = false;
+    const ac = this.ac;
+    if (!ac || !this.master) return;
+    this.stopSource();
+    const buf = this.assets.getAudioBuffer("music.run", ac);
+    if (!buf) return;
+    const src = ac.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const g = ac.createGain();
+    src.connect(g).connect(this.master);
+    this.music = src;
+    this.musicGain = g;
+    this.applyMusicVolume();
+    src.start();
+  }
+
+  stopMusic(): void {
+    this.wantMusic = false;
+    this.stopSource();
+  }
+
+  private duck(on: boolean): void {
+    this.ducked = on;
+    this.applyMusicVolume();
+  }
+
+  private stopSource(): void {
+    try {
+      this.music?.stop();
+    } catch {
+      /* already stopped */
+    }
+    this.music?.disconnect();
+    this.musicGain?.disconnect();
+    this.music = null;
+    this.musicGain = null;
+  }
+
+  private applyMusicVolume(): void {
+    const g = this.musicGain;
+    if (!g || !this.ac) return;
+    const s = this.store.get().settings;
+    const v = this.muted || s.muted ? 0 : (this.assets.entry("music.run")?.volume ?? 1) * s.music * (this.ducked ? 0.35 : 1);
+    g.gain.setTargetAtTime(v, this.ac.currentTime, 0.08);
   }
 
   play(id: string, rate = 1): void {

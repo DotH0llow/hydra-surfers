@@ -18,6 +18,7 @@ import {
   type Object3D,
 } from "three";
 import { indexKey, type AssetEntry, type AssetType, type Manifest } from "./manifest";
+import { mergeStaticMeshes } from "./mergeStatic";
 import {
   buildMeshPlaceholder,
   buildSfxPlaceholder,
@@ -373,6 +374,8 @@ export class AssetLibrary {
       entry: e ?? { id, type: "gltf", src: "", placeholder: "missing" },
       getTexture: (t) => this.getTexture(t),
     });
+    // placeholders are built from many primitives: merge the static ones to cut draw calls
+    mergeStaticMeshes(proto);
     rec = { proto, clips: [], placeholder: true, skinned: false };
     this.models.set(id, rec);
     return rec;

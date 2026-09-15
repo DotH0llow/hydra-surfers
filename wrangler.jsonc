@@ -2,7 +2,7 @@
 // Docs: docs/DEPLOY.md (deploy paths, secrets, custom domain) and docs/ONLINE.md (D1).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "yard-dash",
+  "name": "hydra-surfers",
   "main": "worker/index.ts",
   "compatibility_date": "2026-09-01",
   "assets": {
@@ -18,9 +18,9 @@
 
   // Optional D1 leaderboard database. Without it /api/leaderboard and /api/scores return 503 and
   // the client uses its mock provider. To enable (see docs/ONLINE.md):
-  //   npx wrangler d1 create yard-dash
+  //   npx wrangler d1 create hydra-surfers
   //   then uncomment and paste the database_id below.
   // ,"d1_databases": [
-  //   { "binding": "DB", "database_name": "yard-dash", "database_id": "<paste-id>" }
+  //   { "binding": "DB", "database_name": "hydra-surfers", "database_id": "<paste-id>" }
   // ]
 }

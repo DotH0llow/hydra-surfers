@@ -1,8 +1,8 @@
-# Yard Dash — build plan & architecture contract
+# Hydra Surfers — build plan & architecture contract
 
-Working title **Yard Dash** (all branding lives in `src/brand/brand.json`; rename freely).
+Game name **Hydra Surfers** (formerly the working title Yard Dash; all branding lives in `src/brand/brand.json`).
 An original 3-lane endless runner whose *mechanics* are held to the bar of the current shipped
-Subway Surfers mobile game. No Subway Surfers names, art, audio, logos or characters are used or shipped.
+Subway Surfers mobile game. No art, audio, logos, characters or the title of that game are used or shipped.
 
 Every agent working on this repo follows this file. If you must change a contract here, update this file in the same commit.
 

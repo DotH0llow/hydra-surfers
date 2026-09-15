@@ -22,15 +22,16 @@ export const PLAYER = defineTuning("player", "Player movement", {
   laneSwitchEasePower: { default: 2.5, min: 1, max: 6, step: 0.1, label: "Lane switch ease-out power", help: "x = 1-(1-t)^p; 1 = linear" },
   bounceSwitchSeconds: { default: 0.2, min: 0.03, max: 0.8, step: 0.005, label: "Bounce-back return duration", unit: "s" },
   jumpHeight: { default: 1.5, min: 0.5, max: 4, step: 0.05, label: "Jump apex height", unit: "m" },
-  jumpSeconds: { default: 0.65, min: 0.3, max: 1.5, step: 0.01, label: "Jump airtime (at fall gravity ×1)", unit: "s" },
+  jumpSeconds: { default: 0.7, min: 0.3, max: 1.5, step: 0.01, label: "Jump airtime (at fall gravity ×1)", unit: "s" },
   fallGravityScale: { default: 1, min: 0.5, max: 3, step: 0.05, label: "Fall gravity multiplier" },
   fastFallSpeed: { default: 16, min: 0, max: 40, step: 0.5, label: "Fast-fall initial down speed", unit: "m/s" },
   fastFallGravityScale: { default: 2.5, min: 1, max: 8, step: 0.1, label: "Fast-fall gravity multiplier" },
   fastFallRolls: { default: 1, min: 0, max: 1, step: 1, label: "Fast-fall lands into roll (0/1)" },
-  rollSeconds: { default: 0.65, min: 0.2, max: 1.5, step: 0.01, label: "Roll duration", unit: "s" },
+  rollSeconds: { default: 0.47, min: 0.2, max: 1.5, step: 0.01, label: "Roll duration", unit: "s" },
   jumpBufferSeconds: { default: 0.2, min: 0, max: 0.6, step: 0.01, label: "Jump input buffer (airborne)", unit: "s" },
   stumbleGraceSeconds: { default: 0.4, min: 0, max: 2, step: 0.01, label: "Stumble grace (no repeat bump)", unit: "s" },
-  runCyclesPerSecond: { default: 1.55, min: 0.5, max: 4, step: 0.05, label: "Run cycles/s at reference speed", unit: "Hz" },
+  runCyclesPerSecond: { default: 2.5, min: 0.5, max: 4, step: 0.05, label: "Run cycles/s at reference speed (2 steps per cycle)", unit: "Hz" },
+  runCycleSpeedExponent: { default: 0, min: 0, max: 1.5, step: 0.05, label: "Run cadence speed exponent", help: "0 = constant cadence (reference), 0.5 = grows with √speed" },
   runCycleRefSpeed: { default: 12, min: 1, max: 40, step: 0.5, label: "Run cycle reference speed", unit: "m/s" },
   flyRiseSharpness: { default: 3.2, min: 0.2, max: 20, step: 0.1, label: "Jetpack: climb/hold sharpness", unit: "1/s" },
 });
@@ -227,7 +228,7 @@ export class PlayerController implements RunSystem {
       return;
     }
 
-    this.runPhase += dt * PLAYER.runCyclesPerSecond * Math.sqrt(Math.max(0, ctx.state.speed) / PLAYER.runCycleRefSpeed);
+    this.runPhase += dt * PLAYER.runCyclesPerSecond * Math.pow(Math.max(0, ctx.state.speed) / PLAYER.runCycleRefSpeed, PLAYER.runCycleSpeedExponent);
     const feelDt = dt / switchTimeScale(ctx.state.speed);
     if (this.leanT < 10) this.leanT += feelDt;
     if (this.hopT < 10) this.hopT += feelDt;

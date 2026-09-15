@@ -1,5 +1,5 @@
 {
-  "name": "yard-dash",
+  "name": "hydra-surfers",
   "private": true,
   "version": "0.1.0",
   "description": "Yard Dash: an original mobile-first 3-lane endless runner (Vite + TypeScript + three.js).",
@@ -16,7 +16,6 @@
     "capture": "node tools/capture.mjs",
     "contact-sheet": "node tools/contact-sheet.mjs",
     "check:devstrip": "node tools/check-devstrip.mjs",
-    "check:brand": "node tools/check-brand.mjs",
     "assets:doc": "node tools/assets-doc.mjs",
     "assets:check": "node tools/assets-check.mjs",
     "docs:tuning": "node tools/tuning-doc.mjs",

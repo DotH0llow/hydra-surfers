@@ -36,7 +36,7 @@ interface MockSaved {
 }
 
 const SYLLABLES = ["ka", "zo", "ri", "mek", "lu", "tan", "vi", "po", "sha", "dex", "nor", "bi", "jax", "el", "quin", "ro", "fen", "ta"];
-const STORAGE_KEY = "yard-dash.mock-board";
+const STORAGE_KEY = "hydra-surfers.mock-board";
 
 export class MockProvider implements LeaderboardService {
   readonly id = "mock" as const;

@@ -7,7 +7,7 @@ The game talks to leaderboards only through the `LeaderboardService` interface i
 | `mock` (default) | `MockProvider` | Seeded fake league stored locally (`localStorage`), with 80-260 ms simulated latency. Works offline and needs no server. |
 | `http` | `HttpProvider` | Calls the Worker API (`/api/*`). It records every score locally too, and falls back to the mock league whenever the API answers non-2xx (e.g. `503` with no database) or is unreachable. The UI always has a board. |
 
-`createLeaderboardService(storage)` in `src/online/index.ts` builds the right provider. A random player identity (`playerId`, `playerName`) is created once and stored under `yard-dash.player`.
+`createLeaderboardService(storage)` in `src/online/index.ts` builds the right provider. A random player identity (`playerId`, `playerName`) is created once and stored under `hydra-surfers.player`.
 
 ## Interface
 
@@ -50,10 +50,10 @@ Schema: `worker/schema.sql` creates one `scores` table plus indexes. It is idemp
 ## Connecting a real D1 database
 
 1. Log in once: `npx wrangler login`, or set `CLOUDFLARE_API_TOKEN` (see [DEPLOY.md](DEPLOY.md)).
-2. Create the database: `npx wrangler d1 create yard-dash`. Copy the printed `database_id`.
+2. Create the database: `npx wrangler d1 create hydra-surfers`. Copy the printed `database_id`.
 3. In `wrangler.jsonc`, uncomment the `d1_databases` block and paste the id. Keep `"binding": "DB"`.
-4. Create the tables remotely: `npx wrangler d1 execute yard-dash --remote --file=worker/schema.sql`.
-5. (Optional, local dev) Create them locally too: `npx wrangler d1 execute yard-dash --local --file=worker/schema.sql`.
+4. Create the tables remotely: `npx wrangler d1 execute hydra-surfers --remote --file=worker/schema.sql`.
+5. (Optional, local dev) Create them locally too: `npx wrangler d1 execute hydra-surfers --local --file=worker/schema.sql`.
 6. Build the client against the API: `VITE_ONLINE_PROVIDER=http npm run build`. In CI, add `VITE_ONLINE_PROVIDER: http` as an `env:` on the Build step.
 7. Deploy: `npx wrangler deploy` (or push to `main`).
 8. Verify: `curl https://<your-worker>/api/health` should show `"db": true`. Then `curl "https://<your-worker>/api/leaderboard?scope=global"` returns `200` with `entries`.

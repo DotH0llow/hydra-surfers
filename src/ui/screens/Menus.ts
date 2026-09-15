@@ -1,5 +1,6 @@
 /** Menu screens reached from Home: shop (C5), missions (C4), leaderboard (C6) and settings. */
 import { activeMissions, multiplierBonus } from "../../meta/missions";
+import { buyItem, catalog, equipItem, equippedId, owns, type CatalogKind } from "../../meta/catalog";
 import { BOARD_PRICE, KEY_PRICE, MAX_UPGRADE_LEVEL, UPGRADE_IDS, buyBoard, buyKey, buyUpgrade, readUpgrades, upgradeCost, type UpgradeId } from "../../meta/upgrades";
 import type { Board, BoardScope } from "../../online/LeaderboardService";
 import { h, formatInt, setText } from "../dom";
@@ -58,8 +59,34 @@ registerScreen("shop", (host) => {
     return { id, row, pips, priceBtn };
   });
 
+  const catalogRows = (kind: CatalogKind) =>
+    catalog(kind).map((item) => {
+      const btn = h("button", { class: "btn buy", attrs: { "data-id": `item-${item.id}`, type: "button" } });
+      const row = h(
+        "div",
+        { class: "shop-row" },
+        h("div", { class: "shop-item" }, h("i", { class: "swatch", attrs: { style: `background:${item.color}` } }), h("b", { text: item.name })),
+        btn,
+      );
+      btn.addEventListener("click", () => {
+        if (owns(host.store.get(), kind, item.id)) buy(`equip-${item.id}`, (p) => equipItem(p, kind, item.id), row);
+        else buy(`buy-${item.id}`, (p) => buyItem(p, kind, item.id) && equipItem(p, kind, item.id), row);
+      });
+      return { kind, item, row, btn };
+    });
+  const characterRows = catalogRows("character");
+  const boardRows = catalogRows("board");
+
   const refresh = () => {
     const p = host.store.get();
+    for (const r of [...characterRows, ...boardRows]) {
+      const owned = owns(p, r.kind, r.item.id);
+      const equipped = owned && equippedId(p, r.kind) === r.item.id;
+      const price = r.item.currency === "keys" ? `${formatInt(r.item.price)} keys` : formatInt(r.item.price);
+      setText(r.btn, equipped ? "Equipped" : owned ? "Equip" : price);
+      r.btn.disabled = equipped || (!owned && p.currencies[r.item.currency] < r.item.price);
+      r.btn.classList.toggle("owned", owned);
+    }
     setText(coins.value, formatInt(p.currencies.coins));
     setText(keys.value, formatInt(p.currencies.keys));
     setText(boards.value, formatInt(p.currencies.boards));
@@ -74,7 +101,20 @@ registerScreen("shop", (host) => {
     }
   };
 
-  const el = menuScreen(host, "shop", "Shop", wallet, boardItem.row, keyItem.row, h("h2", { text: "Power-up upgrades" }), ...upgradeRows.map((r) => r.row));
+  const el = menuScreen(
+    host,
+    "shop",
+    "Shop",
+    wallet,
+    boardItem.row,
+    keyItem.row,
+    h("h2", { text: "Power-up upgrades" }),
+    ...upgradeRows.map((r) => r.row),
+    h("h2", { text: "Characters" }),
+    ...characterRows.map((r) => r.row),
+    h("h2", { text: "Hoverboards" }),
+    ...boardRows.map((r) => r.row),
+  );
   return { el, show: refresh, hide() {} };
 });
 
@@ -200,6 +240,8 @@ registerScreen("settings", (host) => {
   const volume = h("input", { class: "interactive", attrs: { type: "range", min: "0", max: "100", step: "5", "data-id": "sfx-volume", "aria-label": "Effects volume" } });
   volume.addEventListener("input", () => host.store.update((p) => (p.settings.sfx = Number(volume.value) / 100)));
   volume.addEventListener("change", () => host.bus.emit("ui:click", { id: "sfx-volume" }));
+  const music = h("input", { class: "interactive", attrs: { type: "range", min: "0", max: "100", step: "5", "data-id": "music-volume", "aria-label": "Music volume" } });
+  music.addEventListener("input", () => host.store.update((p) => (p.settings.music = Number(music.value) / 100)));
 
   let armed = 0;
   const reset = h("button", { class: "btn danger", text: "Reset progress", attrs: { "data-id": "reset-progress", type: "button" } });
@@ -227,9 +269,20 @@ registerScreen("settings", (host) => {
     sound.paint();
     motion.paint();
     volume.value = String(Math.round(host.store.get().settings.sfx * 100));
+    music.value = String(Math.round(host.store.get().settings.music * 100));
   };
 
-  const el = menuScreen(host, "settings", "Settings", sound.row, h("div", { class: "setting" }, h("span", { text: "Effects volume" }), volume), motion.row, controls, reset);
+  const el = menuScreen(
+    host,
+    "settings",
+    "Settings",
+    sound.row,
+    h("div", { class: "setting" }, h("span", { text: "Effects volume" }), volume),
+    h("div", { class: "setting" }, h("span", { text: "Music volume" }), music),
+    motion.row,
+    controls,
+    reset,
+  );
   return {
     el,
     show() {

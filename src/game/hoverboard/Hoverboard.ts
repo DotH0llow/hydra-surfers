@@ -120,12 +120,25 @@ export class HoverboardView implements RunSystem {
   readonly order = 112;
   private board!: Object3D;
   private hb: HoverboardSystem | undefined;
+  private ctx: RunContext | null = null;
+  private boardId = "";
 
   init(ctx: RunContext): void {
+    this.ctx = ctx;
     this.hb = ctx.getSystem<HoverboardSystem>("hoverboard");
-    this.board = ctx.assets.getModel("gear.hoverboard");
+    this.setBoard("gear.hoverboard");
+  }
+
+  /** Swaps the board model (equipped board). No-op when `id` is already shown. */
+  setBoard(id: string): void {
+    const ctx = this.ctx;
+    if (!ctx || id === this.boardId) return;
+    const visible = this.board?.visible ?? false;
+    if (this.board) ctx.scene.remove(this.board);
+    this.boardId = id;
+    this.board = ctx.assets.getModel(ctx.assets.has(id) ? id : "gear.hoverboard");
     this.board.name = "hoverboard";
-    this.board.visible = false;
+    this.board.visible = visible;
     curveObject(this.board);
     ctx.scene.add(this.board);
   }

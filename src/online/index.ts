@@ -12,7 +12,7 @@ export * from "./LeaderboardService";
 export { MockProvider } from "./MockProvider";
 export { HttpProvider, type Identity } from "./HttpProvider";
 
-const ID_KEY = "yard-dash.player";
+const ID_KEY = "hydra-surfers.player";
 
 export function getIdentity(storage: StorageLike | null): Identity {
   try {

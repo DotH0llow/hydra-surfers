@@ -8,7 +8,7 @@ import { defineTuning } from "../../core/tuning";
 import type { RunContext } from "../types";
 
 export const POWERUPS = defineTuning("powerups", "Power-ups", {
-  jetpackSeconds: { default: 8, min: 1, max: 30, step: 0.5, label: "Jetpack duration", unit: "s" },
+  jetpackSeconds: { default: 11.5, min: 1, max: 30, step: 0.5, label: "Jetpack duration", unit: "s" },
   sneakersSeconds: { default: 10, min: 1, max: 30, step: 0.5, label: "Super sneakers duration", unit: "s" },
   magnetSeconds: { default: 10, min: 1, max: 30, step: 0.5, label: "Coin magnet duration", unit: "s" },
   multiplierSeconds: { default: 10, min: 1, max: 30, step: 0.5, label: "2x multiplier duration", unit: "s" },

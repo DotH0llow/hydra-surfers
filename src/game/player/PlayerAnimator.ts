@@ -38,6 +38,7 @@ export const ANIM = defineTuning("anim", "Runner animation", {
 });
 
 const TAU = Math.PI * 2;
+const DEFAULT_RUNNER = "char.runner.default";
 
 export type RigMode = "idle" | "run" | "jump" | "roll" | "crash";
 
@@ -164,21 +165,39 @@ export class PlayerAnimator implements RunSystem {
   private readonly clipActions = new Map<string, AnimationAction>();
   private currentClip = "";
   private time = 0;
+  private ctx: RunContext | null = null;
+  private modelId = "";
 
-  init(ctx: RunContext): void {
-    this.root.name = "runner";
-    this.model = ctx.assets.getModel("char.runner.default");
+  /** Swaps the runner model (equipped character). No-op when `id` is already shown. */
+  setModel(id: string): void {
+    const ctx = this.ctx;
+    if (!ctx || id === this.modelId) return;
+    const useId = ctx.assets.has(id) ? id : DEFAULT_RUNNER;
+    if (this.model) this.root.remove(this.model);
+    this.mixer?.stopAllAction();
+    this.mixer = null;
+    this.clipActions.clear();
+    this.currentClip = "";
+    this.modelId = id;
+    this.model = ctx.assets.getModel(useId);
     this.root.add(this.model);
+    curveObject(this.model);
     this.rig = new HumanoidRig(this.model);
-    const clips = ctx.assets.getClips("char.runner.default");
+    const clips = ctx.assets.getClips(useId);
     if (clips.length) {
       this.mixer = new AnimationMixer(this.model);
-      const map = ctx.assets.entry("char.runner.default")?.animations ?? {};
+      const map = ctx.assets.entry(useId)?.animations ?? {};
       for (const logical of Object.keys(map)) {
         const clip = clips.find((c) => c.name === map[logical]);
         if (clip) this.clipActions.set(logical, this.mixer.clipAction(clip));
       }
     }
+  }
+
+  init(ctx: RunContext): void {
+    this.root.name = "runner";
+    this.ctx = ctx;
+    this.setModel(DEFAULT_RUNNER);
     const shadowTex = ctx.assets.getTexture("fx.shadow.blob");
     this.shadow = new Mesh(
       new PlaneGeometry(1, 1),

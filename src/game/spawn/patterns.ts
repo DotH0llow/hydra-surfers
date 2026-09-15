@@ -44,7 +44,7 @@ export const SPAWN_WEIGHTS = defineTuning("spawnWeights", "Spawn pattern weights
   barrierMixed: { default: 1.5, min: 0, max: 10, step: 0.1, label: "Low + high barriers" },
   trainRamp: { default: 1.6, min: 0, max: 10, step: 0.1, label: "Ramp onto a train (roof run)" },
   trainOncoming: { default: 1.4, min: 0, max: 10, step: 0.1, label: "Oncoming train" },
-  tunnel: { default: 0.6, min: 0, max: 10, step: 0.1, label: "Tunnel with barriers" },
+  tunnel: { default: 1.2, min: 0, max: 10, step: 0.1, label: "Tunnel with barriers" },
 });
 
 export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern details", {
@@ -61,7 +61,7 @@ export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern detai
   barrierMixedMinDifficulty: { default: 0.12, min: 0, max: 1, step: 0.01, label: "Low + high barriers min difficulty" },
   trainRampMinDifficulty: { default: 0.03, min: 0, max: 1, step: 0.01, label: "Ramp onto a train min difficulty" },
   trainOncomingMinDifficulty: { default: 0.2, min: 0, max: 1, step: 0.01, label: "Oncoming train min difficulty" },
-  tunnelMinDifficulty: { default: 0.1, min: 0, max: 1, step: 0.01, label: "Tunnel min difficulty" },
+  tunnelMinDifficulty: { default: 0.05, min: 0, max: 1, step: 0.01, label: "Tunnel min difficulty" },
   signalChance: { default: 0.35, min: 0, max: 1, step: 0.01, label: "Chance of a trackside signal next to a train" },
 });
 

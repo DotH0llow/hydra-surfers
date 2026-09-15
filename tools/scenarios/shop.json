@@ -1,0 +1,9 @@
+{
+  "description": "Shop screen with coins and keys to spend (characters, boards, upgrades).",
+  "query": "",
+  "seed": 1,
+  "setup": [["cheat", "giveCoins", 20000], ["cheat", "giveKeys", 40], ["goto", "shop"]],
+  "timeline": [],
+  "seconds": 0.4,
+  "fps": 5
+}

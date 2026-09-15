@@ -1,7 +1,7 @@
 {
-  "name": "Yard Dash",
-  "short_name": "Yard Dash",
-  "description": "Outrun the yard: a mobile-first three-lane endless runner.",
+  "name": "Hydra Surfers",
+  "short_name": "Hydra Surfers",
+  "description": "Ride the rails: a mobile-first three-lane endless runner.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

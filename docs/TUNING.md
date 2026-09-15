@@ -20,7 +20,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (243 fields in 37 groups)
+## Registry (245 fields in 37 groups)
 
 [Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: low barrier](#obsBarrierLow) · [Obstacle: high barrier (roll only)](#obsBarrierHigh) · [Obstacle: train](#obsTrain) · [Obstacle: oncoming train](#obsOncoming) · [Obstacle: ramp](#obsRamp) · [Structure: tunnel](#obsTunnel) · [Structure: light signal](#obsSignal) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Power-up effects](#powerupFx) · [Atmosphere & light](#atmosphere) · [Track](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
 
@@ -57,15 +57,16 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `player.laneSwitchEasePower` | Lane switch ease-out power. x = 1-(1-t)^p; 1 = linear | 2.5 | 1 | 6 | 0.1 |  |
 | `player.bounceSwitchSeconds` | Bounce-back return duration | 0.2 | 0.03 | 0.8 | 0.005 | s |
 | `player.jumpHeight` | Jump apex height | 1.5 | 0.5 | 4 | 0.05 | m |
-| `player.jumpSeconds` | Jump airtime (at fall gravity ×1) | 0.65 | 0.3 | 1.5 | 0.01 | s |
+| `player.jumpSeconds` | Jump airtime (at fall gravity ×1) | 0.7 | 0.3 | 1.5 | 0.01 | s |
 | `player.fallGravityScale` | Fall gravity multiplier | 1 | 0.5 | 3 | 0.05 |  |
 | `player.fastFallSpeed` | Fast-fall initial down speed | 16 | 0 | 40 | 0.5 | m/s |
 | `player.fastFallGravityScale` | Fast-fall gravity multiplier | 2.5 | 1 | 8 | 0.1 |  |
 | `player.fastFallRolls` | Fast-fall lands into roll (0/1) | 1 | 0 | 1 | 1 |  |
-| `player.rollSeconds` | Roll duration | 0.65 | 0.2 | 1.5 | 0.01 | s |
+| `player.rollSeconds` | Roll duration | 0.47 | 0.2 | 1.5 | 0.01 | s |
 | `player.jumpBufferSeconds` | Jump input buffer (airborne) | 0.2 | 0 | 0.6 | 0.01 | s |
 | `player.stumbleGraceSeconds` | Stumble grace (no repeat bump) | 0.4 | 0 | 2 | 0.01 | s |
-| `player.runCyclesPerSecond` | Run cycles/s at reference speed | 1.55 | 0.5 | 4 | 0.05 | Hz |
+| `player.runCyclesPerSecond` | Run cycles/s at reference speed (2 steps per cycle) | 2.5 | 0.5 | 4 | 0.05 | Hz |
+| `player.runCycleSpeedExponent` | Run cadence speed exponent. 0 = constant cadence (reference), 0.5 = grows with √speed | 0 | 0 | 1.5 | 0.05 |  |
 | `player.runCycleRefSpeed` | Run cycle reference speed | 12 | 1 | 40 | 0.5 | m/s |
 | `player.flyRiseSharpness` | Jetpack: climb/hold sharpness | 3.2 | 0.2 | 20 | 0.1 | 1/s |
 
@@ -152,7 +153,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `powerups.jetpackSeconds` | Jetpack duration | 8 | 1 | 30 | 0.5 | s |
+| `powerups.jetpackSeconds` | Jetpack duration | 11.5 | 1 | 30 | 0.5 | s |
 | `powerups.sneakersSeconds` | Super sneakers duration | 10 | 1 | 30 | 0.5 | s |
 | `powerups.magnetSeconds` | Coin magnet duration | 10 | 1 | 30 | 0.5 | s |
 | `powerups.multiplierSeconds` | 2x multiplier duration | 10 | 1 | 30 | 0.5 | s |
@@ -218,9 +219,10 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
 | `speed.start` | Start speed | 12 | 2 | 40 | 0.5 | m/s |
-| `speed.max` | Top speed | 26 | 2 | 60 | 0.5 | m/s |
-| `speed.rampSeconds` | Time to top speed | 240 | 5 | 1200 | 5 | s |
-| `speed.rampExponent` | Ramp curve exponent. <1 front-loads acceleration | 0.85 | 0.2 | 3 | 0.05 |  |
+| `speed.max` | Top speed | 24 | 2 | 60 | 0.5 | m/s |
+| `speed.flatSeconds` | Hold the start speed for | 28 | 0 | 300 | 1 | s |
+| `speed.rampSeconds` | Top speed reached at (run time) | 225 | 5 | 1200 | 5 | s |
+| `speed.rampExponent` | Ramp curve exponent. 1 = linear, <1 front-loads acceleration | 1 | 0.2 | 3 | 0.05 |  |
 | `speed.introStartFactor` | Intro: starting fraction of start speed | 0.45 | 0 | 1 | 0.05 |  |
 
 <a id="difficulty"></a>
@@ -359,7 +361,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `spawnWeights.barrierMixed` | Low + high barriers | 1.5 | 0 | 10 | 0.1 |  |
 | `spawnWeights.trainRamp` | Ramp onto a train (roof run) | 1.6 | 0 | 10 | 0.1 |  |
 | `spawnWeights.trainOncoming` | Oncoming train | 1.4 | 0 | 10 | 0.1 |  |
-| `spawnWeights.tunnel` | Tunnel with barriers | 0.6 | 0 | 10 | 0.1 |  |
+| `spawnWeights.tunnel` | Tunnel with barriers | 1.2 | 0 | 10 | 0.1 |  |
 
 <a id="spawnPatterns"></a>
 ### Spawn pattern details (`spawnPatterns`)
@@ -379,7 +381,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `spawnPatterns.barrierMixedMinDifficulty` | Low + high barriers min difficulty | 0.12 | 0 | 1 | 0.01 |  |
 | `spawnPatterns.trainRampMinDifficulty` | Ramp onto a train min difficulty | 0.03 | 0 | 1 | 0.01 |  |
 | `spawnPatterns.trainOncomingMinDifficulty` | Oncoming train min difficulty | 0.2 | 0 | 1 | 0.01 |  |
-| `spawnPatterns.tunnelMinDifficulty` | Tunnel min difficulty | 0.1 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.tunnelMinDifficulty` | Tunnel min difficulty | 0.05 | 0 | 1 | 0.01 |  |
 | `spawnPatterns.signalChance` | Chance of a trackside signal next to a train | 0.35 | 0 | 1 | 0.01 |  |
 
 <a id="spawn"></a>
