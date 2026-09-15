@@ -96,6 +96,7 @@ export class ObstacleSystem implements RunSystem {
       v.position.set(laneX(inst.lane), 0, renderZ(s + inst.length / 2, d));
       v.scale.z = inst.type.modelLength > 0 ? inst.length / inst.type.modelLength : 1;
       v.visible = true;
+      inst.type.renderView?.(inst, v);
     }
   }
 
