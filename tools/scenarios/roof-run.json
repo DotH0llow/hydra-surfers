@@ -1,0 +1,9 @@
+{
+  "description": "Ramp onto a three-car train in the centre lane, run along the roofs, drop off the end.",
+  "query": "",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "roof-run", "seed": 1, "skipIntro": true }]],
+  "timeline": [],
+  "seconds": 6,
+  "fps": 5
+}

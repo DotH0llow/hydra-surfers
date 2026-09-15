@@ -1,0 +1,9 @@
+{
+  "description": "One of each pickup in the centre lane: magnet, 2x, sneakers, key, then a jetpack flight over the sky coin trail.",
+  "query": "",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "pickups", "seed": 1, "skipIntro": true }]],
+  "timeline": [{ "frame": 38, "call": ["input", "jump"] }],
+  "seconds": 12,
+  "fps": 3
+}
