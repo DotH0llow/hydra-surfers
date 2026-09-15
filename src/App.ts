@@ -11,27 +11,49 @@ import type { DebugHost, EntitiesDump, GameState, StartRunArgs } from "./core/de
 import { bus } from "./core/events";
 import { flags } from "./core/flags";
 import { Loop, type ClockMode } from "./core/loop";
-import type { ProfileStore } from "./core/store";
+import type { Profile, ProfileStore, StorageLike } from "./core/store";
 import { defineTuning, tuning } from "./core/tuning";
 import { Run, type RunResult } from "./game/Run";
 import type { HoverboardSystem } from "./game/hoverboard/Hoverboard";
 import type { PlayerAnimator } from "./game/player/PlayerAnimator";
 import type { PowerupSystem } from "./game/powerups/PowerupSystem";
+import { activeMissions, applyRunMissions, emptyRunStats, liveProgress, multiplierBonus, type ActiveMission, type MissionOutcome, type MissionStat, type RunStats } from "./meta/missions";
 import { applyRunResult } from "./meta/progression";
+import { MAX_REVIVES, reviveCost as keysForRevive, syncUpgrades } from "./meta/upgrades";
+import { createLeaderboardService, type LeaderboardService, type SubmitResult } from "./online";
 import { DEFAULT_SCENARIO, getScenario, listScenarios } from "./game/spawn/scenarios";
 import { updateCurveUniforms } from "./game/world/curve";
-import type { StartRunOptions } from "./game/types";
+import type { RunState, StartRunOptions } from "./game/types";
 import { isAction, type Action, type InputSource } from "./input/actions";
 import { InputRouter } from "./input/InputRouter";
 import { UiRoot } from "./ui/UiRoot";
-import type { ScreenHost, ScreenName } from "./ui/screens/registry";
+import type { ResultView, ScreenHost, ScreenName } from "./ui/screens/registry";
 
 export const DISPLAY = defineTuning("display", "Display", {
   dprCap: { default: 2, min: 0.5, max: 4, step: 0.25, label: "Device pixel ratio cap" },
   maxAspect: { default: 0.625, min: 0.4, max: 2.5, step: 0.005, label: "Widest playfield aspect (w/h) before letterboxing" },
 });
 
-export type LastResult = RunResult & { newBest: boolean; best: number };
+export const FLOW = defineTuning("flow", "Screen flow", {
+  resumeCountdownSeconds: { default: 3, min: 0, max: 5, step: 0.5, label: "Resume countdown after pause", unit: "s" },
+  reviveOfferSeconds: { default: 5, min: 1, max: 15, step: 0.5, label: "Revive offer stays open", unit: "s" },
+  missionCheckSeconds: { default: 0.5, min: 0.1, max: 5, step: 0.1, label: "Distance/score mission check interval", unit: "s" },
+});
+
+export type LastResult = ResultView;
+
+interface WakeLockSentinelLike {
+  release(): Promise<void>;
+  addEventListener?(type: "release", fn: () => void): void;
+}
+
+function browserStorage(): StorageLike | null {
+  try {
+    return typeof localStorage !== "undefined" ? localStorage : null;
+  } catch {
+    return null;
+  }
+}
 
 export class App implements ScreenHost, DebugHost {
   readonly bus = bus;
@@ -44,12 +66,21 @@ export class App implements ScreenHost, DebugHost {
   readonly ui: UiRoot;
   readonly inputRouter: InputRouter;
   readonly audio: AudioBus;
+  readonly online: LeaderboardService;
   lastResult: LastResult | null = null;
+  lastSubmit: Promise<SubmitResult | null> | null = null;
+  resumeCountdown = 0;
   private seedOverride: number | undefined = flags.seed;
   private screen: ScreenName = "home";
   private width = 0;
   private height = 0;
   private dpr = 1;
+  private runStats: RunStats = emptyRunStats();
+  private missions: ActiveMission[] = [];
+  private readonly notified = new Set<string>();
+  private missionTimer = 0;
+  private quitting = false;
+  private wakeLock: WakeLockSentinelLike | null = null;
 
   constructor(
     readonly assets: AssetLibrary,
@@ -66,18 +97,35 @@ export class App implements ScreenHost, DebugHost {
       fixedUpdate: (dt) => this.run.fixedUpdate(dt),
       render: (alpha, frameDt) => this.render(alpha, frameDt),
     });
+    this.online = createLeaderboardService(browserStorage());
     this.ui = new UiRoot(uiContainer, this);
     this.inputRouter = new InputRouter(playfield, bus);
     this.audio = new AudioBus(assets, bus, store, flags.mute);
   }
 
-  get runState() {
+  get runState(): Readonly<RunState> {
     return this.run.state;
+  }
+
+  get powerups(): PowerupSystem | undefined {
+    return this.run.ctx.getSystem<PowerupSystem>("powerups");
+  }
+
+  get hoverboard(): HoverboardSystem | undefined {
+    return this.run.ctx.getSystem<HoverboardSystem>("hoverboard");
+  }
+
+  get reviveOfferSeconds(): number {
+    return FLOW.reviveOfferSeconds;
   }
 
   init(): void {
     this.run.init();
+    this.run.reviveOffer = (st) => this.offerRevive(st);
+    this.applyProfile(this.store.get());
+    this.store.subscribe((p) => this.applyProfile(p));
     this.registerCheats();
+    this.trackRunStats();
     bus.on("input:action", ({ action, source }) => this.onAction(action, source));
     bus.on("run:end", (r) => this.onRunEnd(r));
     tuning.subscribe((path) => {
@@ -97,25 +145,40 @@ export class App implements ScreenHost, DebugHost {
   // ------------------------------------------------------------------ routing
 
   goto(name: ScreenName): void {
-    const mode = this.run.state.mode;
     switch (name) {
       case "home":
-        if (mode !== "idle") this.run.goIdle();
+        this.resumeCountdown = 0;
+        if (this.run.active) {
+          // quitting mid-run still banks the coins and mission progress
+          this.quitting = true;
+          this.run.end("quit");
+          this.quitting = false;
+        }
+        if (this.run.state.mode !== "idle") this.run.goIdle();
+        this.releaseWakeLock();
         this.show("home");
         break;
       case "run":
         if (this.run.active) {
-          this.run.resume();
+          if (this.run.awaitingRevive) {
+            this.show("revive");
+            break;
+          }
+          const countdown = this.loop.clock === "realtime" && this.run.state.paused ? FLOW.resumeCountdownSeconds : 0;
+          if (countdown > 0) this.resumeCountdown = countdown;
+          else this.run.resume();
+          this.requestWakeLock();
           this.show("run");
         } else {
           this.startRun();
         }
         break;
       case "pause":
-        if (!this.run.active) {
+        if (!this.run.active || this.run.awaitingRevive) {
           console.warn("[app] pause ignored: no active run");
           return;
         }
+        this.resumeCountdown = 0;
         this.run.pause();
         this.show("pause");
         break;
@@ -138,8 +201,41 @@ export class App implements ScreenHost, DebugHost {
       scenario = getScenario(DEFAULT_SCENARIO)!;
     }
     const seed = opts.seed ?? this.seedOverride ?? Math.floor(Math.random() * 0x7fffffff);
+    const profile = this.store.get();
+    this.run.state.multiplierBonus = multiplierBonus(profile);
     this.run.start({ scenario, seed: seed >>> 0, skipIntro: !!opts.skipIntro });
+    const hb = this.hoverboard;
+    if (hb) hb.charges = profile.currencies.boards;
+    this.runStats = emptyRunStats();
+    this.runStats.runs = 1;
+    this.missions = activeMissions(profile);
+    this.notified.clear();
+    this.missionTimer = 0;
+    this.resumeCountdown = 0;
+    this.lastSubmit = null;
+    this.requestWakeLock();
     this.show("run");
+  }
+
+  action(action: Action): void {
+    this.inputRouter.dispatch(action, "touch");
+  }
+
+  revive(): void {
+    if (!this.run.awaitingRevive) return;
+    const cost = keysForRevive(this.run.state.revives);
+    if (this.store.get().currencies.keys < cost) return;
+    this.store.update((p) => (p.currencies.keys -= cost));
+    this.run.revive();
+    this.show("run");
+  }
+
+  skipRevive(): void {
+    this.run.declineRevive();
+  }
+
+  reviveCost(): number {
+    return keysForRevive(this.run.state.revives);
   }
 
   private show(name: ScreenName): void {
@@ -157,10 +253,12 @@ export class App implements ScreenHost, DebugHost {
         break;
       case "run":
         if (action === "pause") this.goto("pause");
-        else this.run.enqueue(action);
+        else if (this.resumeCountdown <= 0) this.run.enqueue(action);
         break;
       case "pause":
         if (action === "pause") this.goto("run");
+        break;
+      case "revive":
         break;
       case "gameover":
         if (action === "tap" && (source === "keyboard" || source === "debug")) this.startRun();
@@ -171,12 +269,34 @@ export class App implements ScreenHost, DebugHost {
     }
   }
 
+  private offerRevive(st: Readonly<RunState>): boolean {
+    if (st.revives >= MAX_REVIVES || st.crashCause === "cheat") return false;
+    if (this.store.get().currencies.keys < keysForRevive(st.revives)) return false;
+    this.show("revive");
+    return true;
+  }
+
   private onRunEnd(r: RunResult): void {
-    let outcome = { newBest: false, best: this.store.get().stats.bestScore };
+    this.resumeCountdown = 0;
+    this.releaseWakeLock();
+    this.runStats.distance = Math.floor(r.distance);
+    this.runStats.score = r.score;
+    const out: { best: number; newBest: boolean; missions: MissionOutcome | null } = { best: 0, newBest: false, missions: null };
     this.store.update((p) => {
-      outcome = applyRunResult(p, r);
+      const o = applyRunResult(p, r);
+      out.best = o.best;
+      out.newBest = o.newBest;
+      out.missions = applyRunMissions(p, this.runStats);
     });
-    this.lastResult = { ...r, newBest: outcome.newBest, best: outcome.best };
+    this.lastResult = { ...r, newBest: out.newBest, best: out.best, missions: out.missions };
+    if (out.missions?.setAdvanced) this.toast(`Score multiplier x${1 + out.missions.multiplierBonus}!`, "mission");
+    if (r.score > 0 && r.reason !== "forced") {
+      this.lastSubmit = this.online.submitScore({ score: r.score, coins: r.coins, distance: r.distance, seed: r.seed }).catch((err) => {
+        console.warn("[online] score submit failed", err);
+        return null;
+      });
+    }
+    if (this.quitting) return;
     this.show("gameover");
   }
 
@@ -186,9 +306,96 @@ export class App implements ScreenHost, DebugHost {
     if (hidden && this.screen === "run" && this.run.active && this.loop.clock === "realtime") this.goto("pause");
   };
 
+  // ------------------------------------------------------------------ meta: missions, profile, wake lock
+
+  private trackRunStats(): void {
+    bus.on("coin:collect", () => this.bumpStat("coins"));
+    bus.on("player:jump", () => this.bumpStat("jumps"));
+    bus.on("player:roll", () => this.bumpStat("rolls"));
+    bus.on("player:laneChange", () => this.bumpStat("laneChanges"));
+    bus.on("hoverboard:start", () => {
+      this.bumpStat("hoverboards");
+      this.store.update((p) => (p.currencies.boards = Math.max(0, p.currencies.boards - 1)));
+    });
+    bus.on("pickup:collect", ({ kind }) => {
+      if (kind === "key") {
+        this.store.update((p) => (p.currencies.keys += 1));
+        this.toast("+1 key", "key");
+      } else {
+        this.bumpStat("powerups");
+      }
+    });
+  }
+
+  private bumpStat(stat: MissionStat): void {
+    if (!this.run.active) return;
+    this.runStats[stat] += 1;
+    this.checkMissions();
+  }
+
+  private checkMissions(): void {
+    const st = this.run.state;
+    this.runStats.distance = Math.floor(st.distance);
+    this.runStats.score = st.score;
+    for (let i = 0; i < this.missions.length; i++) {
+      const m = this.missions[i];
+      if (m.done || this.notified.has(m.key)) continue;
+      if (liveProgress(m, this.runStats) >= m.goal) {
+        this.notified.add(m.key);
+        bus.emit("mission:complete", { key: m.key, label: m.label });
+        this.toast(`Mission complete: ${m.label}`, "mission");
+      }
+    }
+  }
+
+  private toast(text: string, kind: string): void {
+    bus.emit("ui:toast", { text, kind });
+  }
+
+  private applyProfile(p: Readonly<Profile>): void {
+    syncUpgrades(p);
+    const reduced = !!p.settings.reducedMotion;
+    document.documentElement.classList.toggle("reduced-motion", reduced);
+    const shake = "camera.shakeAmplitude";
+    if (reduced && tuning.get(shake) !== 0) tuning.set(shake, 0);
+    else if (!reduced && tuning.get(shake) === 0) tuning.reset(shake);
+  }
+
+  private requestWakeLock(): void {
+    const nav = navigator as unknown as { wakeLock?: { request(type: "screen"): Promise<WakeLockSentinelLike> } };
+    if (!nav.wakeLock || this.wakeLock || this.loop.clock === "manual") return;
+    nav.wakeLock
+      .request("screen")
+      .then((lock) => {
+        this.wakeLock = lock;
+        lock.addEventListener?.("release", () => (this.wakeLock = null));
+      })
+      .catch(() => {});
+  }
+
+  private releaseWakeLock(): void {
+    const lock = this.wakeLock;
+    this.wakeLock = null;
+    lock?.release().catch(() => {});
+  }
+
   // ------------------------------------------------------------------ frame
 
   private render(alpha: number, frameDt: number): void {
+    if (this.resumeCountdown > 0) {
+      this.resumeCountdown -= frameDt;
+      if (this.resumeCountdown <= 0) {
+        this.resumeCountdown = 0;
+        if (this.screen === "run") this.run.resume();
+      }
+    }
+    if (this.run.state.mode === "running") {
+      this.missionTimer += frameDt;
+      if (this.missionTimer >= FLOW.missionCheckSeconds) {
+        this.missionTimer = 0;
+        this.checkMissions();
+      }
+    }
     this.run.render(alpha, frameDt);
     updateCurveUniforms();
     this.renderer.render(this.scene, this.camera3);
@@ -261,6 +468,30 @@ export class App implements ScreenHost, DebugHost {
         return this.store.get().currencies.keys;
       },
     });
+    registerCheat({
+      name: "giveBoards",
+      label: "Give hoverboards",
+      group: "Profile",
+      args: [{ name: "amount", kind: "number", default: 5 }],
+      run: (n) => {
+        this.store.update((p) => (p.currencies.boards += Math.floor(Number(n) || 0)));
+        const hb = this.hoverboard;
+        if (hb && this.run.active) hb.charges = this.store.get().currencies.boards;
+        return this.store.get().currencies.boards;
+      },
+    });
+    registerCheat({
+      name: "completeMissions",
+      label: "Complete current missions",
+      group: "Profile",
+      run: () => {
+        this.store.update((p) => {
+          for (const m of activeMissions(p)) p.missions.progress[m.key] = m.goal;
+          applyRunMissions(p, emptyRunStats());
+        });
+        return this.store.get().missions.set;
+      },
+    });
     registerCheat({ name: "resetProfile", label: "Reset profile", group: "Profile", run: () => this.store.reset() });
   }
 
@@ -318,8 +549,8 @@ export class App implements ScreenHost, DebugHost {
       },
       camera: { x: cam.x, y: cam.y, z: cam.z, fov: cam.effectiveFov(), pitch: cam.pitch() },
       chaser: { dist: this.run.chaser.gap, near: this.run.chaser.near },
-      activePowerups: this.run.ctx.getSystem<PowerupSystem>("powerups")?.snapshot() ?? [],
-      hoverboard: this.run.ctx.getSystem<HoverboardSystem>("hoverboard")?.snapshot() ?? null,
+      activePowerups: this.powerups?.snapshot() ?? [],
+      hoverboard: this.hoverboard?.snapshot() ?? null,
       screen: this.screen,
       obstacles: this.run.obstacles.active.length,
       coinsLive: this.run.coins.live,

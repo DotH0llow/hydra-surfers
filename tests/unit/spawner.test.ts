@@ -67,6 +67,7 @@ describe("Spawner determinism", () => {
     expect(ids).toEqual(expect.arrayContaining(["barrierSingle", "trainSingle", "coinsOnly"]));
     tuning.set("spawnWeights.trainSingle", 0);
     tuning.set("spawnWeights.trainDouble", 0);
+    tuning.set("spawnWeights.trainRamp", 0);
     const noTrains = simulate(9, 60);
     expect(noTrains.log.some((p) => p.type === "train")).toBe(false);
     tuning.reset();

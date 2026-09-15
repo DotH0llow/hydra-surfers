@@ -2,6 +2,7 @@
 import "./screens/Home";
 import "./screens/Hud";
 import "./screens/Overlays";
+import "./screens/Menus";
 import { h } from "./dom";
 import { getScreenFactory, type Screen, type ScreenHost, type ScreenName } from "./screens/registry";
 

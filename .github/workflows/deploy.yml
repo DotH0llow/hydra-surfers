@@ -1,7 +1,10 @@
 # CI + deploy to Cloudflare Workers (static assets + /api Worker).
-# Required repository secrets (Settings → Secrets and variables → Actions):
-#   CLOUDFLARE_API_TOKEN   API token with "Workers Scripts:Edit" (+ "D1:Edit" if you bind a database)
+#
+# Optional repository secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   API token from the "Edit Cloudflare Workers" template (+ D1:Edit if you bind a database)
 #   CLOUDFLARE_ACCOUNT_ID  your Cloudflare account id
+# Without them the workflow still typechecks, tests and builds, and skips the Cloudflare steps. That is also
+# the setup to use with Cloudflare's own Git integration (Workers Builds), so nothing deploys twice.
 # See docs/DEPLOY.md.
 name: CI & Deploy
 
@@ -17,16 +20,18 @@ concurrency:
 
 jobs:
   build:
-    name: Typecheck, test, build (and deploy on main)
+    name: Typecheck, test, build (deploy on main, preview on PRs)
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install
@@ -47,13 +52,24 @@ jobs:
       - name: No benchmark brand names in shipped files or dist
         run: npm run check:brand
 
+      - name: Asset manifest valid
+        run: npm run assets:check
+
       - name: Wrangler dry run
         run: npx wrangler deploy --dry-run --outdir .wrangler/dry-run
 
-      - name: Deploy to Cloudflare
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Deploy to Cloudflare (production)
+        if: env.HAS_CLOUDFLARE == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
+
+      - name: Upload a preview version (pull requests from this repository)
+        if: env.HAS_CLOUDFLARE == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: versions upload --message "PR #${{ github.event.number }} ${{ github.event.pull_request.head.sha }}"

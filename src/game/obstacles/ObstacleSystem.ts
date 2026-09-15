@@ -72,6 +72,19 @@ export class ObstacleSystem implements RunSystem {
     for (let i = this.active.length - 1; i >= 0; i--) this.despawnAt(i);
   }
 
+  /** Despawns every instance overlapping [from, to] along the track (revive clears the crash site). */
+  clearRange(from: number, to: number): number {
+    let n = 0;
+    for (let i = this.active.length - 1; i >= 0; i--) {
+      const inst = this.active[i];
+      if (inst.s <= to && inst.s + inst.length >= from) {
+        this.despawnAt(i);
+        n++;
+      }
+    }
+    return n;
+  }
+
   collider(inst: ObstacleInstance, out: Aabb): Aabb {
     inst.type.collider(inst, out);
     return out;
@@ -82,7 +95,10 @@ export class ObstacleSystem implements RunSystem {
     for (let i = this.active.length - 1; i >= 0; i--) {
       const inst = this.active[i];
       inst.prevS = inst.s;
-      if (inst.speed !== 0 && ctx.state.mode !== "crashed") inst.s -= inst.speed * dt;
+      if (inst.speed !== 0 && ctx.state.mode !== "crashed") {
+        const within = inst.type.moveWithin ? inst.type.moveWithin() : Infinity;
+        if (inst.s - ctx.state.distance <= within) inst.s -= inst.speed * dt;
+      }
       if (inst.s + inst.length < limit) this.despawnAt(i);
     }
   }

@@ -20,6 +20,7 @@
     "assets:doc": "node tools/assets-doc.mjs",
     "assets:check": "node tools/assets-check.mjs",
     "docs:tuning": "node tools/tuning-doc.mjs",
+    "icons": "node tools/make-icons.mjs",
     "worker:dev": "wrangler dev",
     "deploy:dry": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "deploy": "npm run build && wrangler deploy"

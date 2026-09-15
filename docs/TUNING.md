@@ -20,9 +20,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (163 fields in 26 groups)
+## Registry (243 fields in 37 groups)
 
-[Lanes](#lanes) · [Obstacle: low barrier](#obsBarrierLow) · [Obstacle: train](#obsTrain) · [Power-ups](#powerups) · [Hoverboard](#hoverboard) · [Atmosphere & light](#atmosphere) · [Curved world](#curve) · [Track](#track) · [Environment](#env) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [Display](#display)
+[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: low barrier](#obsBarrierLow) · [Obstacle: high barrier (roll only)](#obsBarrierHigh) · [Obstacle: train](#obsTrain) · [Obstacle: oncoming train](#obsOncoming) · [Obstacle: ramp](#obsRamp) · [Structure: tunnel](#obsTunnel) · [Structure: light signal](#obsSignal) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Power-up effects](#powerupFx) · [Atmosphere & light](#atmosphere) · [Track](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
 
 <a id="lanes"></a>
 ### Lanes (`lanes`)
@@ -30,6 +30,62 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
 | `lanes.spacing` | Lane spacing | 2.5 | 1.6 | 4 | 0.05 | m |
+
+<a id="switchFeel"></a>
+### Lane-switch feel (`switchFeel`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `switchFeel.leanInSeconds` | Lean: time to full tilt | 0.04 | 0.005 | 0.4 | 0.005 | s |
+| `switchFeel.leanHoldSeconds` | Lean: hold at full tilt | 0.12 | 0 | 0.6 | 0.005 | s |
+| `switchFeel.counterSeconds` | Lean: swing to counter-tilt | 0.1 | 0.01 | 0.6 | 0.005 | s |
+| `switchFeel.counterLean` | Counter-tilt on landing. fraction of the full lean, opposite side | 0.6 | 0 | 1.5 | 0.01 |  |
+| `switchFeel.recoverSeconds` | Lean: recover to upright | 0.14 | 0.01 | 0.8 | 0.005 | s |
+| `switchFeel.hopHeight` | Switch hop height (visual) | 0.34 | 0 | 1.5 | 0.01 | m |
+| `switchFeel.hopSeconds` | Switch hop duration | 0.19 | 0.02 | 0.8 | 0.005 | s |
+| `switchFeel.bounceLean` | Bounce-back lean. fraction of the full lean | 0.6 | 0 | 1.5 | 0.01 |  |
+| `switchFeel.refSpeed` | Timing reference speed | 12 | 1 | 60 | 0.5 | m/s |
+| `switchFeel.speedExponent` | Timing speed exponent. feel timings × (refSpeed/speed)^k; 0 = fixed | 0.8 | 0 | 2 | 0.05 |  |
+| `switchFeel.minTimeScale` | Fastest timing scale | 0.55 | 0.1 | 1 | 0.01 |  |
+
+<a id="player"></a>
+### Player movement (`player`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `player.laneSwitchSeconds` | Lane switch duration | 0.1 | 0.03 | 0.6 | 0.005 | s |
+| `player.laneSwitchEasePower` | Lane switch ease-out power. x = 1-(1-t)^p; 1 = linear | 2.5 | 1 | 6 | 0.1 |  |
+| `player.bounceSwitchSeconds` | Bounce-back return duration | 0.2 | 0.03 | 0.8 | 0.005 | s |
+| `player.jumpHeight` | Jump apex height | 1.5 | 0.5 | 4 | 0.05 | m |
+| `player.jumpSeconds` | Jump airtime (at fall gravity ×1) | 0.65 | 0.3 | 1.5 | 0.01 | s |
+| `player.fallGravityScale` | Fall gravity multiplier | 1 | 0.5 | 3 | 0.05 |  |
+| `player.fastFallSpeed` | Fast-fall initial down speed | 16 | 0 | 40 | 0.5 | m/s |
+| `player.fastFallGravityScale` | Fast-fall gravity multiplier | 2.5 | 1 | 8 | 0.1 |  |
+| `player.fastFallRolls` | Fast-fall lands into roll (0/1) | 1 | 0 | 1 | 1 |  |
+| `player.rollSeconds` | Roll duration | 0.65 | 0.2 | 1.5 | 0.01 | s |
+| `player.jumpBufferSeconds` | Jump input buffer (airborne) | 0.2 | 0 | 0.6 | 0.01 | s |
+| `player.stumbleGraceSeconds` | Stumble grace (no repeat bump) | 0.4 | 0 | 2 | 0.01 | s |
+| `player.runCyclesPerSecond` | Run cycles/s at reference speed | 1.55 | 0.5 | 4 | 0.05 | Hz |
+| `player.runCycleRefSpeed` | Run cycle reference speed | 12 | 1 | 40 | 0.5 | m/s |
+| `player.flyRiseSharpness` | Jetpack: climb/hold sharpness | 3.2 | 0.2 | 20 | 0.1 | 1/s |
+
+<a id="playerHitbox"></a>
+### Player hitbox (`playerHitbox`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `playerHitbox.width` | Width | 0.5 | 0.1 | 2 | 0.01 | m |
+| `playerHitbox.depth` | Depth | 0.5 | 0.1 | 2 | 0.01 | m |
+| `playerHitbox.height` | Standing height | 1.6 | 0.5 | 2.5 | 0.01 | m |
+| `playerHitbox.rollHeight` | Rolling height | 0.5 | 0.2 | 1.5 | 0.01 | m |
+
+<a id="surface"></a>
+### Walkable surfaces (`surface`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `surface.stepUp` | Step-up onto a roof (bridges car gaps) | 0.4 | 0 | 2 | 0.01 | m |
+| `surface.halfWidth` | Roof half-width under the runner's centre | 1 | 0.1 | 2 | 0.01 | m |
 
 <a id="obsBarrierLow"></a>
 ### Obstacle: low barrier (`obsBarrierLow`)
@@ -41,15 +97,55 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `obsBarrierLow.height` | Collider height | 0.5 | 0.1 | 3 | 0.01 | m |
 | `obsBarrierLow.length` | Collider depth | 0.3 | 0.05 | 3 | 0.01 | m |
 
+<a id="obsBarrierHigh"></a>
+### Obstacle: high barrier (roll only) (`obsBarrierHigh`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `obsBarrierHigh.width` | Collider width | 2.1 | 0.5 | 3 | 0.05 | m |
+| `obsBarrierHigh.bottom` | Collider bottom (roll clearance) | 0.8 | 0 | 2 | 0.01 | m |
+| `obsBarrierHigh.top` | Collider top | 3.3 | 1 | 6 | 0.05 | m |
+| `obsBarrierHigh.length` | Collider depth | 0.3 | 0.05 | 3 | 0.01 | m |
+
 <a id="obsTrain"></a>
 ### Obstacle: train (`obsTrain`)
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
 | `obsTrain.width` | Collider width | 2.2 | 0.5 | 3 | 0.05 | m |
-| `obsTrain.height` | Collider height | 3.6 | 1 | 6 | 0.05 | m |
+| `obsTrain.height` | Collider height (= roof walking height) | 3.6 | 1 | 6 | 0.05 | m |
 | `obsTrain.carLength` | Car length | 13 | 4 | 30 | 0.5 | m |
 | `obsTrain.carGap` | Gap between cars | 0.8 | 0 | 5 | 0.05 | m |
+
+<a id="obsOncoming"></a>
+### Obstacle: oncoming train (`obsOncoming`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `obsOncoming.speed` | Speed toward the runner | 9 | 0 | 30 | 0.5 | m/s |
+| `obsOncoming.spawnAhead` | Starts moving this far ahead of the runner | 120 | 20 | 400 | 5 | m |
+| `obsOncoming.maxCars` | Max cars | 3 | 1 | 6 | 1 |  |
+
+<a id="obsRamp"></a>
+### Obstacle: ramp (`obsRamp`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `obsRamp.length` | Ramp length (ground to roof) | 6.5 | 2 | 20 | 0.1 | m |
+
+<a id="obsTunnel"></a>
+### Structure: tunnel (`obsTunnel`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `obsTunnel.length` | Default tunnel length | 30 | 4 | 200 | 1 | m |
+
+<a id="obsSignal"></a>
+### Structure: light signal (`obsSignal`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `obsSignal.edgeOffset` | Outer-edge signal offset beyond the outer lane half-spacing | 0.55 | 0 | 3 | 0.05 | m |
 
 <a id="powerups"></a>
 ### Power-ups (`powerups`)
@@ -61,6 +157,15 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `powerups.magnetSeconds` | Coin magnet duration | 10 | 1 | 30 | 0.5 | s |
 | `powerups.multiplierSeconds` | 2x multiplier duration | 10 | 1 | 30 | 0.5 | s |
 
+<a id="curve"></a>
+### Curved world (`curve`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `curve.down` | Bend down (per m²). Vertical drop = down × depth² | 0.0016 | 0 | 0.01 | 0.0001 |  |
+| `curve.side` | Bend sideways (per m²) | 0 | -0.004 | 0.004 | 0.0001 |  |
+| `curve.startDepth` | Bend start depth | 6 | 0 | 60 | 1 | m |
+
 <a id="hoverboard"></a>
 ### Hoverboard (`hoverboard`)
 
@@ -68,6 +173,78 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 |---|---|---|---|---|---|---|
 | `hoverboard.durationSeconds` | Ride duration | 30 | 1 | 120 | 1 | s |
 | `hoverboard.breakInvulnSeconds` | Invulnerability after the board breaks | 1 | 0 | 5 | 0.05 | s |
+
+<a id="pickups"></a>
+### Pickups (`pickups`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `pickups.chance` | Chance of a pickup in the gap after a pattern | 0.16 | 0 | 1 | 0.01 |  |
+| `pickups.jetpackWeight` | Weight: jetpack | 0.8 | 0 | 10 | 0.1 |  |
+| `pickups.sneakersWeight` | Weight: super sneakers | 1 | 0 | 10 | 0.1 |  |
+| `pickups.magnetWeight` | Weight: coin magnet | 1.4 | 0 | 10 | 0.1 |  |
+| `pickups.multiplierWeight` | Weight: 2x multiplier | 1.1 | 0 | 10 | 0.1 |  |
+| `pickups.keyWeight` | Weight: key | 0.3 | 0 | 10 | 0.05 |  |
+| `pickups.jetpackMinDifficulty` | Jetpack not offered below this difficulty | 0.04 | 0 | 1 | 0.01 |  |
+| `pickups.height` | Hover height | 1 | 0 | 3 | 0.05 | m |
+| `pickups.bob` | Bob amplitude | 0.12 | 0 | 1 | 0.01 | m |
+| `pickups.spin` | Spin speed | 2.4 | 0 | 10 | 0.1 | rad/s |
+| `pickups.halfWidth` | Pickup half-width | 0.9 | 0.1 | 3 | 0.05 | m |
+| `pickups.halfDepth` | Pickup half-depth | 0.8 | 0.1 | 3 | 0.05 | m |
+| `pickups.padY` | Pickup vertical padding | 0.45 | 0 | 2 | 0.05 | m |
+| `pickups.despawnBehind` | Despawn distance behind | 12 | 1 | 60 | 1 | m |
+
+<a id="coins"></a>
+### Coins (`coins`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `coins.height` | Coin centre height | 0.75 | 0 | 3 | 0.01 | m |
+| `coins.spacing` | Default line spacing | 2 | 0.5 | 6 | 0.05 | m |
+| `coins.pickupHalfWidth` | Pickup half-width | 0.8 | 0.1 | 3 | 0.01 | m |
+| `coins.pickupHalfDepth` | Pickup half-depth | 0.55 | 0.1 | 3 | 0.01 | m |
+| `coins.pickupPadY` | Pickup vertical padding | 0.35 | 0 | 2 | 0.01 | m |
+| `coins.spinSpeed` | Spin speed | 3.2 | 0 | 20 | 0.1 | rad/s |
+| `coins.popSeconds` | Pickup pop duration | 0.15 | 0 | 1 | 0.01 | s |
+| `coins.popScale` | Pickup pop scale | 1.6 | 1 | 4 | 0.05 |  |
+| `coins.popRise` | Pickup pop rise | 0.6 | 0 | 3 | 0.05 | m |
+| `coins.despawnBehind` | Despawn distance behind | 10 | 1 | 60 | 1 | m |
+| `coins.magnetReach` | Magnet: pulls coins this far ahead | 7 | 0 | 40 | 0.5 | m |
+| `coins.magnetPadY` | Magnet: vertical reach | 3 | 0 | 10 | 0.1 | m |
+
+<a id="speed"></a>
+### Speed curve (`speed`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `speed.start` | Start speed | 12 | 2 | 40 | 0.5 | m/s |
+| `speed.max` | Top speed | 26 | 2 | 60 | 0.5 | m/s |
+| `speed.rampSeconds` | Time to top speed | 240 | 5 | 1200 | 5 | s |
+| `speed.rampExponent` | Ramp curve exponent. <1 front-loads acceleration | 0.85 | 0.2 | 3 | 0.05 |  |
+| `speed.introStartFactor` | Intro: starting fraction of start speed | 0.45 | 0 | 1 | 0.05 |  |
+
+<a id="difficulty"></a>
+### Difficulty (`difficulty`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `difficulty.rampSeconds` | Time to full difficulty | 180 | 5 | 1200 | 5 | s |
+| `difficulty.exponent` | Difficulty curve exponent | 1 | 0.2 | 3 | 0.05 |  |
+
+<a id="powerupFx"></a>
+### Power-up effects (`powerupFx`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `powerupFx.upgradeSecondsPerLevel` | Extra seconds per upgrade level | 2.5 | 0 | 10 | 0.5 | s |
+| `powerupFx.jetpackHeight` | Jetpack: flight height | 8 | 4 | 20 | 0.5 | m |
+| `powerupFx.jetpackCoinLead` | Jetpack: first sky coin ahead | 24 | 0 | 100 | 1 | m |
+| `powerupFx.jetpackCoinSpacing` | Jetpack: sky coin spacing | 2.6 | 0.5 | 10 | 0.1 | m |
+| `powerupFx.jetpackLaneRun` | Jetpack: sky trail changes lane every | 34 | 5 | 200 | 1 | m |
+| `powerupFx.jetpackEndGap` | Jetpack: no sky coins in the last | 18 | 0 | 100 | 1 | m |
+| `powerupFx.landingGraceSeconds` | Jetpack: no collisions after it ends | 1.2 | 0 | 5 | 0.05 | s |
+| `powerupFx.sneakersHeightScale` | Sneakers: jump height × | 2.6 | 1 | 5 | 0.05 |  |
+| `powerupFx.sneakersTimeScale` | Sneakers: airtime × | 1.3 | 0.5 | 3 | 0.05 |  |
 
 <a id="atmosphere"></a>
 ### Atmosphere & light (`atmosphere`)
@@ -81,15 +258,6 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `atmosphere.sunIntensity` | Sun intensity | 2.2 | 0 | 6 | 0.05 |  |
 | `atmosphere.sunElevation` | Sun elevation | 55 | 5 | 90 | 1 | ° |
 | `atmosphere.sunAzimuth` | Sun azimuth | -30 | -180 | 180 | 1 | ° |
-
-<a id="curve"></a>
-### Curved world (`curve`)
-
-| path | label | default | min | max | step | unit |
-|---|---|---|---|---|---|---|
-| `curve.down` | Bend down (per m²). Vertical drop = down × depth² | 0.0016 | 0 | 0.01 | 0.0001 |  |
-| `curve.side` | Bend sideways (per m²) | 0 | -0.004 | 0.004 | 0.0001 |  |
-| `curve.startDepth` | Bend start depth | 6 | 0 | 60 | 1 | m |
 
 <a id="track"></a>
 ### Track (`track`)
@@ -125,35 +293,6 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `env.poleSpacing` | Pole spacing | 20 | 4 | 100 | 1 | m |
 | `env.poleHeight` | Pole height | 6.5 | 1 | 20 | 0.1 | m |
 
-<a id="player"></a>
-### Player movement (`player`)
-
-| path | label | default | min | max | step | unit |
-|---|---|---|---|---|---|---|
-| `player.laneSwitchSeconds` | Lane switch duration | 0.18 | 0.05 | 0.6 | 0.005 | s |
-| `player.laneSwitchEasePower` | Lane switch ease-out power. x = 1-(1-t)^p; 1 = linear | 3 | 1 | 6 | 0.1 |  |
-| `player.jumpHeight` | Jump apex height | 1.5 | 0.5 | 4 | 0.05 | m |
-| `player.jumpSeconds` | Jump airtime (at fall gravity ×1) | 0.65 | 0.3 | 1.5 | 0.01 | s |
-| `player.fallGravityScale` | Fall gravity multiplier | 1 | 0.5 | 3 | 0.05 |  |
-| `player.fastFallSpeed` | Fast-fall initial down speed | 16 | 0 | 40 | 0.5 | m/s |
-| `player.fastFallGravityScale` | Fast-fall gravity multiplier | 2.5 | 1 | 8 | 0.1 |  |
-| `player.fastFallRolls` | Fast-fall lands into roll (0/1) | 1 | 0 | 1 | 1 |  |
-| `player.rollSeconds` | Roll duration | 0.65 | 0.2 | 1.5 | 0.01 | s |
-| `player.jumpBufferSeconds` | Jump input buffer (airborne) | 0.2 | 0 | 0.6 | 0.01 | s |
-| `player.stumbleGraceSeconds` | Stumble grace (no repeat bump) | 0.4 | 0 | 2 | 0.01 | s |
-| `player.runCyclesPerSecond` | Run cycles/s at reference speed | 1.55 | 0.5 | 4 | 0.05 | Hz |
-| `player.runCycleRefSpeed` | Run cycle reference speed | 12 | 1 | 40 | 0.5 | m/s |
-
-<a id="playerHitbox"></a>
-### Player hitbox (`playerHitbox`)
-
-| path | label | default | min | max | step | unit |
-|---|---|---|---|---|---|---|
-| `playerHitbox.width` | Width | 0.5 | 0.1 | 2 | 0.01 | m |
-| `playerHitbox.depth` | Depth | 0.5 | 0.1 | 2 | 0.01 | m |
-| `playerHitbox.height` | Standing height | 1.6 | 0.5 | 2.5 | 0.01 | m |
-| `playerHitbox.rollHeight` | Rolling height | 0.5 | 0.2 | 1.5 | 0.01 | m |
-
 <a id="anim"></a>
 ### Runner animation (`anim`)
 
@@ -163,8 +302,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `anim.armSwing` | Arm swing | 0.85 | 0 | 2 | 0.01 | rad |
 | `anim.bob` | Run bob | 0.07 | 0 | 0.4 | 0.005 | m |
 | `anim.forwardLean` | Run forward lean | 0.2 | -0.5 | 0.8 | 0.01 | rad |
-| `anim.switchLean` | Lane-switch lean | 0.28 | 0 | 1 | 0.01 | rad |
-| `anim.switchYaw` | Lane-switch yaw | 0.3 | 0 | 1 | 0.01 | rad |
+| `anim.switchLean` | Lane-switch lean | 0.5 | 0 | 1.2 | 0.01 | rad |
+| `anim.switchLeanPivot` | Lane-switch lean pivot height. tilt pivot above the feet; > 0 swings the legs out behind the lean | 0.75 | 0 | 1.7 | 0.01 | m |
+| `anim.switchYaw` | Lane-switch yaw | 0.22 | 0 | 1 | 0.01 | rad |
 | `anim.jumpTuck` | Jump knee tuck | 1.2 | 0 | 2.5 | 0.01 | rad |
 | `anim.rollTurns` | Roll ball turns | 1.6 | 0 | 5 | 0.1 |  |
 | `anim.landSquash` | Landing squash | 0.14 | 0 | 0.5 | 0.01 |  |
@@ -184,9 +324,10 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `camera.fov` | Vertical FOV at 9:16 | 60 | 25 | 100 | 0.5 | ° |
 | `camera.followX` | Lateral follow amount | 0.8 | 0 | 1 | 0.01 |  |
 | `camera.lookFollowX` | Look-at lateral follow | 0.65 | 0 | 1 | 0.01 |  |
-| `camera.followXSharpness` | Lateral follow sharpness | 10 | 0.5 | 60 | 0.5 | 1/s |
+| `camera.laneFollowSeconds` | Lateral follow: time to reach a new lane. C1 cubic ease, retargets smoothly; scaled by switchFeel timing | 0.33 | 0.02 | 1.5 | 0.01 | s |
 | `camera.followY` | Vertical follow amount | 0.4 | 0 | 1 | 0.01 |  |
 | `camera.followYSharpness` | Vertical follow sharpness | 6 | 0.5 | 60 | 0.5 | 1/s |
+| `camera.flyFollowY` | Vertical follow amount while flying (jetpack) | 0.85 | 0 | 1 | 0.01 |  |
 | `camera.homeHeight` | Home: height | 2.6 | 0.2 | 10 | 0.05 | m |
 | `camera.homeDistance` | Home: distance behind | 6.2 | 0.5 | 20 | 0.05 | m |
 | `camera.homeLookHeight` | Home: look-at height | 1.9 | -2 | 5 | 0.05 | m |
@@ -203,41 +344,6 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 |---|---|---|---|---|---|---|
 | `obstacles.despawnBehind` | Despawn distance behind runner | 16 | 2 | 100 | 1 | m |
 
-<a id="coins"></a>
-### Coins (`coins`)
-
-| path | label | default | min | max | step | unit |
-|---|---|---|---|---|---|---|
-| `coins.height` | Coin centre height | 0.75 | 0 | 3 | 0.01 | m |
-| `coins.spacing` | Default line spacing | 2 | 0.5 | 6 | 0.05 | m |
-| `coins.pickupHalfWidth` | Pickup half-width | 0.8 | 0.1 | 3 | 0.01 | m |
-| `coins.pickupHalfDepth` | Pickup half-depth | 0.55 | 0.1 | 3 | 0.01 | m |
-| `coins.pickupPadY` | Pickup vertical padding | 0.35 | 0 | 2 | 0.01 | m |
-| `coins.spinSpeed` | Spin speed | 3.2 | 0 | 20 | 0.1 | rad/s |
-| `coins.popSeconds` | Pickup pop duration | 0.15 | 0 | 1 | 0.01 | s |
-| `coins.popScale` | Pickup pop scale | 1.6 | 1 | 4 | 0.05 |  |
-| `coins.popRise` | Pickup pop rise | 0.6 | 0 | 3 | 0.05 | m |
-| `coins.despawnBehind` | Despawn distance behind | 10 | 1 | 60 | 1 | m |
-
-<a id="speed"></a>
-### Speed curve (`speed`)
-
-| path | label | default | min | max | step | unit |
-|---|---|---|---|---|---|---|
-| `speed.start` | Start speed | 12 | 2 | 40 | 0.5 | m/s |
-| `speed.max` | Top speed | 26 | 2 | 60 | 0.5 | m/s |
-| `speed.rampSeconds` | Time to top speed | 240 | 5 | 1200 | 5 | s |
-| `speed.rampExponent` | Ramp curve exponent. <1 front-loads acceleration | 0.85 | 0.2 | 3 | 0.05 |  |
-| `speed.introStartFactor` | Intro: starting fraction of start speed | 0.45 | 0 | 1 | 0.05 |  |
-
-<a id="difficulty"></a>
-### Difficulty (`difficulty`)
-
-| path | label | default | min | max | step | unit |
-|---|---|---|---|---|---|---|
-| `difficulty.rampSeconds` | Time to full difficulty | 180 | 5 | 1200 | 5 | s |
-| `difficulty.exponent` | Difficulty curve exponent | 1 | 0.2 | 3 | 0.05 |  |
-
 <a id="spawnWeights"></a>
 ### Spawn pattern weights (`spawnWeights`)
 
@@ -249,6 +355,11 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `spawnWeights.trainSingle` | Train (1 lane) | 3 | 0 | 10 | 0.1 |  |
 | `spawnWeights.trainDouble` | Trains (2 lanes) | 2 | 0 | 10 | 0.1 |  |
 | `spawnWeights.coinsOnly` | Coin line only | 1.2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.barrierHigh` | High barrier (roll under) | 2.2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.barrierMixed` | Low + high barriers | 1.5 | 0 | 10 | 0.1 |  |
+| `spawnWeights.trainRamp` | Ramp onto a train (roof run) | 1.6 | 0 | 10 | 0.1 |  |
+| `spawnWeights.trainOncoming` | Oncoming train | 1.4 | 0 | 10 | 0.1 |  |
+| `spawnWeights.tunnel` | Tunnel with barriers | 0.6 | 0 | 10 | 0.1 |  |
 
 <a id="spawnPatterns"></a>
 ### Spawn pattern details (`spawnPatterns`)
@@ -265,6 +376,11 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `spawnPatterns.coinLineMin` | Coin line min count | 6 | 1 | 30 | 1 |  |
 | `spawnPatterns.coinLineMax` | Coin line max count | 12 | 1 | 40 | 1 |  |
 | `spawnPatterns.coinChance` | Chance a pattern carries coins | 0.75 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.barrierMixedMinDifficulty` | Low + high barriers min difficulty | 0.12 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.trainRampMinDifficulty` | Ramp onto a train min difficulty | 0.03 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.trainOncomingMinDifficulty` | Oncoming train min difficulty | 0.2 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.tunnelMinDifficulty` | Tunnel min difficulty | 0.1 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.signalChance` | Chance of a trackside signal next to a train | 0.35 | 0 | 1 | 0.01 |  |
 
 <a id="spawn"></a>
 ### Spawner (`spawn`)
@@ -321,6 +437,8 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 |---|---|---|---|---|---|---|
 | `run.introSeconds` | Intro (camera swing + speed-up) | 0.8 | 0 | 5 | 0.05 | s |
 | `run.crashEndSeconds` | Crash → results delay | 1.1 | 0 | 6 | 0.05 | s |
+| `run.reviveGraceSeconds` | Revive: no collisions for | 2 | 0 | 10 | 0.1 | s |
+| `run.reviveClearAhead` | Revive: clear obstacles this far ahead | 70 | 0 | 300 | 5 | m |
 
 <a id="input"></a>
 ### Input (`input`)
@@ -335,6 +453,25 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `input.tapMaxSeconds` | Tap max duration | 0.3 | 0.05 | 2 | 0.01 | s |
 | `input.doubleTapSeconds` | Double-tap window (hoverboard) | 0.32 | 0.05 | 1 | 0.01 | s |
 
+<a id="hud"></a>
+### HUD (`hud`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `hud.scoreMinDigits` | Score zero-padding (digits) | 6 | 1 | 9 | 1 |  |
+| `hud.timerSegments` | Power-up timer bar segments | 10 | 4 | 12 | 1 |  |
+| `hud.timerMidRatio` | Timer bar turns amber at (fraction left) | 0.5 | 0 | 1 | 0.05 |  |
+| `hud.timerLowRatio` | Timer bar turns red at (fraction left) | 0.25 | 0 | 1 | 0.05 |  |
+| `hud.timerBlinkSeconds` | Timer icon blinks in the last | 2 | 0 | 6 | 0.1 | s |
+| `hud.timerBlinkPeriod` | Timer blink half-period | 0.25 | 0.05 | 1 | 0.05 | s |
+| `hud.popSeconds` | Counter pop duration | 0.2 | 0 | 1 | 0.01 | s |
+| `hud.popScale` | Counter pop peak scale | 1.22 | 1 | 1.8 | 0.01 |  |
+| `hud.toastSeconds` | Toast hold time | 2.4 | 0.5 | 8 | 0.1 | s |
+| `hud.toastInSeconds` | Toast slide-in | 0.2 | 0 | 1 | 0.02 | s |
+| `hud.toastOutSeconds` | Toast slide-out | 0.24 | 0 | 1 | 0.02 | s |
+| `hud.toastQueue` | Queued toasts kept (extra are dropped) | 3 | 1 | 8 | 1 |  |
+| `hud.boardHintSeconds` | Board button hint at run start | 4 | 0 | 15 | 0.5 | s |
+
 <a id="display"></a>
 ### Display (`display`)
 
@@ -343,7 +480,16 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `display.dprCap` | Device pixel ratio cap | 2 | 0.5 | 4 | 0.25 |  |
 | `display.maxAspect` | Widest playfield aspect (w/h) before letterboxing | 0.625 | 0.4 | 2.5 | 0.005 |  |
 
-## Cheats (10)
+<a id="flow"></a>
+### Screen flow (`flow`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `flow.resumeCountdownSeconds` | Resume countdown after pause | 3 | 0 | 5 | 0.5 | s |
+| `flow.reviveOfferSeconds` | Revive offer stays open | 5 | 1 | 15 | 0.5 | s |
+| `flow.missionCheckSeconds` | Distance/score mission check interval | 0.5 | 0.1 | 5 | 0.1 | s |
+
+## Cheats (12)
 
 Callable as `window.__game.cheat(name, ...args)` and from the dev panel (see DEVTOOLS.md).
 
@@ -358,9 +504,11 @@ Callable as `window.__game.cheat(name, ...args)` and from the dev panel (see DEV
 | `crash` | Crash now | Run |
 | `giveCoins` | Give coins | Profile |
 | `giveKeys` | Give keys | Profile |
+| `giveBoards` | Give hoverboards | Profile |
+| `completeMissions` | Complete current missions | Profile |
 | `resetProfile` | Reset profile | Profile |
 
-## Game scenarios (7)
+## Game scenarios (10)
 
 Deterministic layouts for `window.__game.startRun({ scenario })`, captures and tests (`src/game/spawn/scenarios.ts`).
 
@@ -373,3 +521,6 @@ Deterministic layouts for `window.__game.startRun({ scenario })`, captures and t
 | `train-side` | Three-car train in the left lane from 24 m (to ~65 m). Swipe left while alongside = stumble + bounce; twice quickly = caught. |
 | `coin-line` | Ten coins in the centre lane from 16 m, 2 m apart. |
 | `obstacle-kit` | Barrier centre at 40 m, train left from 70 m, barrier arc with coins right at 110 m. |
+| `roof-run` | Ramp in the centre lane at 30 m onto a three-car train (roof run), high barrier left at 60 m. |
+| `oncoming` | Two-car oncoming train in the centre lane starting 150 m ahead; coins in the right lane. |
+| `pickups` | One of each pickup in the centre lane from 25 m (magnet, 2x, sneakers, key, jetpack) with coin lines on both sides. |

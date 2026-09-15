@@ -10,3 +10,4 @@ lanes/
 gauntlet/progress.jsonl
 .captures/
 .capture/
+.claude/

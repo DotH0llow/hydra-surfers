@@ -8,7 +8,7 @@
 
 export interface Profile {
   version: number;
-  currencies: { coins: number; keys: number };
+  currencies: { coins: number; keys: number; boards: number };
   owned: { characters: string[]; boards: string[] };
   equipped: { character: string; board: string };
   stats: { bestScore: number; bestDistance: number; totalCoins: number; runs: number; totalDistance: number };
@@ -23,7 +23,7 @@ export const PROFILE_VERSION = 1;
 export function defaultProfile(): Profile {
   return {
     version: PROFILE_VERSION,
-    currencies: { coins: 0, keys: 0 },
+    currencies: { coins: 0, keys: 0, boards: 3 },
     owned: { characters: ["char.runner.default"], boards: [] },
     equipped: { character: "char.runner.default", board: "" },
     stats: { bestScore: 0, bestDistance: 0, totalCoins: 0, runs: 0, totalDistance: 0 },

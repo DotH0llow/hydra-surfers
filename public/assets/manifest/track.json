@@ -111,6 +111,117 @@
       "pivot": "center",
       "forward": "-z",
       "spec": "Collectible coin, 0.7 m diameter disc facing -Z, 0.08 m thick, origin at centre. <= 300 tris, rendered instanced (single mesh, single material)."
+    },
+    {
+      "id": "obstacle.barrier.high",
+      "type": "gltf",
+      "src": "models/obstacles/barrier_high.glb",
+      "placeholder": "barrier-high",
+      "color": "#ffc83d",
+      "maps": { "map": "tex.barrier.stripes" },
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Tall barrier board on two posts spanning one lane: 2.3 m wide, board from 0.95 m to 3.25 m with an open gap underneath (roll under it; it cannot be jumped), 0.3 m deep. Origin bottom centre. <= 800 tris."
+    },
+    {
+      "id": "obstacle.train.oncoming",
+      "type": "gltf",
+      "src": "models/obstacles/train_oncoming.glb",
+      "placeholder": "train-oncoming",
+      "color": "#d94a3d",
+      "maps": { "map": "tex.train.side" },
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Commuter car driving toward the runner. Same footprint as obstacle.train.car (2.3 m wide, 3.6 m tall, 13 m long along Z, origin bottom centre). Put the windscreen and lit headlights in a child node named \"cabFront\" on the +Z end; the engine hides that node on trailing cars. <= 3k tris."
+    },
+    {
+      "id": "obstacle.train.ramp",
+      "type": "gltf",
+      "src": "models/obstacles/ramp.glb",
+      "placeholder": "ramp",
+      "color": "#a0764b",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Ramp up to a train roof: 2.2 m wide, 6.5 m long along Z, walking surface rising from 0 m at the +Z end to 3.6 m at the -Z end. Origin bottom centre of the footprint. <= 600 tris."
+    },
+    {
+      "id": "struct.tunnel",
+      "type": "gltf",
+      "src": "models/track/tunnel.glb",
+      "placeholder": "tunnel",
+      "color": "#6d737d",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Tunnel section over all three lanes: 30 m long along Z (scaled for other lengths), inner width 10 m, inner height 6 m above the ground plane (ground at y = -0.45), portal facade on the +Z end. Origin on the track centre line. <= 2k tris."
+    },
+    {
+      "id": "struct.signal",
+      "type": "gltf",
+      "src": "models/track/signal.glb",
+      "placeholder": "signal",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Trackside light signal: 4.2 m post with a lamp head facing +Z. Child nodes \"lampRed\" and \"lampGreen\" (the engine shows one). Origin at the post foot. <= 400 tris."
+    },
+    {
+      "id": "pickup.jetpack",
+      "type": "gltf",
+      "src": "models/pickups/jetpack.glb",
+      "placeholder": "pickup-jetpack",
+      "color": "#9aa5b1",
+      "pivot": "center",
+      "forward": "-z",
+      "spec": "Jetpack power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
+    },
+    {
+      "id": "pickup.sneakers",
+      "type": "gltf",
+      "src": "models/pickups/sneakers.glb",
+      "placeholder": "pickup-sneakers",
+      "color": "#57e389",
+      "pivot": "center",
+      "forward": "-z",
+      "spec": "Super sneakers power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
+    },
+    {
+      "id": "pickup.magnet",
+      "type": "gltf",
+      "src": "models/pickups/magnet.glb",
+      "placeholder": "pickup-magnet",
+      "color": "#e5484d",
+      "pivot": "center",
+      "forward": "-z",
+      "spec": "Coin magnet power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
+    },
+    {
+      "id": "pickup.multiplier",
+      "type": "gltf",
+      "src": "models/pickups/multiplier.glb",
+      "placeholder": "pickup-multiplier",
+      "color": "#b57bff",
+      "pivot": "center",
+      "forward": "-z",
+      "spec": "2x score multiplier pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
+    },
+    {
+      "id": "pickup.key",
+      "type": "gltf",
+      "src": "models/pickups/key.glb",
+      "placeholder": "pickup-key",
+      "color": "#2fc4b2",
+      "pivot": "center",
+      "forward": "-z",
+      "spec": "Key pickup (revive currency), fits a 1 m sphere, origin at centre, spins about Y. <= 600 tris."
+    },
+    {
+      "id": "gear.hoverboard",
+      "type": "gltf",
+      "src": "models/pickups/hoverboard.glb",
+      "placeholder": "hoverboard",
+      "color": "#2fc4b2",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Hoverboard ridden under the runner's feet: 0.6 m wide, 1.5 m long along Z, 0.08 m thick, origin bottom centre. <= 1k tris."
     }
   ]
 }

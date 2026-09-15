@@ -38,6 +38,8 @@ export interface ObstacleType {
   snapSurface?: boolean;
   /** After the default placement each frame: variant visuals / lateral offsets. Must not allocate. */
   renderView?(inst: ObstacleInstance, view: Object3D): void;
+  /** Moving obstacles (speed > 0) only start moving once they are this close ahead of the runner (m). */
+  moveWithin?(): number;
 }
 
 export const NO_SURFACE = -1e9;

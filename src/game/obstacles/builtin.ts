@@ -127,6 +127,7 @@ registerObstacleType({
   defaultLength: () => TRAIN.carLength,
   collider: trainCollider,
   surface: roof,
+  moveWithin: () => ONCOMING.spawnAhead,
   renderView(inst, view) {
     // Only the leading car shows its cab/headlights; trailing cars face away (variant 1).
     const beam = view.userData.beam as Object3D | undefined ?? (view.userData.beam = view.getObjectByName("cabFront") ?? null);

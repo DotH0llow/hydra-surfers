@@ -3,6 +3,7 @@ import { defineTuning } from "../../core/tuning";
 import type { Rng } from "../../core/rng";
 import { COINS } from "../collectibles/CoinSystem";
 import type { ObstacleInstance } from "../obstacles/ObstacleSystem";
+import { PICKUPS, choosePickup, type PickupKind, type PickupSystem } from "../powerups/PickupSystem";
 import type { ResolvedRunOptions, RunContext, RunSystem } from "../types";
 import { SPEED, difficultyAt, speedAt } from "./difficulty";
 import { listPatterns, type SpawnApi } from "./patterns";
@@ -63,6 +64,10 @@ export class Spawner implements RunSystem, SpawnApi {
       const used = idx >= 0 ? pats[idx].place(this, this.nextS) : 10;
       const gapT = SPAWN.gapSecondsStart + (SPAWN.gapSecondsEnd - SPAWN.gapSecondsStart) * this.difficulty;
       const gap = Math.max(SPAWN.minGap, this.speed * gapT * (1 + this.rng.range(-SPAWN.gapJitter, SPAWN.gapJitter)));
+      // pickups sit in the open gap after a pattern
+      if (idx >= 0 && this.rng.chance(PICKUPS.chance)) {
+        this.pickup(choosePickup(this.rng, this.difficulty), this.rng.int(-1, 1), this.nextS + used + gap * 0.5);
+      }
       this.nextS += used + gap;
     }
   }
@@ -71,6 +76,10 @@ export class Spawner implements RunSystem, SpawnApi {
 
   obstacle(typeId: string, lane: number, s: number, length?: number, speed?: number): ObstacleInstance | null {
     return this.ctx.obstacles.spawn(typeId, lane, s, length, speed);
+  }
+
+  pickup(kind: PickupKind, lane: number, s: number, y?: number): void {
+    this.ctx.getSystem?.<PickupSystem>("pickups")?.spawn(kind, lane, s, y);
   }
 
   coin(lane: number, s: number, y?: number): void {

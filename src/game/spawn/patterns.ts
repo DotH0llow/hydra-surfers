@@ -4,8 +4,10 @@
  */
 import { defineTuning } from "../../core/tuning";
 import type { Rng } from "../../core/rng";
-import { TRAIN } from "../obstacles/builtin";
+import { COINS } from "../collectibles/CoinSystem";
+import { ONCOMING, RAMP, SIGNAL_OUTER, SIGNAL_RED, TRAIN, TUNNEL } from "../obstacles/builtin";
 import type { ObstacleInstance } from "../obstacles/ObstacleSystem";
+import type { PickupKind } from "../powerups/PickupSystem";
 
 export interface SpawnApi {
   readonly rng: Rng;
@@ -18,6 +20,7 @@ export interface SpawnApi {
   coinLine(lane: number, s: number, count: number, spacing?: number, y?: number): void;
   /** Coins centred on sCenter following a parabola `peak` metres above the base height. */
   coinArc(lane: number, sCenter: number, count: number, spacing: number, peak: number): void;
+  pickup(kind: PickupKind, lane: number, s: number, y?: number): void;
 }
 
 export interface Pattern {
@@ -37,6 +40,11 @@ export const SPAWN_WEIGHTS = defineTuning("spawnWeights", "Spawn pattern weights
   trainSingle: { default: 3, min: 0, max: 10, step: 0.1, label: "Train (1 lane)" },
   trainDouble: { default: 2, min: 0, max: 10, step: 0.1, label: "Trains (2 lanes)" },
   coinsOnly: { default: 1.2, min: 0, max: 10, step: 0.1, label: "Coin line only" },
+  barrierHigh: { default: 2.2, min: 0, max: 10, step: 0.1, label: "High barrier (roll under)" },
+  barrierMixed: { default: 1.5, min: 0, max: 10, step: 0.1, label: "Low + high barriers" },
+  trainRamp: { default: 1.6, min: 0, max: 10, step: 0.1, label: "Ramp onto a train (roof run)" },
+  trainOncoming: { default: 1.4, min: 0, max: 10, step: 0.1, label: "Oncoming train" },
+  tunnel: { default: 0.6, min: 0, max: 10, step: 0.1, label: "Tunnel with barriers" },
 });
 
 export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern details", {
@@ -50,6 +58,11 @@ export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern detai
   coinLineMin: { default: 6, min: 1, max: 30, step: 1, label: "Coin line min count" },
   coinLineMax: { default: 12, min: 1, max: 40, step: 1, label: "Coin line max count" },
   coinChance: { default: 0.75, min: 0, max: 1, step: 0.01, label: "Chance a pattern carries coins" },
+  barrierMixedMinDifficulty: { default: 0.12, min: 0, max: 1, step: 0.01, label: "Low + high barriers min difficulty" },
+  trainRampMinDifficulty: { default: 0.03, min: 0, max: 1, step: 0.01, label: "Ramp onto a train min difficulty" },
+  trainOncomingMinDifficulty: { default: 0.2, min: 0, max: 1, step: 0.01, label: "Oncoming train min difficulty" },
+  tunnelMinDifficulty: { default: 0.1, min: 0, max: 1, step: 0.01, label: "Tunnel min difficulty" },
+  signalChance: { default: 0.35, min: 0, max: 1, step: 0.01, label: "Chance of a trackside signal next to a train" },
 });
 
 const patterns: Pattern[] = [];
@@ -75,6 +88,13 @@ const trainLength = (cars: number) => cars * TRAIN.carLength + (cars - 1) * TRAI
 function placeTrain(api: SpawnApi, lane: number, s: number, cars: number): number {
   for (let c = 0; c < cars; c++) api.obstacle("train", lane, s + c * (TRAIN.carLength + TRAIN.carGap), TRAIN.carLength);
   return trainLength(cars);
+}
+
+/** Trackside signal outside the outer lane on the train's side (red when the train is in that lane). */
+function placeSignal(api: SpawnApi, trainLane: number, s: number): void {
+  const side = trainLane === 0 ? (api.rng.chance(0.5) ? -1 : 1) : trainLane;
+  const sig = api.obstacle("signal", side, s);
+  if (sig) sig.variant = SIGNAL_OUTER | (side === trainLane ? SIGNAL_RED : 0);
 }
 
 registerPattern({
@@ -134,6 +154,7 @@ registerPattern({
     const maxCars = Math.max(1, Math.round(1 + api.difficulty * (SPAWN_PATTERNS.maxCars - 1)));
     const cars = api.rng.int(1, maxCars);
     const len = placeTrain(api, lane, s, cars);
+    if (api.rng.chance(SPAWN_PATTERNS.signalChance)) placeSignal(api, lane, s - 3);
     if (api.rng.chance(SPAWN_PATTERNS.coinChance)) {
       const spacing = 2.2;
       api.coinLine(otherLane(api.rng, lane), s, Math.max(3, Math.floor(len / spacing)), spacing);
@@ -174,5 +195,110 @@ registerPattern({
     const n = api.rng.int(SPAWN_PATTERNS.coinLineMin, Math.max(SPAWN_PATTERNS.coinLineMin, SPAWN_PATTERNS.coinLineMax));
     api.coinLine(lane, s, n);
     return n * 2;
+  },
+});
+
+registerPattern({
+  id: "barrierHigh",
+  label: "High barrier (roll under)",
+  minDifficulty: 0,
+  weight: () => SPAWN_WEIGHTS.barrierHigh,
+  place(api, s) {
+    const lane = api.rng.int(-1, 1);
+    api.obstacle("barrierHigh", lane, s);
+    if (api.rng.chance(SPAWN_PATTERNS.coinChance)) {
+      api.coinLine(lane, s - 9, 4);
+      api.coinLine(lane, s + 3, 3);
+    }
+    return 2;
+  },
+});
+
+registerPattern({
+  id: "barrierMixed",
+  label: "Low and high barriers",
+  get minDifficulty() {
+    return SPAWN_PATTERNS.barrierMixedMinDifficulty;
+  },
+  weight: () => SPAWN_WEIGHTS.barrierMixed,
+  place(api, s) {
+    const open = api.rng.int(-1, 1);
+    for (let l = -1; l <= 1; l++) {
+      if (l !== open) api.obstacle(api.rng.chance(0.5) ? "barrierHigh" : "barrierLow", l, s);
+    }
+    if (api.rng.chance(SPAWN_PATTERNS.coinChance)) api.coinLine(open, s - 8, 8);
+    return 2;
+  },
+});
+
+registerPattern({
+  id: "trainRamp",
+  label: "Ramp onto a train",
+  get minDifficulty() {
+    return SPAWN_PATTERNS.trainRampMinDifficulty;
+  },
+  weight: () => SPAWN_WEIGHTS.trainRamp,
+  place(api, s) {
+    const lane = api.rng.int(-1, 1);
+    const cars = api.rng.int(2, Math.max(2, SPAWN_PATTERNS.maxCars));
+    api.obstacle("ramp", lane, s, RAMP.length);
+    const t0 = s + RAMP.length;
+    let extent = RAMP.length + placeTrain(api, lane, t0, cars);
+    if (api.rng.chance(SPAWN_PATTERNS.coinChance)) {
+      // coins up the ramp, then along the roof
+      for (let d = 1; d < RAMP.length; d += 1.8) api.coin(lane, s + d, COINS.height + TRAIN.height * (d / RAMP.length));
+      api.coinLine(lane, t0 + 1.5, Math.max(3, Math.floor((extent - RAMP.length - 3) / 2.2)), 2.2, TRAIN.height + COINS.height);
+    }
+    // later on, a parked train alongside to hop across on the roofs
+    if (api.difficulty > 0.2 && api.rng.chance(0.5)) {
+      const start = t0 + api.rng.range(4, 10);
+      const side = otherLane(api.rng, lane);
+      extent = Math.max(extent, start - s + placeTrain(api, side, start, api.rng.int(1, 2)));
+    }
+    return extent;
+  },
+});
+
+registerPattern({
+  id: "trainOncoming",
+  label: "Oncoming train",
+  get minDifficulty() {
+    return SPAWN_PATTERNS.trainOncomingMinDifficulty;
+  },
+  weight: () => SPAWN_WEIGHTS.trainOncoming,
+  place(api, s) {
+    const lane = api.rng.int(-1, 1);
+    const maxCars = Math.max(1, Math.min(ONCOMING.maxCars, 1 + Math.round(api.difficulty * 2)));
+    const cars = api.rng.int(1, maxCars);
+    // The car starts moving once it is `spawnAhead` in front of the runner and covers `sweep` metres
+    // before they meet, so the pattern keeps that stretch of its lane free.
+    const sweep = ONCOMING.speed * (ONCOMING.spawnAhead / (Math.max(1, api.speed) + ONCOMING.speed));
+    const s0 = s + sweep;
+    for (let c = 0; c < cars; c++) {
+      const car = api.obstacle("trainOncoming", lane, s0 + c * (TRAIN.carLength + TRAIN.carGap), TRAIN.carLength, ONCOMING.speed);
+      if (car) car.variant = c === 0 ? 0 : 1;
+    }
+    const len = sweep + trainLength(cars);
+    if (api.rng.chance(SPAWN_PATTERNS.coinChance)) api.coinLine(otherLane(api.rng, lane), s, Math.max(3, Math.floor(len / 2.5)), 2.5);
+    return len;
+  },
+});
+
+registerPattern({
+  id: "tunnel",
+  label: "Tunnel with barriers",
+  get minDifficulty() {
+    return SPAWN_PATTERNS.tunnelMinDifficulty;
+  },
+  weight: () => SPAWN_WEIGHTS.tunnel,
+  place(api, s) {
+    const len = TUNNEL.length + api.rng.range(0, 15);
+    api.obstacle("tunnel", 0, s, len);
+    const a = api.rng.int(-1, 1);
+    api.obstacle("barrierLow", a, s + len * 0.35);
+    const b = otherLane(api.rng, a);
+    api.obstacle("barrierHigh", b, s + len * 0.7);
+    if (api.rng.chance(SPAWN_PATTERNS.coinChance)) api.coinLine(otherLane(api.rng, b), s + 2, Math.floor((len - 4) / 2.5), 2.5);
+    return len;
   },
 });

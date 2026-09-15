@@ -1,6 +1,6 @@
 /**
- * Minimal WebAudio bus: unlocks on the first gesture, plays manifest sfx (placeholders are
- * synthesized) in response to game events. Lane D owns the full audio system (music, settings).
+ * WebAudio bus: unlocks on the first gesture and plays manifest sfx (placeholders are synthesized)
+ * in response to game events. Respects the profile's mute and effects volume; suspends while hidden.
  */
 import type { EventBus } from "../core/events";
 import type { ProfileStore } from "../core/store";
@@ -25,7 +25,18 @@ export class AudioBus {
     bus.on("player:roll", () => this.play("sfx.roll"));
     bus.on("player:land", () => this.play("sfx.land"));
     bus.on("player:laneChange", () => this.play("sfx.swipe"));
+    bus.on("player:stumble", () => this.play("sfx.stumble"));
     bus.on("run:crash", () => this.play("sfx.crash"));
+    bus.on("run:revive", () => this.play("sfx.powerup", 0.8));
+    bus.on("powerup:start", (e) => this.play("sfx.powerup", e.refreshed ? 1.25 : 1));
+    bus.on("hoverboard:start", () => this.play("sfx.board"));
+    bus.on("hoverboard:end", (e) => {
+      if (e.reason === "break") this.play("sfx.crash", 1.5);
+    });
+    bus.on("pickup:collect", (e) => {
+      if (e.kind === "key") this.play("sfx.key");
+    });
+    bus.on("mission:complete", () => this.play("sfx.mission"));
     bus.on("ui:click", () => this.play("sfx.ui.tap"));
     bus.on("coin:collect", () => {
       const now = this.ac?.currentTime ?? 0;

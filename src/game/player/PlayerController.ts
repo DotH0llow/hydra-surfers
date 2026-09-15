@@ -32,6 +32,7 @@ export const PLAYER = defineTuning("player", "Player movement", {
   stumbleGraceSeconds: { default: 0.4, min: 0, max: 2, step: 0.01, label: "Stumble grace (no repeat bump)", unit: "s" },
   runCyclesPerSecond: { default: 1.55, min: 0.5, max: 4, step: 0.05, label: "Run cycles/s at reference speed", unit: "Hz" },
   runCycleRefSpeed: { default: 12, min: 1, max: 40, step: 0.5, label: "Run cycle reference speed", unit: "m/s" },
+  flyRiseSharpness: { default: 3.2, min: 0.2, max: 20, step: 0.1, label: "Jetpack: climb/hold sharpness", unit: "1/s" },
 });
 
 export const PLAYER_HITBOX = defineTuning("playerHitbox", "Player hitbox", {
@@ -113,6 +114,14 @@ export class PlayerController implements RunSystem {
   stumbleCooldown = 0;
   /** Seconds since the last stumble (for animation). */
   sinceStumble = 10;
+  /** Jetpack flight: holds `flyHeight` above the ballast, jump/roll ignored, collisions skipped. */
+  flying = false;
+  flyHeight = 0;
+  /** > 0: collisions are ignored (after a jetpack landing or a revive). */
+  graceT = 0;
+  /** Power-up multipliers for the jump apex and airtime (super sneakers). */
+  jumpHeightScale = 1;
+  jumpTimeScale = 1;
 
   private ctx!: RunContext;
 
@@ -149,16 +158,22 @@ export class PlayerController implements RunSystem {
     this.prevLane = 0;
     this.stumbleCooldown = 0;
     this.sinceStumble = 10;
+    this.flying = false;
+    this.flyHeight = 0;
+    this.graceT = 0;
+    this.jumpHeightScale = 1;
+    this.jumpTimeScale = 1;
     this.setState(ctx.state.mode === "idle" ? "idle" : "run");
   }
 
   /** Initial jump velocity for the tuned apex/airtime. */
   jumpVelocity(): number {
-    return (4 * PLAYER.jumpHeight) / PLAYER.jumpSeconds;
+    return (4 * PLAYER.jumpHeight * this.jumpHeightScale) / (PLAYER.jumpSeconds * this.jumpTimeScale);
   }
 
   gravity(): number {
-    return (8 * PLAYER.jumpHeight) / (PLAYER.jumpSeconds * PLAYER.jumpSeconds);
+    const t = PLAYER.jumpSeconds * this.jumpTimeScale;
+    return (8 * PLAYER.jumpHeight * this.jumpHeightScale) / (t * t);
   }
 
   /** Signed lane-switch body lean (-1..1, + = right) for animation. */
@@ -175,6 +190,7 @@ export class PlayerController implements RunSystem {
   handleAction(action: Action): void {
     const mode = this.ctx.state.mode;
     if (this.state === "crash" || (mode !== "running" && mode !== "intro")) return;
+    if (this.flying && action !== "left" && action !== "right") return;
     switch (action) {
       case "left":
         this.changeLane(-1);
@@ -202,6 +218,7 @@ export class PlayerController implements RunSystem {
     this.sinceLand += dt;
     this.sinceStumble += dt;
     if (this.stumbleCooldown > 0) this.stumbleCooldown = Math.max(0, this.stumbleCooldown - dt);
+    if (this.graceT > 0) this.graceT = Math.max(0, this.graceT - dt);
     const mode = ctx.state.mode;
     if (mode === "idle" || mode === "ended") return;
 
@@ -227,7 +244,12 @@ export class PlayerController implements RunSystem {
 
     // vertical
     if (this.jumpBuffer > 0) this.jumpBuffer = Math.max(0, this.jumpBuffer - dt);
-    if (!this.grounded) this.integrateVertical(dt);
+    if (this.flying) {
+      this.y += (this.flyHeight - this.y) * (1 - Math.exp(-PLAYER.flyRiseSharpness * dt));
+      this.vy = 0;
+      this.grounded = false;
+      this.airTime = 0;
+    } else if (!this.grounded) this.integrateVertical(dt);
     else this.y = this.groundY;
 
     // posture
@@ -245,6 +267,7 @@ export class PlayerController implements RunSystem {
 
   crash(cause: string): void {
     this.crashCause = cause;
+    this.flying = false;
     this.rolling = false;
     this.switchT = 1;
     this.switchDir = 0;
@@ -277,6 +300,48 @@ export class PlayerController implements RunSystem {
     evStumble.bounce = bounce;
     this.ctx.bus.emit("player:stumble", evStumble);
     return true;
+  }
+
+  /** Jetpack take-off: climbs to `height` and holds it until endFlight(). */
+  startFlight(height: number): void {
+    if (this.state === "crash") return;
+    if (this.rolling) {
+      this.rolling = false;
+      this.rollTimer = 0;
+      evRollEnd.cancelled = true;
+      this.ctx.bus.emit("player:rollEnd", evRollEnd);
+    }
+    this.flying = true;
+    this.flyHeight = height;
+    this.grounded = false;
+    this.fastFalling = false;
+    this.rollOnLand = false;
+    this.jumpBuffer = 0;
+    this.setState("jump");
+  }
+
+  /** Jetpack over: falls back down under normal gravity. */
+  endFlight(): void {
+    if (!this.flying) return;
+    this.flying = false;
+    this.vy = 0;
+    this.airTime = 0;
+  }
+
+  /** Back on its feet after a revive, with `grace` seconds of no collisions. */
+  revive(grace: number): void {
+    this.crashCause = "";
+    this.switchT = 1;
+    this.switchDir = 0;
+    this.x = this.prevX = laneX(this.lane);
+    this.vy = 0;
+    this.rolling = false;
+    this.rollTimer = 0;
+    this.jumpBuffer = 0;
+    this.stumbleCooldown = 0;
+    this.grounded = this.y <= this.groundY + 1e-4;
+    this.graceT = grace;
+    this.setState(this.grounded ? "run" : "jump");
   }
 
   /** Sim-space hitbox swept over this tick's forward motion. */

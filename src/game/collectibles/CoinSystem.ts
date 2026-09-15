@@ -4,7 +4,7 @@
  */
 import { InstancedMesh, Matrix4, Quaternion, Vector3 } from "three";
 import { defineTuning } from "../../core/tuning";
-import { laneX, renderZ } from "../world/coords";
+import { LANES, laneX, renderZ } from "../world/coords";
 import { curveObject } from "../world/curve";
 import { makeAabb, type RunContext, type RunSystem } from "../types";
 
@@ -19,6 +19,8 @@ export const COINS = defineTuning("coins", "Coins", {
   popScale: { default: 1.6, min: 1, max: 4, step: 0.05, label: "Pickup pop scale" },
   popRise: { default: 0.6, min: 0, max: 3, step: 0.05, label: "Pickup pop rise", unit: "m" },
   despawnBehind: { default: 10, min: 1, max: 60, step: 1, label: "Despawn distance behind", unit: "m" },
+  magnetReach: { default: 7, min: 0, max: 40, step: 0.5, label: "Magnet: pulls coins this far ahead", unit: "m" },
+  magnetPadY: { default: 3, min: 0, max: 10, step: 0.1, label: "Magnet: vertical reach", unit: "m" },
 });
 
 declare module "../../core/events" {
@@ -52,6 +54,8 @@ export class CoinSystem implements RunSystem {
   private mesh!: InstancedMesh;
   private liveCount = 0;
   private dropped = 0;
+  /** Coin magnet power-up: collects every lane within `magnetReach` ahead. */
+  magnet = false;
 
   constructor() {
     this.clear();
@@ -72,6 +76,7 @@ export class CoinSystem implements RunSystem {
 
   reset(): void {
     this.clear();
+    this.magnet = false;
   }
 
   clear(): void {
@@ -106,9 +111,11 @@ export class CoinSystem implements RunSystem {
     const live = st.mode === "running" || st.mode === "intro";
     const limit = st.distance - COINS.despawnBehind;
     if (live) ctx.player.getHitbox(box);
-    const hw = COINS.pickupHalfWidth;
+    const magnet = this.magnet;
+    const hw = magnet ? Math.max(COINS.pickupHalfWidth, LANES.spacing * 2 + 0.5) : COINS.pickupHalfWidth;
     const hd = COINS.pickupHalfDepth;
-    const pad = COINS.pickupPadY;
+    const pad = magnet ? Math.max(COINS.pickupPadY, COINS.magnetPadY) : COINS.pickupPadY;
+    const reach = magnet ? COINS.magnetReach : 0;
     for (let i = 0; i < COIN_CAPACITY; i++) {
       const stt = this.status[i];
       if (stt === 0) continue;
@@ -124,7 +131,7 @@ export class CoinSystem implements RunSystem {
       if (!live) continue;
       const x = laneX(this.lane[i]);
       const cy = this.y[i];
-      if (x + hw > box.minX && x - hw < box.maxX && s + hd > box.minS && s - hd < box.maxS && cy + pad > box.minY && cy - pad < box.maxY) {
+      if (x + hw > box.minX && x - hw < box.maxX && s + hd > box.minS && s - hd < box.maxS + reach && cy + pad > box.minY && cy - pad < box.maxY) {
         this.status[i] = 2;
         this.liveCount--;
         this.collectedAt[i] = st.time;
@@ -153,8 +160,10 @@ export class CoinSystem implements RunSystem {
       } else {
         const u = COINS.popSeconds > 0 ? Math.min(1, (t - this.collectedAt[i]) / COINS.popSeconds) : 1;
         const sc = (1 + (COINS.popScale - 1) * u) * (1 - u);
-        // follow the runner forward while popping so it reads as "absorbed"
-        tmpP.set(ctx.player.x, this.y[i] + COINS.popRise * u, Math.max(z, 0));
+        // fly into the runner while popping so it reads as "absorbed" (magnet pulls from other lanes)
+        const lx = laneX(this.lane[i]);
+        const cy = this.y[i];
+        tmpP.set(lx + (ctx.player.x - lx) * u, cy + (ctx.player.y + 1 - cy) * u + COINS.popRise * u, z * (1 - u));
         tmpS.set(sc, sc, sc);
       }
       tmpM.compose(tmpP, tmpQ, tmpS);

@@ -4,7 +4,9 @@
  * Foundation version: timers, crash absorption, events, cheat, getState. Board visuals, profile board
  * counts and HUD are lane B/C's (pieces B7, C1). Extend additively.
  */
+import type { Object3D } from "three";
 import { registerCheat } from "../../core/cheats";
+import { curveObject } from "../world/curve";
 import { defineTuning } from "../../core/tuning";
 import { registerRunSystem } from "../systems";
 import type { RunContext, RunSystem } from "../types";
@@ -36,6 +38,8 @@ export class HoverboardSystem implements RunSystem {
   active = false;
   remaining = 0;
   invulnerable = 0;
+  /** Boards the player can still use (the App mirrors the profile's hoverboards; Infinity = unlimited). */
+  charges = Infinity;
   private ctx: RunContext | null = null;
 
   init(ctx: RunContext): void {
@@ -43,14 +47,23 @@ export class HoverboardSystem implements RunSystem {
     ctx.bus.on("run:action", (e) => {
       if (e.action === "hoverboard") this.activate();
     });
-    registerCheat({ name: "hoverboard", label: "Activate hoverboard", group: "Hoverboard", run: () => this.activate() });
+    registerCheat({
+      name: "hoverboard",
+      label: "Activate hoverboard",
+      group: "Hoverboard",
+      run: () => {
+        this.charges = Math.max(this.charges, 1);
+        return this.activate();
+      },
+    });
   }
 
   activate(): boolean {
     const ctx = this.ctx;
-    if (!ctx || this.active) return false;
+    if (!ctx || this.active || this.charges < 1) return false;
     const mode = ctx.state.mode;
     if (mode !== "running" && mode !== "intro") return false;
+    this.charges--;
     this.active = true;
     this.remaining = HOVERBOARD.durationSeconds;
     evStart.duration = this.remaining;
@@ -100,3 +113,35 @@ export class HoverboardSystem implements RunSystem {
 }
 
 registerRunSystem(() => new HoverboardSystem());
+
+/** Board under the runner's feet while riding (visual only). */
+export class HoverboardView implements RunSystem {
+  readonly id = "hoverboardView";
+  readonly order = 112;
+  private board!: Object3D;
+  private hb: HoverboardSystem | undefined;
+
+  init(ctx: RunContext): void {
+    this.hb = ctx.getSystem<HoverboardSystem>("hoverboard");
+    this.board = ctx.assets.getModel("gear.hoverboard");
+    this.board.name = "hoverboard";
+    this.board.visible = false;
+    curveObject(this.board);
+    ctx.scene.add(this.board);
+  }
+
+  render(ctx: RunContext, alpha: number): void {
+    const hb = this.hb;
+    const p = ctx.player;
+    const mode = ctx.state.mode;
+    const on = !!hb && hb.active && mode !== "idle" && mode !== "ended" && p.state !== "crash" && !p.flying;
+    this.board.visible = on;
+    if (!on) return;
+    const x = p.prevX + (p.x - p.prevX) * alpha;
+    const y = p.prevY + (p.y - p.prevY) * alpha;
+    this.board.position.set(x, y + 0.03 + Math.sin(ctx.state.time * 7) * 0.025, -0.05);
+    this.board.rotation.z = -p.leanAt() * 0.35;
+  }
+}
+
+registerRunSystem(() => new HoverboardView());

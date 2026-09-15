@@ -456,6 +456,40 @@ registerSfxPlaceholder("synth-crash", (ac) => {
 });
 registerSfxPlaceholder("synth-tap", (ac) => synth(ac, 0.06, (t) => Math.sin(TAU * 1250 * t) * env(t, 0.001, 0.015), 7));
 registerSfxPlaceholder("synth-blip", (ac) => synth(ac, 0.1, (t) => Math.sin(TAU * 660 * t) * env(t, 0.002, 0.03), 8));
+registerSfxPlaceholder("synth-powerup", (ac) =>
+  synth(ac, 0.36, (t) => {
+    const notes = [523, 659, 784, 1047];
+    const k = Math.min(notes.length - 1, Math.floor(t / 0.07));
+    const lt = t - k * 0.07;
+    return Math.sin(TAU * notes[k] * t) * env(lt, 0.003, 0.08) + 0.25 * Math.sin(TAU * notes[k] * 2 * t) * env(lt, 0.003, 0.04);
+  }, 9),
+);
+registerSfxPlaceholder("synth-stumble", (ac) => {
+  let lp = 0;
+  return synth(ac, 0.26, (t, _i, noise) => {
+    lp += (noise() - lp) * 0.12;
+    return (lp * 1.4 + Math.sin(TAU * (120 - 160 * t) * t)) * env(t, 0.002, 0.07);
+  }, 10);
+});
+registerSfxPlaceholder("synth-board", (ac) =>
+  synth(ac, 0.45, (t) => {
+    const f = 140 + 520 * (t / 0.45);
+    return (Math.sin(TAU * f * t) + 0.4 * Math.sin(TAU * f * 1.5 * t)) * env(t, 0.04, 0.16);
+  }, 11),
+);
+registerSfxPlaceholder("synth-mission", (ac) =>
+  synth(ac, 0.46, (t) => {
+    const f = t < 0.14 ? 880 : 1319;
+    const lt = t < 0.14 ? t : t - 0.14;
+    return Math.sin(TAU * f * t) * env(lt, 0.004, 0.11) + 0.3 * Math.sin(TAU * f * 3 * t) * env(lt, 0.004, 0.05);
+  }, 12),
+);
+registerSfxPlaceholder("synth-key", (ac) =>
+  synth(ac, 0.34, (t, _i, noise) => {
+    const f = 1568 + 400 * Math.sin(TAU * 18 * t);
+    return Math.sin(TAU * f * t) * env(t, 0.002, 0.09) + noise() * 0.08 * env(t, 0.001, 0.02);
+  }, 13),
+);
 
 export function buildSfxPlaceholder(ac: BaseAudioContext, entry: AssetEntry): AudioBuffer {
   const key = entry.placeholder ?? "synth-blip";

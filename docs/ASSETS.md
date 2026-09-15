@@ -33,7 +33,7 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 
 ## Status
 
-27 assets in 4 parts. 0 have files and 27 still use procedural placeholders.
+43 assets in 4 parts. 0 have files and 43 still use procedural placeholders.
 
 ## core (`public/assets/manifest/core.json`)
 
@@ -89,6 +89,17 @@ Track, environment, obstacles and collectibles. Owned by lane B (world pieces by
 | `obstacle.train.car` | gltf | `models/obstacles/train_car.glb` | placeholder (`train-car`) | bottom-center, faces -z | <= 3000 tris |
 | `tex.train.side` | texture | `textures/obstacles/train_side.png` | placeholder (`train-side`) |  |  |
 | `collect.coin` | gltf | `models/collectibles/coin.glb` | placeholder (`coin`) | center, faces -z | <= 300 tris |
+| `obstacle.barrier.high` | gltf | `models/obstacles/barrier_high.glb` | placeholder (`barrier-high`) | bottom-center, faces -z | <= 800 tris |
+| `obstacle.train.oncoming` | gltf | `models/obstacles/train_oncoming.glb` | placeholder (`train-oncoming`) | bottom-center, faces -z | <= 3000 tris |
+| `obstacle.train.ramp` | gltf | `models/obstacles/ramp.glb` | placeholder (`ramp`) | bottom-center, faces -z | <= 600 tris |
+| `struct.tunnel` | gltf | `models/track/tunnel.glb` | placeholder (`tunnel`) | bottom-center, faces -z | <= 2000 tris |
+| `struct.signal` | gltf | `models/track/signal.glb` | placeholder (`signal`) | bottom-center, faces -z | <= 400 tris |
+| `pickup.jetpack` | gltf | `models/pickups/jetpack.glb` | placeholder (`pickup-jetpack`) | center, faces -z | <= 800 tris |
+| `pickup.sneakers` | gltf | `models/pickups/sneakers.glb` | placeholder (`pickup-sneakers`) | center, faces -z | <= 800 tris |
+| `pickup.magnet` | gltf | `models/pickups/magnet.glb` | placeholder (`pickup-magnet`) | center, faces -z | <= 800 tris |
+| `pickup.multiplier` | gltf | `models/pickups/multiplier.glb` | placeholder (`pickup-multiplier`) | center, faces -z | <= 800 tris |
+| `pickup.key` | gltf | `models/pickups/key.glb` | placeholder (`pickup-key`) | center, faces -z | <= 600 tris |
+| `gear.hoverboard` | gltf | `models/pickups/hoverboard.glb` | placeholder (`hoverboard`) | bottom-center, faces -z | <= 1000 tris |
 
 ### `tex.track.ballast`
 
@@ -183,6 +194,95 @@ Track, environment, obstacles and collectibles. Owned by lane B (world pieces by
 - **Placeholder:** `coin`
 - **Brief:** Collectible coin, 0.7 m diameter disc facing -Z, 0.08 m thick, origin at centre. <= 300 tris, rendered instanced (single mesh, single material).
 
+### `obstacle.barrier.high`
+
+- **File:** `public/assets/models/obstacles/barrier_high.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Uses textures:** map = `tex.barrier.stripes`
+- **Placeholder tint / palette hint:** `#ffc83d`
+- **Placeholder:** `barrier-high`
+- **Brief:** Tall barrier board on two posts spanning one lane: 2.3 m wide, board from 0.95 m to 3.25 m with an open gap underneath (roll under it; it cannot be jumped), 0.3 m deep. Origin bottom centre. <= 800 tris.
+
+### `obstacle.train.oncoming`
+
+- **File:** `public/assets/models/obstacles/train_oncoming.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Uses textures:** map = `tex.train.side`
+- **Placeholder tint / palette hint:** `#d94a3d`
+- **Placeholder:** `train-oncoming`
+- **Brief:** Commuter car driving toward the runner. Same footprint as obstacle.train.car (2.3 m wide, 3.6 m tall, 13 m long along Z, origin bottom centre). Put the windscreen and lit headlights in a child node named "cabFront" on the +Z end; the engine hides that node on trailing cars. <= 3k tris.
+
+### `obstacle.train.ramp`
+
+- **File:** `public/assets/models/obstacles/ramp.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#a0764b`
+- **Placeholder:** `ramp`
+- **Brief:** Ramp up to a train roof: 2.2 m wide, 6.5 m long along Z, walking surface rising from 0 m at the +Z end to 3.6 m at the -Z end. Origin bottom centre of the footprint. <= 600 tris.
+
+### `struct.tunnel`
+
+- **File:** `public/assets/models/track/tunnel.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#6d737d`
+- **Placeholder:** `tunnel`
+- **Brief:** Tunnel section over all three lanes: 30 m long along Z (scaled for other lengths), inner width 10 m, inner height 6 m above the ground plane (ground at y = -0.45), portal facade on the +Z end. Origin on the track centre line. <= 2k tris.
+
+### `struct.signal`
+
+- **File:** `public/assets/models/track/signal.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder:** `signal`
+- **Brief:** Trackside light signal: 4.2 m post with a lamp head facing +Z. Child nodes "lampRed" and "lampGreen" (the engine shows one). Origin at the post foot. <= 400 tris.
+
+### `pickup.jetpack`
+
+- **File:** `public/assets/models/pickups/jetpack.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** center, faces -z
+- **Placeholder tint / palette hint:** `#9aa5b1`
+- **Placeholder:** `pickup-jetpack`
+- **Brief:** Jetpack power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
+
+### `pickup.sneakers`
+
+- **File:** `public/assets/models/pickups/sneakers.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** center, faces -z
+- **Placeholder tint / palette hint:** `#57e389`
+- **Placeholder:** `pickup-sneakers`
+- **Brief:** Super sneakers power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
+
+### `pickup.magnet`
+
+- **File:** `public/assets/models/pickups/magnet.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** center, faces -z
+- **Placeholder tint / palette hint:** `#e5484d`
+- **Placeholder:** `pickup-magnet`
+- **Brief:** Coin magnet power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
+
+### `pickup.multiplier`
+
+- **File:** `public/assets/models/pickups/multiplier.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** center, faces -z
+- **Placeholder tint / palette hint:** `#b57bff`
+- **Placeholder:** `pickup-multiplier`
+- **Brief:** 2x score multiplier pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
+
+### `pickup.key`
+
+- **File:** `public/assets/models/pickups/key.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** center, faces -z
+- **Placeholder tint / palette hint:** `#2fc4b2`
+- **Placeholder:** `pickup-key`
+- **Brief:** Key pickup (revive currency), fits a 1 m sphere, origin at centre, spins about Y. <= 600 tris.
+
+### `gear.hoverboard`
+
+- **File:** `public/assets/models/pickups/hoverboard.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#2fc4b2`
+- **Placeholder:** `hoverboard`
+- **Brief:** Hoverboard ridden under the runner's feet: 0.6 m wide, 1.5 m long along Z, 0.08 m thick, origin bottom centre. <= 1k tris.
+
 ## ui (`public/assets/manifest/ui.json`)
 
 UI sprites and icons. Owned by lane C.
@@ -247,6 +347,11 @@ Sound effects and music. Owned by lane D.
 | `sfx.swipe` | audio | `audio/sfx/swipe.ogg` | placeholder (`synth-swipe`) |  |  |
 | `sfx.crash` | audio | `audio/sfx/crash.ogg` | placeholder (`synth-crash`) |  |  |
 | `sfx.ui.tap` | audio | `audio/sfx/ui_tap.ogg` | placeholder (`synth-tap`) |  |  |
+| `sfx.powerup` | audio | `audio/sfx/powerup.ogg` | placeholder (`synth-powerup`) |  |  |
+| `sfx.stumble` | audio | `audio/sfx/stumble.ogg` | placeholder (`synth-stumble`) |  |  |
+| `sfx.board` | audio | `audio/sfx/hoverboard.ogg` | placeholder (`synth-board`) |  |  |
+| `sfx.mission` | audio | `audio/sfx/mission.ogg` | placeholder (`synth-mission`) |  |  |
+| `sfx.key` | audio | `audio/sfx/key.ogg` | placeholder (`synth-key`) |  |  |
 
 ### `sfx.coin`
 
@@ -296,3 +401,38 @@ Sound effects and music. Owned by lane D.
 - **Playback volume:** 0.5
 - **Placeholder:** `synth-tap`
 - **Brief:** UI button click/pop, < 80 ms, mono.
+
+### `sfx.powerup`
+
+- **File:** `public/assets/audio/sfx/powerup.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.55
+- **Placeholder:** `synth-powerup`
+- **Brief:** Power-up pickup: bright rising arpeggio, < 400 ms, mono.
+
+### `sfx.stumble`
+
+- **File:** `public/assets/audio/sfx/stumble.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.6
+- **Placeholder:** `synth-stumble`
+- **Brief:** Side bump / stumble: dull thud with a scrape, < 300 ms, mono.
+
+### `sfx.board`
+
+- **File:** `public/assets/audio/sfx/hoverboard.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.5
+- **Placeholder:** `synth-board`
+- **Brief:** Hoverboard power-on hum sweep, < 500 ms, mono.
+
+### `sfx.mission`
+
+- **File:** `public/assets/audio/sfx/mission.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.55
+- **Placeholder:** `synth-mission`
+- **Brief:** Mission complete: two-note chime, < 500 ms, mono.
+
+### `sfx.key`
+
+- **File:** `public/assets/audio/sfx/key.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.55
+- **Placeholder:** `synth-key`
+- **Brief:** Key pickup sparkle, < 400 ms, mono.

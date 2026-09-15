@@ -22,6 +22,7 @@ export const CAMERA = defineTuning("camera", "Run camera", {
   laneFollowSeconds: { default: 0.33, min: 0.02, max: 1.5, step: 0.01, label: "Lateral follow: time to reach a new lane", help: "C1 cubic ease, retargets smoothly; scaled by switchFeel timing", unit: "s" },
   followY: { default: 0.4, min: 0, max: 1, step: 0.01, label: "Vertical follow amount" },
   followYSharpness: { default: 6, min: 0.5, max: 60, step: 0.5, label: "Vertical follow sharpness", unit: "1/s" },
+  flyFollowY: { default: 0.85, min: 0, max: 1, step: 0.01, label: "Vertical follow amount while flying (jetpack)" },
   homeHeight: { default: 2.6, min: 0.2, max: 10, step: 0.05, label: "Home: height", unit: "m" },
   homeDistance: { default: 6.2, min: 0.5, max: 20, step: 0.05, label: "Home: distance behind", unit: "m" },
   homeLookHeight: { default: 1.9, min: -2, max: 5, step: 0.05, label: "Home: look-at height", unit: "m" },
@@ -132,7 +133,8 @@ export class RunCamera implements RunSystem {
     }
     this.followX = this.laneX * CAMERA.followX;
     this.lookX = this.laneX * CAMERA.lookFollowX;
-    this.followYv += ((p.y - p.groundY) * CAMERA.followY + p.groundY - this.followYv) * ky;
+    const followY = p.flying ? CAMERA.flyFollowY : CAMERA.followY;
+    this.followYv += ((p.y - p.groundY) * followY + p.groundY - this.followYv) * ky;
     const blend = st.mode === "idle" ? 0 : st.mode === "intro" ? smooth(st.introT) : 1;
     if (this.shakeT >= 0) this.shakeT += dt;
     this.compute(ctx, blend, dt);

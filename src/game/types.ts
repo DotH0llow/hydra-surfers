@@ -37,6 +37,12 @@ export interface RunState {
   speedOverride: number;
   endReason: string;
   crashCause: string;
+  /** Keys picked up this run (banked to the profile as they are collected). */
+  keys: number;
+  /** Revives used this run. */
+  revives: number;
+  /** Permanent score multiplier bonus from completed mission sets (set by the app before a run). */
+  multiplierBonus: number;
 }
 
 export interface StartRunOptions {

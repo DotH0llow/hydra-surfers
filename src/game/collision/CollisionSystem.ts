@@ -9,6 +9,7 @@
  * The chaser turns a second stumble while he is near into "caught" (see chaser/Chaser.ts).
  */
 import { defineTuning } from "../../core/tuning";
+import { SURFACE } from "../obstacles/SurfaceSystem";
 import { PLAYER_HITBOX } from "../player/PlayerController";
 import { aabbOverlap, makeAabb, type RunContext, type RunSystem } from "../types";
 
@@ -44,6 +45,8 @@ export class CollisionSystem implements RunSystem {
     const mode = st.mode;
     if (mode !== "running" && mode !== "intro") return;
     const p = ctx.player;
+    // jetpack flight and the short grace after landing / reviving pass through everything
+    if (p.flying || p.graceT > 0) return;
     p.getHitbox(pBox);
     const hw = PLAYER_HITBOX.width / 2;
     const hd = PLAYER_HITBOX.depth / 2;
@@ -52,6 +55,8 @@ export class CollisionSystem implements RunSystem {
       const inst = list[i];
       if (inst.s > pBox.maxS + 1 || inst.s + inst.length < pBox.minS - 1) continue;
       inst.type.collider(inst, oBox);
+      // walkable tops (train roofs): feet within step-up height of the top step onto it (SurfaceSystem)
+      if (inst.type.surface && pBox.minY >= oBox.maxY - SURFACE.stepUp) continue;
       oBox.minX += COLLISION.sideLeniency;
       oBox.maxX -= COLLISION.sideLeniency;
       oBox.maxY -= COLLISION.topLeniency;

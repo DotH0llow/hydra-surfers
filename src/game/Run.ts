@@ -13,6 +13,8 @@ import type { Action } from "../input/actions";
 import "./obstacles/builtin";
 import "./powerups/PowerupSystem";
 import "./hoverboard/Hoverboard";
+import "./powerups/PickupSystem";
+import "./powerups/effects";
 import { Atmosphere } from "./world/Atmosphere";
 import { Track } from "./world/Track";
 import { Environment } from "./world/Environment";
@@ -33,6 +35,8 @@ import type { ResolvedRunOptions, RunContext, RunState, RunSystem } from "./type
 export const RUN = defineTuning("run", "Run flow", {
   introSeconds: { default: 0.8, min: 0, max: 5, step: 0.05, label: "Intro (camera swing + speed-up)", unit: "s" },
   crashEndSeconds: { default: 1.1, min: 0, max: 6, step: 0.05, label: "Crash → results delay", unit: "s" },
+  reviveGraceSeconds: { default: 2, min: 0, max: 10, step: 0.1, label: "Revive: no collisions for", unit: "s" },
+  reviveClearAhead: { default: 70, min: 0, max: 300, step: 5, label: "Revive: clear obstacles this far ahead", unit: "m" },
 });
 
 export interface RunResult {
@@ -45,6 +49,8 @@ export interface RunResult {
   reason: string;
   /** Crash cause when reason === "crash" ("caught" = chaser caught the runner; else the obstacle/cheat). */
   cause: string;
+  keys: number;
+  revives: number;
 }
 
 declare module "../core/events" {
@@ -60,6 +66,7 @@ declare module "../core/events" {
     "run:end": RunResult;
     "run:pause": { time: number };
     "run:resume": { time: number };
+    "run:revive": { time: number; revives: number };
   }
 }
 
@@ -95,7 +102,17 @@ export class Run {
     speedOverride: 0,
     endReason: "",
     crashCause: "",
+    keys: 0,
+    revives: 0,
+    multiplierBonus: 0,
   };
+  /**
+   * Asked when a crash sequence finishes; return true to hold the run (paused, still "crashed") for a
+   * revive offer, then call `revive()` or `declineRevive()`. Null/false = straight to results.
+   */
+  reviveOffer: ((state: Readonly<RunState>) => boolean) | null = null;
+  /** True while a crashed run waits for the revive decision. */
+  awaitingRevive = false;
   readonly ctx: RunContext;
   readonly player = new PlayerController();
   readonly camera = new RunCamera();
@@ -244,6 +261,8 @@ export class Run {
       scenario: st.scenario,
       reason,
       cause: st.crashCause,
+      keys: st.keys,
+      revives: st.revives,
     });
   }
 
@@ -274,6 +293,31 @@ export class Run {
     evStumble.caught = caught;
     this.ctx.bus.emit("run:stumble", evStumble);
     if (caught) this.crash("caught");
+  }
+
+  /** Accept the revive offer: clears the crash site and continues the run with a short grace. */
+  revive(): void {
+    const st = this.state;
+    if (!this.awaitingRevive) return;
+    this.awaitingRevive = false;
+    st.paused = false;
+    st.revives++;
+    st.mode = "running";
+    st.modeTime = 0;
+    st.crashCause = "";
+    st.speed = st.speedOverride > 0 ? st.speedOverride : speedAt(st.time);
+    this.obstacles.clearRange(st.distance - 30, st.distance + RUN.reviveClearAhead);
+    this.player.revive(RUN.reviveGraceSeconds);
+    this.chaser.nearT = 0;
+    this.ctx.bus.emit("run:revive", { time: st.time, revives: st.revives });
+  }
+
+  /** Decline (or time out) the revive offer: the run ends normally. */
+  declineRevive(): void {
+    if (!this.awaitingRevive) return;
+    this.awaitingRevive = false;
+    this.state.paused = false;
+    this.end("crash");
   }
 
   /** Queue an input action; applied at the start of the next fixed tick. */
@@ -320,7 +364,14 @@ export class Run {
         break;
       case "crashed":
         st.speed = 0;
-        if (st.modeTime >= RUN.crashEndSeconds) this.end("crash");
+        if (st.modeTime >= RUN.crashEndSeconds) {
+          if (this.reviveOffer?.(st)) {
+            this.awaitingRevive = true;
+            st.paused = true;
+          } else {
+            this.end("crash");
+          }
+        }
         break;
       default:
         st.speed = 0;
@@ -357,6 +408,9 @@ export class Run {
     st.multiplier = 1;
     st.endReason = "";
     st.crashCause = "";
+    st.keys = 0;
+    st.revives = 0;
+    this.awaitingRevive = false;
     this.qLen = 0;
     this.qHead = 0;
     this.ctx.rng.reseed(st.seed);

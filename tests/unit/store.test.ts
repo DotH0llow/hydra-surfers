@@ -39,7 +39,7 @@ describe("profile store + migrations", () => {
     const legacy = { currencies: { coins: 55 }, stats: { bestScore: 900 }, somethingOld: true };
     const p = migrateProfile(legacy);
     expect(p.version).toBe(PROFILE_VERSION);
-    expect(p.currencies).toEqual({ coins: 55, keys: 0 });
+    expect(p.currencies).toEqual({ coins: 55, keys: 0, boards: 3 });
     expect(p.stats.bestScore).toBe(900);
     expect(p.stats.runs).toBe(0);
     expect(p.settings).toEqual(defaultProfile().settings);
@@ -48,7 +48,7 @@ describe("profile store + migrations", () => {
 
   it("replaces wrong-typed fields with defaults", () => {
     const p = migrateProfile({ version: PROFILE_VERSION, currencies: { coins: "lots", keys: 3 }, owned: { characters: "nope" }, ext: [] });
-    expect(p.currencies).toEqual({ coins: 0, keys: 3 });
+    expect(p.currencies).toEqual({ coins: 0, keys: 3, boards: 3 });
     expect(p.owned.characters).toEqual(defaultProfile().owned.characters);
     expect(p.ext).toEqual({});
   });

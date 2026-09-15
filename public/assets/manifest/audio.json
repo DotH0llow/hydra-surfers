@@ -8,6 +8,11 @@
     { "id": "sfx.roll", "type": "audio", "src": "audio/sfx/roll.ogg", "placeholder": "synth-roll", "volume": 0.6, "spec": "Quick tumble/whoosh, < 300 ms, mono." },
     { "id": "sfx.swipe", "type": "audio", "src": "audio/sfx/swipe.ogg", "placeholder": "synth-swipe", "volume": 0.35, "spec": "Light air swish for lane change, < 150 ms, mono." },
     { "id": "sfx.crash", "type": "audio", "src": "audio/sfx/crash.ogg", "placeholder": "synth-crash", "volume": 0.8, "spec": "Impact crash (body into metal), < 600 ms, mono." },
-    { "id": "sfx.ui.tap", "type": "audio", "src": "audio/sfx/ui_tap.ogg", "placeholder": "synth-tap", "volume": 0.5, "spec": "UI button click/pop, < 80 ms, mono." }
+    { "id": "sfx.ui.tap", "type": "audio", "src": "audio/sfx/ui_tap.ogg", "placeholder": "synth-tap", "volume": 0.5, "spec": "UI button click/pop, < 80 ms, mono." },
+    { "id": "sfx.powerup", "type": "audio", "src": "audio/sfx/powerup.ogg", "placeholder": "synth-powerup", "volume": 0.55, "spec": "Power-up pickup: bright rising arpeggio, < 400 ms, mono." },
+    { "id": "sfx.stumble", "type": "audio", "src": "audio/sfx/stumble.ogg", "placeholder": "synth-stumble", "volume": 0.6, "spec": "Side bump / stumble: dull thud with a scrape, < 300 ms, mono." },
+    { "id": "sfx.board", "type": "audio", "src": "audio/sfx/hoverboard.ogg", "placeholder": "synth-board", "volume": 0.5, "spec": "Hoverboard power-on hum sweep, < 500 ms, mono." },
+    { "id": "sfx.mission", "type": "audio", "src": "audio/sfx/mission.ogg", "placeholder": "synth-mission", "volume": 0.55, "spec": "Mission complete: two-note chime, < 500 ms, mono." },
+    { "id": "sfx.key", "type": "audio", "src": "audio/sfx/key.ogg", "placeholder": "synth-key", "volume": 0.55, "spec": "Key pickup sparkle, < 400 ms, mono." }
   ]
 }
