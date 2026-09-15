@@ -1,4 +1,5 @@
 {
+  "passRule": "Close calls count as passes (PLAN.md §9). Compare: ours wins, or loses with margin 'narrow' (timings within ±2 frames at 30 fps or ±15%, sizes/positions within ±10%, no item clearly worse). Engineering: all criteria pass, or the only failures are minor (cosmetic, docs wording, measured value within 10% of target). Max 3 rounds per piece per wave, then park.",
   "lanes": {
     "F": { "name": "Foundation", "port": 5100, "branch": "main" },
     "A": { "name": "Run feel", "port": 5101, "branch": "lane/a-run-feel" },
