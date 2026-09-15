@@ -1,0 +1,11 @@
+{
+  "description": "Lane switch strip: centre to left, then left back to centre (2 s at 30 fps).",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "flat-straight", "skipIntro": true }], ["step", 30, 30]],
+  "timeline": [
+    { "frame": 13, "input": "left", "label": "switch begins" },
+    { "frame": 48, "input": "right", "label": "switch begins" }
+  ],
+  "seconds": 2,
+  "fps": 30
+}

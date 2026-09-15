@@ -36,6 +36,8 @@ export interface GameState {
     grounded: boolean;
     rolling: boolean;
     switching: boolean;
+    /** Additive: runner head centre on screen as a fraction of the viewport (0..1, y down); null without a rig. */
+    head?: { sx: number; sy: number } | null;
   };
   camera: { x: number; y: number; z: number; fov: number; pitch: number };
   chaser: { dist: number; near: boolean };

@@ -7,6 +7,8 @@
  */
 import { Vector3 } from "three";
 import { defineTuning } from "../../core/tuning";
+import { easeHermite, easeHermiteVel, switchTimeScale } from "../player/switchMotion";
+import { laneX } from "../world/coords";
 import type { ResolvedRunOptions, RunContext, RunSystem } from "../types";
 
 export const CAMERA = defineTuning("camera", "Run camera", {
@@ -17,7 +19,7 @@ export const CAMERA = defineTuning("camera", "Run camera", {
   fov: { default: 60, min: 25, max: 100, step: 0.5, label: "Vertical FOV at 9:16", unit: "°" },
   followX: { default: 0.8, min: 0, max: 1, step: 0.01, label: "Lateral follow amount" },
   lookFollowX: { default: 0.65, min: 0, max: 1, step: 0.01, label: "Look-at lateral follow" },
-  followXSharpness: { default: 10, min: 0.5, max: 60, step: 0.5, label: "Lateral follow sharpness", unit: "1/s" },
+  laneFollowSeconds: { default: 0.33, min: 0.02, max: 1.5, step: 0.01, label: "Lateral follow: time to reach a new lane", help: "C1 cubic ease, retargets smoothly; scaled by switchFeel timing", unit: "s" },
   followY: { default: 0.4, min: 0, max: 1, step: 0.01, label: "Vertical follow amount" },
   followYSharpness: { default: 6, min: 0.5, max: 60, step: 0.5, label: "Vertical follow sharpness", unit: "1/s" },
   homeHeight: { default: 2.6, min: 0.2, max: 10, step: 0.05, label: "Home: height", unit: "m" },
@@ -55,6 +57,13 @@ export class RunCamera implements RunSystem {
   private followX = 0;
   private lookX = 0;
   private followYv = 0;
+  /** Lateral follow ease state, in lane-x metres (feel-time units, see switchMotion.ts). */
+  private laneX = 0;
+  private laneV = 0;
+  private laneFrom = 0;
+  private laneV0 = 0;
+  private laneTo = 0;
+  private laneT = 0;
   private shakeT = -1;
   private viewportAspect = DESIGN_ASPECT;
   private appliedFov = -1;
@@ -67,7 +76,10 @@ export class RunCamera implements RunSystem {
   }
 
   reset(ctx: RunContext, opts: ResolvedRunOptions): void {
-    const px = ctx.player.x;
+    const px = laneX(ctx.player.lane);
+    this.laneX = this.laneFrom = this.laneTo = px;
+    this.laneV = this.laneV0 = 0;
+    this.laneT = CAMERA.laneFollowSeconds;
     this.followX = px * CAMERA.followX;
     this.lookX = px * CAMERA.lookFollowX;
     this.followYv = 0;
@@ -99,10 +111,27 @@ export class RunCamera implements RunSystem {
     this.snap();
     const st = ctx.state;
     const p = ctx.player;
-    const kx = 1 - Math.exp(-CAMERA.followXSharpness * dt);
     const ky = 1 - Math.exp(-CAMERA.followYSharpness * dt);
-    this.followX += (p.x * CAMERA.followX - this.followX) * kx;
-    this.lookX += (p.x * CAMERA.lookFollowX - this.lookX) * kx;
+    // lateral: C1 cubic ease toward the target lane's centre, restarted (velocity kept) on every retarget
+    const target = laneX(p.lane);
+    if (target !== this.laneTo) {
+      this.laneFrom = this.laneX;
+      this.laneV0 = this.laneV;
+      this.laneTo = target;
+      this.laneT = 0;
+    }
+    const dur = CAMERA.laneFollowSeconds;
+    if (this.laneT < dur) {
+      this.laneT = Math.min(dur, this.laneT + dt / switchTimeScale(st.speed));
+      const s = this.laneT / dur;
+      this.laneX = easeHermite(this.laneFrom, this.laneV0, this.laneTo, s);
+      this.laneV = easeHermiteVel(this.laneFrom, this.laneV0, this.laneTo, s);
+    } else {
+      this.laneX = this.laneTo;
+      this.laneV = 0;
+    }
+    this.followX = this.laneX * CAMERA.followX;
+    this.lookX = this.laneX * CAMERA.lookFollowX;
     this.followYv += ((p.y - p.groundY) * CAMERA.followY + p.groundY - this.followYv) * ky;
     const blend = st.mode === "idle" ? 0 : st.mode === "intro" ? smooth(st.introT) : 1;
     if (this.shakeT >= 0) this.shakeT += dt;

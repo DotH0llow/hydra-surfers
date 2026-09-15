@@ -1,0 +1,11 @@
+{
+  "description": "Rapid double switch strip: right to centre to left, second input 11 frames after the first (2 s at 30 fps).",
+  "seed": 1,
+  "setup": [["startRun", { "scenario": "flat-straight", "skipIntro": true }], ["input", "right"], ["step", 30, 30]],
+  "timeline": [
+    { "frame": 8, "input": "left", "label": "switch begins" },
+    { "frame": 19, "input": "left", "label": "second switch begins" }
+  ],
+  "seconds": 2,
+  "fps": 30
+}
