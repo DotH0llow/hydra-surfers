@@ -20,7 +20,8 @@ What is in the game:
 - **Power-ups**: jetpack (fly over everything along a sky coin trail), super sneakers (jump onto roofs), coin magnet, 2x score. Keys appear now and then.
 - **Hoverboards** absorb one crash. **Keys** buy a revive after a crash (1, 2, then 4 keys).
 - **Missions**: three at a time; finish a set to raise your permanent score multiplier.
-- **Shop**: hoverboards, keys and power-up duration upgrades.
+- **Shop**: hoverboards, keys, power-up duration upgrades, and unlockable characters and hoverboards (coins or keys).
+- **Music**: a looping in-run track that ducks while paused or crashed, with its own volume setting.
 - **Ranks**: global, weekly and friends boards. Offline mock league by default, real D1 database optional.
 - Installable as a PWA (portrait, standalone). The screen stays awake during a run, and the game pauses when the tab is hidden.
 
@@ -30,7 +31,7 @@ Requires Node 22 (see `.nvmrc`).
 
 ```sh
 npm ci
-npm run dev          # http://localhost:5100 (devtools on: press ` for the cheats panel)
+npm run dev          # http://localhost:5100 (devtools on: press ` for cheats and the live tuning editor)
 npm test             # unit tests (vitest)
 npm run typecheck
 npm run build        # production build in dist/
