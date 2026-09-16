@@ -11,7 +11,7 @@ export type UpgradeId = (typeof UPGRADE_IDS)[number];
 export const MAX_UPGRADE_LEVEL = 5;
 /** Coins for going from level n to n+1. */
 export const UPGRADE_COSTS: readonly number[] = [500, 1200, 2500, 5000, 10000];
-export const BOARD_PRICE = 300;
+export const MOUNT_PRICE = 300;
 export const KEY_PRICE = 2000;
 /** Revives allowed per run; each one costs twice the previous (1, 2, 4 keys). */
 export const MAX_REVIVES = 3;
@@ -58,9 +58,9 @@ export function buyUpgrade(p: Profile, id: UpgradeId): boolean {
   return true;
 }
 
-export function buyBoard(p: Profile): boolean {
-  if (!spend(p, BOARD_PRICE)) return false;
-  p.currencies.boards += 1;
+export function buyMount(p: Profile): boolean {
+  if (!spend(p, MOUNT_PRICE)) return false;
+  p.currencies.mounts += 1;
   return true;
 }
 

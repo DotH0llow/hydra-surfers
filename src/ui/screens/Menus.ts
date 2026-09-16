@@ -1,7 +1,7 @@
 /** Menu screens reached from Home: shop (C5), missions (C4), leaderboard (C6) and settings. */
 import { activeMissions, multiplierBonus } from "../../meta/missions";
 import { buyItem, catalog, equipItem, equippedId, owns, type CatalogKind } from "../../meta/catalog";
-import { BOARD_PRICE, KEY_PRICE, MAX_UPGRADE_LEVEL, UPGRADE_IDS, buyBoard, buyKey, buyUpgrade, readUpgrades, upgradeCost, type UpgradeId } from "../../meta/upgrades";
+import { KEY_PRICE, MAX_UPGRADE_LEVEL, MOUNT_PRICE, UPGRADE_IDS, buyKey, buyMount, buyUpgrade, readUpgrades, upgradeCost, type UpgradeId } from "../../meta/upgrades";
 import type { Board, BoardScope } from "../../online/LeaderboardService";
 import { h, formatInt, setText } from "../dom";
 import { button, chip, progressBar } from "./kit";
@@ -27,8 +27,8 @@ const UPGRADE_LABELS: Record<UpgradeId, string> = {
 registerScreen("shop", (host) => {
   const coins = chip("coin", "COINS");
   const keys = chip("key", "KEYS");
-  const boards = chip("board", "BOARDS");
-  const wallet = h("div", { class: "wallet" }, coins.el, keys.el, boards.el);
+  const mounts = chip("mount", "MONTARIAS");
+  const wallet = h("div", { class: "wallet" }, coins.el, keys.el, mounts.el);
 
   const buy = (id: string, fn: (p: Parameters<Parameters<typeof host.store.update>[0]>[0]) => boolean, row: HTMLElement) => {
     let ok = false;
@@ -47,7 +47,7 @@ registerScreen("shop", (host) => {
     return { row, priceBtn, price };
   };
 
-  const boardItem = item("board", "Hoverboard", "Absorbs one crash. Double-tap to ride.", BOARD_PRICE, buyBoard);
+  const mountItem = item("mount", "Montaria", "Absorve uma queda. Toque duas vezes para montar.", MOUNT_PRICE, buyMount);
   const keyItem = item("key", "Key", "Revive after a crash.", KEY_PRICE, buyKey);
 
   const upgradeRows = UPGRADE_IDS.map((id) => {
@@ -75,11 +75,11 @@ registerScreen("shop", (host) => {
       return { kind, item, row, btn };
     });
   const characterRows = catalogRows("character");
-  const boardRows = catalogRows("board");
+  const mountRows = catalogRows("mount");
 
   const refresh = () => {
     const p = host.store.get();
-    for (const r of [...characterRows, ...boardRows]) {
+    for (const r of [...characterRows, ...mountRows]) {
       const owned = owns(p, r.kind, r.item.id);
       const equipped = owned && equippedId(p, r.kind) === r.item.id;
       const price = r.item.currency === "keys" ? `${formatInt(r.item.price)} keys` : formatInt(r.item.price);
@@ -89,8 +89,8 @@ registerScreen("shop", (host) => {
     }
     setText(coins.value, formatInt(p.currencies.coins));
     setText(keys.value, formatInt(p.currencies.keys));
-    setText(boards.value, formatInt(p.currencies.boards));
-    for (const it of [boardItem, keyItem]) it.priceBtn.disabled = p.currencies.coins < it.price;
+    setText(mounts.value, formatInt(p.currencies.mounts));
+    for (const it of [mountItem, keyItem]) it.priceBtn.disabled = p.currencies.coins < it.price;
     const levels = readUpgrades(p);
     for (const r of upgradeRows) {
       const lvl = levels[r.id];
@@ -106,14 +106,14 @@ registerScreen("shop", (host) => {
     "shop",
     "Shop",
     wallet,
-    boardItem.row,
+    mountItem.row,
     keyItem.row,
     h("h2", { text: "Power-up upgrades" }),
     ...upgradeRows.map((r) => r.row),
     h("h2", { text: "Characters" }),
     ...characterRows.map((r) => r.row),
-    h("h2", { text: "Hoverboards" }),
-    ...boardRows.map((r) => r.row),
+    h("h2", { text: "Montarias" }),
+    ...mountRows.map((r) => r.row),
   );
   return { el, show: refresh, hide() {} };
 });

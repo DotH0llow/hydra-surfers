@@ -30,3 +30,61 @@ export function difficultyAt(time: number): number {
   const u = Math.min(1, Math.max(0, time / DIFFICULTY.rampSeconds));
   return Math.pow(u, DIFFICULTY.exponent);
 }
+
+/**
+ * Distance a run covers in `time` seconds on the nominal speed curve — the closed-form integral of
+ * `speedAt`, so it is exact and cheap enough for the hot path (no stepping).
+ *
+ * Three pieces: the flat hold, the ramp (∫ u^k du = u^(k+1)/(k+1)), and top speed afterwards.
+ */
+export function distanceAtTime(time: number): number {
+  const t = Math.max(0, time);
+  const flat = Math.max(0, SPEED.flatSeconds);
+  if (t <= flat) return SPEED.start * t;
+  const span = Math.max(1e-6, SPEED.rampSeconds - flat);
+  const gain = SPEED.max - SPEED.start;
+  const k = SPEED.rampExponent;
+  const ramp = Math.min(t - flat, span);
+  const u = ramp / span;
+  let d = SPEED.start * (flat + ramp) + (gain * span * Math.pow(u, k + 1)) / (k + 1);
+  if (t > SPEED.rampSeconds) d += SPEED.max * (t - SPEED.rampSeconds);
+  return d;
+}
+
+/**
+ * Inverse of `distanceAtTime`: the run time at which a nominal run reaches `distance`.
+ *
+ * The spawner uses this to place content as a pure function of DISTANCE rather than of the
+ * player's clock. Two players on the same seed must meet the same layout even when one of them is
+ * running slightly faster (heavy armour) or slower (hourglass), otherwise "same seed for everyone"
+ * would quietly be false and ghosts would desync.
+ *
+ * The ramp segment is solved with Newton iterations; the curve is smooth and monotone, so a
+ * handful of steps converge far below millimetre precision.
+ */
+export function timeAtDistance(distance: number): number {
+  const d = Math.max(0, distance);
+  const flat = Math.max(0, SPEED.flatSeconds);
+  const flatDistance = SPEED.start * flat;
+  if (d <= flatDistance) return SPEED.start > 0 ? d / SPEED.start : 0;
+  const span = Math.max(1e-6, SPEED.rampSeconds - flat);
+  const gain = SPEED.max - SPEED.start;
+  const k = SPEED.rampExponent;
+  const rampDistance = SPEED.start * span + (gain * span) / (k + 1);
+  const rest = d - flatDistance;
+  if (rest >= rampDistance) return SPEED.rampSeconds + (d - flatDistance - rampDistance) / Math.max(1e-6, SPEED.max);
+  // solve  start*T + gain*span/(k+1) * (T/span)^(k+1) = rest   for T in [0, span]
+  let T = span * (rest / Math.max(1e-6, rampDistance));
+  for (let i = 0; i < 24; i++) {
+    const u = T / span;
+    const f = SPEED.start * T + ((gain * span) / (k + 1)) * Math.pow(u, k + 1) - rest;
+    const df = SPEED.start + gain * Math.pow(u, k);
+    if (df <= 0) break;
+    const step = f / df;
+    T -= step;
+    if (T < 0) T = 0;
+    else if (T > span) T = span;
+    if (Math.abs(step) < 1e-9) break;
+  }
+  return flat + T;
+}

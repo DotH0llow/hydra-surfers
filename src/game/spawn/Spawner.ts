@@ -1,12 +1,19 @@
 /** Seeded chunk/pattern generator: keeps content generated `ahead` metres beyond the runner. */
 import { defineTuning } from "../../core/tuning";
-import type { Rng } from "../../core/rng";
+import { Rng, hash32 } from "../../core/rng";
 import { COINS } from "../collectibles/CoinSystem";
 import type { ObstacleInstance } from "../obstacles/ObstacleSystem";
 import { PICKUPS, choosePickup, type PickupKind, type PickupSystem } from "../powerups/PickupSystem";
 import type { ResolvedRunOptions, RunContext, RunSystem } from "../types";
-import { SPEED, difficultyAt, speedAt } from "./difficulty";
+import { SPEED, difficultyAt, speedAt, timeAtDistance } from "./difficulty";
 import { listPatterns, type SpawnApi } from "./patterns";
+
+/**
+ * Salt for the spawner's private RNG stream. The track must be a pure function of the seed, so it
+ * cannot share `ctx.rng` with gameplay: a jetpack trail or a bow roll draws from that stream, and
+ * the layout after it would differ between two players on the same daily seed.
+ */
+const SPAWN_STREAM_SALT = 0x5ea9d;
 
 export const SPAWN = defineTuning("spawn", "Spawner", {
   ahead: { default: 210, min: 40, max: 600, step: 5, label: "Generate ahead", unit: "m" },
@@ -20,7 +27,8 @@ export const SPAWN = defineTuning("spawn", "Spawner", {
 export class Spawner implements RunSystem, SpawnApi {
   readonly id = "spawner";
   readonly order = 30;
-  rng!: Rng;
+  /** Private stream (see SPAWN_STREAM_SALT): patterns draw from this, never from ctx.rng. */
+  readonly rng = new Rng(1);
   difficulty = 0;
   speed = 0;
   private nextS = 0;
@@ -30,10 +38,10 @@ export class Spawner implements RunSystem, SpawnApi {
 
   init(ctx: RunContext): void {
     this.ctx = ctx;
-    this.rng = ctx.rng;
   }
 
   reset(ctx: RunContext, opts: ResolvedRunOptions): void {
+    this.rng.reseed(hash32(opts.seed ^ SPAWN_STREAM_SALT));
     this.difficulty = 0;
     this.speed = speedAt(0);
     const sc = opts.scenario;
@@ -50,12 +58,16 @@ export class Spawner implements RunSystem, SpawnApi {
   fixedUpdate(ctx: RunContext): void {
     const st = ctx.state;
     if (!this.procedural || (st.mode !== "running" && st.mode !== "intro")) return;
-    this.difficulty = difficultyAt(st.time);
-    this.speed = Math.max(st.speed, SPEED.start);
     const pats = listPatterns();
     if (this.weights.length < pats.length) this.weights = new Float64Array(pats.length * 2);
     let guard = 0;
     while (this.nextS < st.distance + SPAWN.ahead && guard++ < 8) {
+      // Difficulty and speed are read at the PLACEMENT distance on the nominal curve, so the whole
+      // layout is a pure function of (seed, distance) — independent of how fast this particular
+      // player is actually travelling (see timeAtDistance).
+      const nominalTime = timeAtDistance(this.nextS);
+      this.difficulty = difficultyAt(nominalTime);
+      this.speed = Math.max(speedAt(nominalTime), SPEED.start);
       for (let i = 0; i < pats.length; i++) {
         const p = pats[i];
         this.weights[i] = this.difficulty >= p.minDifficulty ? p.weight() : 0;

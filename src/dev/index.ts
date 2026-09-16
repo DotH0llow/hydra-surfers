@@ -11,7 +11,7 @@
 import type { App } from "../App";
 import { listCheats, listUnlockSources, registerCheat, runCheat, type CheatDef } from "../core/cheats";
 import { tuning, type TuningEntry } from "../core/tuning";
-import { BOARDS, CHARACTERS } from "../meta/catalog";
+import { CHARACTERS, MOUNTS } from "../meta/catalog";
 import { distanceAtTime, timeForDistance } from "./devMath";
 import { LongPressDetector, MultiFingerTap } from "./triggers";
 
@@ -416,15 +416,15 @@ export function installDevtools(app: App): DevtoolsHandle {
   });
   registerCheat({
     name: "unlockAll",
-    label: "Unlock all characters and boards",
+    label: "Unlock all characters and mounts",
     group: "Profile",
     run: () => {
       app.store.update((p) => {
         for (const c of CHARACTERS) if (!p.owned.characters.includes(c.id)) p.owned.characters.push(c.id);
-        for (const b of BOARDS) if (!p.owned.boards.includes(b.id)) p.owned.boards.push(b.id);
+        for (const m of MOUNTS) if (!p.owned.mounts.includes(m.id)) p.owned.mounts.push(m.id);
         for (const [, source] of listUnlockSources()) source(p);
       });
-      return CHARACTERS.length + BOARDS.length;
+      return CHARACTERS.length + MOUNTS.length;
     },
   });
 

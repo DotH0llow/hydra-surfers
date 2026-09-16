@@ -5,6 +5,7 @@
 import type { PerspectiveCamera, Scene } from "three";
 import type { EventBus } from "../core/events";
 import type { Rng } from "../core/rng";
+import type { RunRules } from "./rules";
 import type { AssetLibrary } from "../assets/AssetLibrary";
 import type { PlayerController } from "./player/PlayerController";
 import type { ObstacleSystem } from "./obstacles/ObstacleSystem";
@@ -55,6 +56,8 @@ export interface ResolvedRunOptions {
   scenario: Scenario;
   seed: number;
   skipIntro: boolean;
+  /** Modifiers for this run (mode mutators + equipped build). Defaults to neutral rules. */
+  rules?: RunRules;
 }
 
 export interface RunContext {
@@ -64,6 +67,11 @@ export interface RunContext {
   readonly camera3: PerspectiveCamera;
   /** Gameplay RNG (reseeded per run). Visual-only randomness must hash the seed instead. */
   readonly rng: Rng;
+  /**
+   * This run's modifiers (see game/rules.ts). Replaced by Run at the start of every run and
+   * treated as read-only by systems, so a run stays reproducible from seed + rules + inputs.
+   */
+  rules: RunRules;
   readonly state: RunState;
   readonly player: PlayerController;
   readonly obstacles: ObstacleSystem;

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { defaultProfile } from "../../src/core/store";
 import {
-  BOARD_PRICE,
   MAX_UPGRADE_LEVEL,
+  MOUNT_PRICE,
   UPGRADE_COSTS,
-  buyBoard,
   buyKey,
+  buyMount,
   buyUpgrade,
   readUpgrades,
   reviveCost,
@@ -36,13 +36,13 @@ describe("meta/upgrades", () => {
     expect(readUpgrades(p)).toEqual({ jetpack: 0, sneakers: 2, magnet: MAX_UPGRADE_LEVEL, multiplier: 0 });
   });
 
-  it("sells boards and keys, and doubles the revive cost each time", () => {
+  it("sells mounts and keys, and doubles the revive cost each time", () => {
     const p = defaultProfile();
-    const boards = p.currencies.boards;
-    expect(buyBoard(p)).toBe(false);
-    p.currencies.coins = BOARD_PRICE;
-    expect(buyBoard(p)).toBe(true);
-    expect(p.currencies.boards).toBe(boards + 1);
+    const mounts = p.currencies.mounts;
+    expect(buyMount(p)).toBe(false);
+    p.currencies.coins = MOUNT_PRICE;
+    expect(buyMount(p)).toBe(true);
+    expect(p.currencies.mounts).toBe(mounts + 1);
     expect(buyKey(p)).toBe(false);
     expect([0, 1, 2].map(reviveCost)).toEqual([1, 2, 4]);
   });

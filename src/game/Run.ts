@@ -8,6 +8,7 @@ import type { PerspectiveCamera, Scene } from "three";
 import type { EventBus } from "../core/events";
 import { Rng } from "../core/rng";
 import { defineTuning } from "../core/tuning";
+import { defaultRules } from "./rules";
 import type { AssetLibrary } from "../assets/AssetLibrary";
 import type { Action } from "../input/actions";
 import "./obstacles/builtin";
@@ -136,6 +137,7 @@ export class Run {
       scene: deps.scene,
       camera3: deps.camera3,
       rng,
+      rules: defaultRules(),
       state: this.state,
       player: this.player,
       obstacles: this.obstacles,
@@ -211,6 +213,7 @@ export class Run {
   goIdle(seed = this.state.seed): void {
     const st = this.state;
     this.resetState(seed, DEFAULT_SCENARIO);
+    this.ctx.rules = defaultRules();
     st.mode = "idle";
     const opts: ResolvedRunOptions = { scenario: getScenario("flat-straight") ?? getScenario(DEFAULT_SCENARIO)!, seed, skipIntro: true };
     this.resetSystems(opts);
@@ -219,11 +222,12 @@ export class Run {
 
   start(opts: ResolvedRunOptions): void {
     this.resetState(opts.seed, opts.scenario.id);
+    this.ctx.rules = opts.rules ?? defaultRules();
     const st = this.state;
     this.skipIntro = opts.skipIntro || RUN.introSeconds <= 0;
     st.mode = this.skipIntro ? "running" : "intro";
     st.introT = this.skipIntro ? 1 : 0;
-    st.speed = this.skipIntro ? speedAt(0) : SPEED.start * SPEED.introStartFactor;
+    st.speed = this.skipIntro ? speedAt(0) * this.ctx.rules.speedMul : SPEED.start * SPEED.introStartFactor * this.ctx.rules.speedMul;
     this.resetSystems(opts);
     this.ctx.bus.emit("run:start", { seed: opts.seed, scenario: opts.scenario.id, skipIntro: this.skipIntro });
   }
@@ -304,7 +308,7 @@ export class Run {
     if (st.mode !== "running" && st.mode !== "intro") return;
     st.time = Math.max(0, time);
     st.distance = st.prevDistance = Math.max(0, distance);
-    st.speed = st.speedOverride > 0 ? st.speedOverride : speedAt(st.time);
+    st.speed = this.nominalSpeed();
     this.obstacles.clear();
     this.coins.clear();
     this.spawner.restartAt(st.distance + gap);
@@ -320,7 +324,7 @@ export class Run {
     st.mode = "running";
     st.modeTime = 0;
     st.crashCause = "";
-    st.speed = st.speedOverride > 0 ? st.speedOverride : speedAt(st.time);
+    st.speed = this.nominalSpeed();
     this.obstacles.clearRange(st.distance - 30, st.distance + RUN.reviveClearAhead);
     this.player.revive(RUN.reviveGraceSeconds);
     this.chaser.nearT = 0;
@@ -362,7 +366,7 @@ export class Run {
       case "intro": {
         st.time += dt;
         st.introT = Math.min(1, st.modeTime / RUN.introSeconds);
-        const target = st.speedOverride > 0 ? st.speedOverride : speedAt(st.time);
+        const target = this.nominalSpeed();
         const k = st.introT * st.introT * (3 - 2 * st.introT);
         st.speed = target * (SPEED.introStartFactor + (1 - SPEED.introStartFactor) * k);
         if (st.introT >= 1) {
@@ -373,10 +377,17 @@ export class Run {
         }
         break;
       }
-      case "running":
+      case "running": {
         st.time += dt;
-        st.speed = st.speedOverride > 0 ? st.speedOverride : speedAt(st.time);
+        st.speed = this.nominalSpeed();
+        // timed challenges ("corrida curta") end the run on the clock, not on a crash
+        const limit = this.ctx.rules.timeLimitSeconds;
+        if (limit > 0 && st.time >= limit) {
+          this.end("time");
+          return;
+        }
         break;
+      }
       case "crashed":
         st.speed = 0;
         if (st.modeTime >= RUN.crashEndSeconds) {
@@ -405,6 +416,16 @@ export class Run {
     this.ctx.renderDistance = st.prevDistance + (st.distance - st.prevDistance) * a;
     const systems = this.systems;
     for (let i = 0; i < systems.length; i++) systems[i].render?.(this.ctx, a, st.paused ? 0 : frameDt);
+  }
+
+  /**
+   * Forward speed for the current run time: the tuned curve scaled by this run's `speedMul`
+   * (the cheat override still wins). The spawner deliberately does NOT use this — it reads the
+   * unscaled curve so the layout stays identical for everyone on the same seed.
+   */
+  private nominalSpeed(): number {
+    const st = this.state;
+    return st.speedOverride > 0 ? st.speedOverride : speedAt(st.time) * this.ctx.rules.speedMul;
   }
 
   private resetState(seed: number, scenario: string): void {

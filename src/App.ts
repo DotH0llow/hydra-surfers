@@ -206,7 +206,7 @@ export class App implements ScreenHost, DebugHost {
     this.run.state.multiplierBonus = multiplierBonus(profile);
     this.run.start({ scenario, seed: seed >>> 0, skipIntro: !!opts.skipIntro });
     const hb = this.hoverboard;
-    if (hb) hb.charges = profile.currencies.boards;
+    if (hb) hb.charges = profile.currencies.mounts;
     this.runStats = emptyRunStats();
     this.runStats.runs = 1;
     this.missions = activeMissions(profile);
@@ -316,7 +316,7 @@ export class App implements ScreenHost, DebugHost {
     bus.on("player:laneChange", () => this.bumpStat("laneChanges"));
     bus.on("hoverboard:start", () => {
       this.bumpStat("hoverboards");
-      this.store.update((p) => (p.currencies.boards = Math.max(0, p.currencies.boards - 1)));
+      this.store.update((p) => (p.currencies.mounts = Math.max(0, p.currencies.mounts - 1)));
     });
     bus.on("pickup:collect", ({ kind }) => {
       if (kind === "key") {
@@ -356,7 +356,7 @@ export class App implements ScreenHost, DebugHost {
   private applyProfile(p: Readonly<Profile>): void {
     syncUpgrades(p);
     this.run.ctx.getSystem<PlayerAnimator>("playerView")?.setModel(equippedId(p, "character"));
-    this.run.ctx.getSystem<HoverboardView>("hoverboardView")?.setBoard(equippedId(p, "board"));
+    this.run.ctx.getSystem<HoverboardView>("hoverboardView")?.setBoard(equippedId(p, "mount"));
     const reduced = !!p.settings.reducedMotion;
     document.documentElement.classList.toggle("reduced-motion", reduced);
     const shake = "camera.shakeAmplitude";
@@ -477,10 +477,10 @@ export class App implements ScreenHost, DebugHost {
       group: "Profile",
       args: [{ name: "amount", kind: "number", default: 5 }],
       run: (n) => {
-        this.store.update((p) => (p.currencies.boards += Math.floor(Number(n) || 0)));
+        this.store.update((p) => (p.currencies.mounts += Math.floor(Number(n) || 0)));
         const hb = this.hoverboard;
-        if (hb && this.run.active) hb.charges = this.store.get().currencies.boards;
-        return this.store.get().currencies.boards;
+        if (hb && this.run.active) hb.charges = this.store.get().currencies.mounts;
+        return this.store.get().currencies.mounts;
       },
     });
     registerCheat({
