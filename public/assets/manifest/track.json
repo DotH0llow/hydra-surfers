@@ -1,106 +1,72 @@
 {
   "part": "track",
-  "description": "Track, environment, obstacles and collectibles. Owned by lane B (world pieces by lane A).",
+  "description": "Road, obstacles and collectibles.",
   "assets": [
     {
-      "id": "tex.track.ballast",
+      "id": "tex.road.cobble",
       "type": "texture",
-      "src": "textures/track/ballast.png",
-      "placeholder": "gravel",
-      "color": "#8a8174",
-      "repeat": [1, 4],
+      "src": "textures/world/cobble.png",
+      "placeholder": "cobble",
+      "color": "#9a8b73",
+      "repeat": [
+        1,
+        4
+      ],
       "srgb": true,
-      "spec": "Tileable crushed-stone ballast under one lane of track. 512x512 PNG/JPG, seamless both axes, viewed from a low grazing angle; tile covers 2.5 m x 2.5 m."
+      "spec": "Tileable cobbled road surface. 512x512 PNG/JPG, seamless both axes, viewed at a grazing angle; one tile covers 2.5 m x 2.5 m."
     },
     {
-      "id": "tex.ground.yard",
+      "id": "tex.ground.field",
       "type": "texture",
-      "src": "textures/track/yard_ground.png",
-      "placeholder": "dirt",
+      "src": "textures/world/field.png",
+      "placeholder": "field",
       "color": "#6f7a5a",
-      "repeat": [12, 40],
+      "repeat": [
+        12,
+        40
+      ],
       "srgb": true,
-      "spec": "Tileable packed-earth / weedy concrete ground beside the tracks. 512x512, seamless, tile covers ~5 m."
+      "spec": "Tileable grass and packed earth beside the road. 512x512, seamless, one tile covers about 5 m."
     },
     {
-      "id": "env.track.rail",
+      "id": "env.road.rut",
       "type": "gltf",
-      "src": "models/track/rail.glb",
-      "placeholder": "rail",
-      "color": "#b9bec6",
+      "src": "models/world/rut.glb",
+      "placeholder": "road-rut",
+      "color": "#5a5347",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "One steel rail, 1 m long along -Z (tiled by the engine), 0.07 m wide, 0.12 m tall, origin at bottom centre. <= 100 tris."
+      "spec": "One cart rut: a shallow groove 1 m long along -Z (tiled by the engine), 0.26 m wide, 0.04 m proud of the road. Origin at the bottom centre. <= 60 tris."
     },
     {
-      "id": "env.track.sleeper",
+      "id": "env.road.stone",
       "type": "gltf",
-      "src": "models/track/sleeper.glb",
-      "placeholder": "sleeper",
-      "color": "#5b4636",
+      "src": "models/world/kerb.glb",
+      "placeholder": "road-stone",
+      "color": "#8d8579",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "One timber/concrete sleeper (tie) across a lane: 2.3 m wide (X), 0.24 m deep (Z), 0.12 m tall, origin at bottom centre. <= 60 tris, instanced."
+      "spec": "One kerb stone along the verge: 0.45 m wide, 1.1 m along Z, 0.22 m tall, origin at the bottom centre. <= 60 tris, instanced."
     },
     {
-      "id": "env.building.block",
+      "id": "obstacle.barricade",
       "type": "gltf",
-      "src": "models/env/yard_block.glb",
-      "placeholder": "building-block",
-      "color": "#9aa5b1",
-      "maps": { "map": "tex.env.wall" },
+      "src": "models/obstacles/barricade.glb",
+      "placeholder": "barricade",
+      "color": "#a97c46",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Generic yard building/warehouse block, authored as a 1x1x1 m unit cube (scaled per instance), origin at bottom centre. <= 200 tris, uses tex.env.wall."
+      "spec": "Barricade across one lane: crates and barrels on a trestle, 2.2 m wide, load from 0.55 m to 1.05 m with an open gap beneath it, 0.3 m deep. Must read as jump-it-or-roll-through. Origin bottom centre. <= 900 tris."
     },
     {
-      "id": "tex.env.wall",
-      "type": "texture",
-      "src": "textures/env/wall.png",
-      "placeholder": "wall-panels",
-      "color": "#9aa5b1",
-      "srgb": true,
-      "spec": "Tileable corrugated/brick wall panels. 512x512, seamless horizontally."
-    },
-    {
-      "id": "obstacle.barrier.low",
+      "id": "obstacle.wagon",
       "type": "gltf",
-      "src": "models/obstacles/barrier_low.glb",
-      "placeholder": "barrier-low",
-      "color": "#f2f2f2",
-      "maps": { "map": "tex.barrier.stripes" },
+      "src": "models/obstacles/wagon.glb",
+      "placeholder": "wagon",
+      "color": "#8a5a30",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Low striped track barrier spanning one lane: 2.2 m wide, plank from 0.55 m to 1.05 m above ground, posts at both ends, 0.3 m deep. Must read as 'jump over or roll under'. Origin bottom centre. <= 800 tris."
-    },
-    {
-      "id": "tex.barrier.stripes",
-      "type": "texture",
-      "src": "textures/obstacles/barrier_stripes.png",
-      "placeholder": "hazard-stripes",
-      "color": "#e5484d",
-      "srgb": true,
-      "spec": "Diagonal hazard stripes (two high-contrast colours), 256x64, tileable horizontally."
-    },
-    {
-      "id": "obstacle.train.car",
-      "type": "gltf",
-      "src": "models/obstacles/train_car.glb",
-      "placeholder": "train-car",
-      "color": "#2d6cdf",
-      "maps": { "map": "tex.train.side" },
-      "pivot": "bottom-center",
-      "forward": "-z",
-      "spec": "One freight/commuter car occupying a full lane: 2.3 m wide, 3.6 m tall, 13 m long along Z, origin at bottom centre of its footprint, cab/windscreen end faces +Z (toward the approaching runner and camera; oncoming trains drive toward +Z). <= 3k tris, 1 material, 1024x512 texture."
-    },
-    {
-      "id": "tex.train.side",
-      "type": "texture",
-      "src": "textures/obstacles/train_side.png",
-      "placeholder": "train-side",
-      "color": "#2d6cdf",
-      "srgb": true,
-      "spec": "Side livery of a train car with windows/doors. 1024x512, wraps once around the car."
+      "spec": "Parked cargo wagon filling a lane: 2.3 m wide, 3.6 m to the plank roof (walkable), 13 m long along Z, origin at the bottom centre of its footprint. <= 3k tris, 1 material."
     },
     {
       "id": "collect.coin",
@@ -113,145 +79,204 @@
       "spec": "Collectible coin, 0.7 m diameter disc facing -Z, 0.08 m thick, origin at centre. <= 300 tris, rendered instanced (single mesh, single material)."
     },
     {
-      "id": "obstacle.barrier.high",
+      "id": "obstacle.beam",
       "type": "gltf",
-      "src": "models/obstacles/barrier_high.glb",
-      "placeholder": "barrier-high",
-      "color": "#ffc83d",
-      "maps": { "map": "tex.barrier.stripes" },
+      "src": "models/obstacles/beam.glb",
+      "placeholder": "beam",
+      "color": "#9a6b3c",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Tall barrier board on two posts spanning one lane: 2.3 m wide, board from 0.95 m to 3.25 m with an open gap underneath (roll under it; it cannot be jumped), 0.3 m deep. Origin bottom centre. <= 800 tris."
+      "spec": "Trunk slung from a gallows frame over one lane: 2.3 m wide, trunk from 0.95 m to 3.25 m with open space underneath (roll under it; it cannot be jumped), 0.3 m deep. Origin bottom centre. <= 800 tris."
     },
     {
-      "id": "obstacle.train.oncoming",
+      "id": "obstacle.cart.runaway",
       "type": "gltf",
-      "src": "models/obstacles/train_oncoming.glb",
-      "placeholder": "train-oncoming",
-      "color": "#d94a3d",
-      "maps": { "map": "tex.train.side" },
+      "src": "models/obstacles/cart_runaway.glb",
+      "placeholder": "cart-runaway",
+      "color": "#7a3f34",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Commuter car driving toward the runner. Same footprint as obstacle.train.car (2.3 m wide, 3.6 m tall, 13 m long along Z, origin bottom centre). Put the windscreen and lit headlights in a child node named \"cabFront\" on the +Z end; the engine hides that node on trailing cars. <= 3k tris."
+      "spec": "Horse cart bolting toward the runner. Same footprint as obstacle.wagon (2.3 m wide, 3.6 m tall, 13 m along Z, origin bottom centre). Put the horses and shafts in a child node named \"harness\" at the +Z end; the engine hides that node on trailing carts. <= 3k tris."
     },
     {
-      "id": "obstacle.train.ramp",
+      "id": "obstacle.ramp",
       "type": "gltf",
       "src": "models/obstacles/ramp.glb",
       "placeholder": "ramp",
-      "color": "#a0764b",
+      "color": "#b08a4a",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Ramp up to a train roof: 2.2 m wide, 6.5 m long along Z, walking surface rising from 0 m at the +Z end to 3.6 m at the -Z end. Origin bottom centre of the footprint. <= 600 tris."
+      "spec": "Hay and plank ramp up to a wagon roof: 2.2 m wide, 6.5 m long along Z, walking surface rising from 0 m at the +Z end to 3.6 m at the -Z end. Origin bottom centre of the footprint. <= 600 tris."
     },
     {
-      "id": "struct.tunnel",
+      "id": "struct.gate",
       "type": "gltf",
-      "src": "models/track/tunnel.glb",
-      "placeholder": "tunnel",
-      "color": "#6d737d",
+      "src": "models/world/gatehouse.glb",
+      "placeholder": "gate",
+      "color": "#8d8a80",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Tunnel section over all three lanes: 30 m long along Z (scaled for other lengths), inner width 10 m, inner height 6 m above the ground plane (ground at y = -0.45), portal facade on the +Z end. Origin on the track centre line. <= 2k tris."
+      "spec": "Stone gatehouse passage over all three lanes: 30 m long along Z (scaled for other lengths), inner width 10 m, inner height 6 m above the ground plane (ground at y = -0.45), portal facade on the +Z end. Origin on the road centre line. <= 2k tris."
     },
     {
-      "id": "struct.signal",
+      "id": "struct.lantern",
       "type": "gltf",
-      "src": "models/track/signal.glb",
-      "placeholder": "signal",
+      "src": "models/world/lantern.glb",
+      "placeholder": "lantern",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Trackside light signal: 4.2 m post with a lamp head facing +Z. Child nodes \"lampRed\" and \"lampGreen\" (the engine shows one). Origin at the post foot. <= 400 tris."
+      "spec": "Roadside lantern post: 4 m post with a lantern housing facing +Z. Child nodes \"lampWarn\" (red) and \"lampCalm\" (amber); the engine shows one. Origin at the post foot. <= 400 tris.",
+      "color": "#3b352e"
     },
     {
-      "id": "pickup.jetpack",
+      "id": "pickup.griffin",
       "type": "gltf",
-      "src": "models/pickups/jetpack.glb",
-      "placeholder": "pickup-jetpack",
-      "color": "#9aa5b1",
+      "src": "models/pickups/griffin_wings.glb",
+      "placeholder": "pickup-griffin",
+      "color": "#e8dcc0",
       "pivot": "center",
       "forward": "-z",
-      "spec": "Jetpack power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
+      "spec": "Griffin wings: the flight power-up. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
     },
     {
-      "id": "pickup.sneakers",
+      "id": "pickup.boots",
       "type": "gltf",
-      "src": "models/pickups/sneakers.glb",
-      "placeholder": "pickup-sneakers",
-      "color": "#57e389",
+      "src": "models/pickups/boots.glb",
+      "placeholder": "pickup-boots",
+      "color": "#7a4a2a",
       "pivot": "center",
       "forward": "-z",
-      "spec": "Super sneakers power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
+      "spec": "Giant boots: the high-jump power-up. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
     },
     {
-      "id": "pickup.magnet",
+      "id": "pickup.amulet",
       "type": "gltf",
-      "src": "models/pickups/magnet.glb",
-      "placeholder": "pickup-magnet",
+      "src": "models/pickups/amulet.glb",
+      "placeholder": "pickup-amulet",
       "color": "#e5484d",
       "pivot": "center",
       "forward": "-z",
-      "spec": "Coin magnet power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
+      "spec": "Magnetic amulet: pulls coins in. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
     },
     {
-      "id": "pickup.multiplier",
+      "id": "pickup.blessing",
       "type": "gltf",
-      "src": "models/pickups/multiplier.glb",
-      "placeholder": "pickup-multiplier",
-      "color": "#b57bff",
+      "src": "models/pickups/crown.glb",
+      "placeholder": "pickup-blessing",
+      "color": "#e8c25a",
       "pivot": "center",
       "forward": "-z",
-      "spec": "2x score multiplier pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
+      "spec": "Royal blessing: a crown that doubles score. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
     },
     {
       "id": "pickup.key",
       "type": "gltf",
       "src": "models/pickups/key.glb",
       "placeholder": "pickup-key",
-      "color": "#2fc4b2",
+      "color": "#d8c07a",
       "pivot": "center",
       "forward": "-z",
-      "spec": "Key pickup (revive currency), fits a 1 m sphere, origin at centre, spins about Y. <= 600 tris."
+      "spec": "Iron key: buys a second chance after a fall. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
     },
     {
-      "id": "gear.hoverboard",
+      "id": "mount.shield",
       "type": "gltf",
-      "src": "models/pickups/hoverboard.glb",
-      "placeholder": "hoverboard",
-      "color": "#2fc4b2",
+      "src": "models/mounts/shield.glb",
+      "placeholder": "mount-shield",
+      "color": "#6b7a8f",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Hoverboard ridden under the runner's feet: 0.6 m wide, 1.5 m long along Z, 0.08 m thick, origin bottom centre. <= 1k tris."
+      "spec": "Runic shield ridden under the feet: 0.85 m across, 0.12 m thick, origin at the bottom centre. <= 1k tris."
     },
     {
-      "id": "gear.hoverboard.flame",
+      "id": "mount.barrel",
       "type": "gltf",
-      "src": "models/pickups/hoverboard_flame.glb",
-      "placeholder": "hoverboard",
-      "color": "#ff7a1a",
+      "src": "models/mounts/barrel.glb",
+      "placeholder": "mount-barrel",
+      "color": "#8a5a30",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Shop hoverboard \"Flame\": same size and pivot as gear.hoverboard. <= 1k tris."
+      "spec": "Barrel on its side, ridden like a log: 1.3 m long, 0.64 m across, origin at the bottom centre. <= 1k tris."
     },
     {
-      "id": "gear.hoverboard.frost",
+      "id": "mount.carpet",
       "type": "gltf",
-      "src": "models/pickups/hoverboard_frost.glb",
-      "placeholder": "hoverboard",
+      "src": "models/mounts/carpet.glb",
+      "placeholder": "mount-carpet",
+      "color": "#8a3a5a",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Woven flying carpet: 1.6 m long, 0.72 m wide, origin at the bottom centre. <= 1k tris."
+    },
+    {
+      "id": "mount.minecart",
+      "type": "gltf",
+      "src": "models/mounts/minecart.glb",
+      "placeholder": "mount-minecart",
+      "color": "#6b5236",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Small mine cart: 1.3 m long, 0.7 m wide, 0.5 m tall, origin at the bottom centre. <= 1.2k tris."
+    },
+    {
+      "id": "pickup.aegis",
+      "type": "gltf",
+      "src": "models/pickups/aegis.glb",
+      "placeholder": "pickup-aegis",
       "color": "#7fd1ff",
-      "pivot": "bottom-center",
+      "pivot": "center",
       "forward": "-z",
-      "spec": "Shop hoverboard \"Frost\": same size and pivot as gear.hoverboard. <= 1k tris."
+      "spec": "Aegis: a warding shield that swallows the next collision. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
     },
     {
-      "id": "gear.hoverboard.royal",
+      "id": "pickup.hourglass",
       "type": "gltf",
-      "src": "models/pickups/hoverboard_royal.glb",
-      "placeholder": "hoverboard",
-      "color": "#b57bff",
+      "src": "models/pickups/hourglass.glb",
+      "placeholder": "pickup-hourglass",
+      "color": "#c9a227",
+      "pivot": "center",
+      "forward": "-z",
+      "spec": "Hourglass: slows the road without slowing the score. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris."
+    },
+    {
+      "id": "mount.wolf",
+      "type": "gltf",
+      "src": "models/mounts/wolf.glb",
+      "placeholder": "mount-wolf",
+      "color": "#5a5f66",
       "pivot": "bottom-center",
       "forward": "-z",
-      "spec": "Shop hoverboard \"Royal\" (key purchase): same size and pivot as gear.hoverboard. <= 1k tris."
+      "spec": "Wolf mount, ridden low: about 1.5 m long, 0.6 m wide, 0.8 m tall, origin at the ground between its feet. <= 1.5k tris."
+    },
+    {
+      "id": "mount.boar",
+      "type": "gltf",
+      "src": "models/mounts/boar.glb",
+      "placeholder": "mount-boar",
+      "color": "#4a3a2f",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Boar mount: same footprint as mount.wolf, tusked and heavier. <= 1.5k tris."
+    },
+    {
+      "id": "mount.ghosthorse",
+      "type": "gltf",
+      "src": "models/mounts/ghost_horse.glb",
+      "placeholder": "mount-ghosthorse",
+      "color": "#9fd8ff",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Spectral horse: same footprint as mount.wolf, translucent and self-lit. <= 1.5k tris."
+    },
+    {
+      "id": "mount.dragonling",
+      "type": "gltf",
+      "src": "models/mounts/dragonling.glb",
+      "placeholder": "mount-dragonling",
+      "color": "#3f7a4a",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Very small dragon: same footprint as mount.wolf, with folded wings. <= 1.8k tris."
     }
   ]
 }

@@ -167,14 +167,24 @@ export class PlayerController implements RunSystem {
     this.setState(ctx.state.mode === "idle" ? "idle" : "run");
   }
 
+  /** Apex for this jump: tuning x power-up x the run rules (griffin feather, mutators). */
+  private jumpApex(): number {
+    return PLAYER.jumpHeight * this.jumpHeightScale * this.ctx.rules.jumpHeightMul;
+  }
+
+  /** Airtime for this jump, from the same three sources. */
+  private jumpTime(): number {
+    return PLAYER.jumpSeconds * this.jumpTimeScale * this.ctx.rules.airTimeMul;
+  }
+
   /** Initial jump velocity for the tuned apex/airtime. */
   jumpVelocity(): number {
-    return (4 * PLAYER.jumpHeight * this.jumpHeightScale) / (PLAYER.jumpSeconds * this.jumpTimeScale);
+    return (4 * this.jumpApex()) / this.jumpTime();
   }
 
   gravity(): number {
-    const t = PLAYER.jumpSeconds * this.jumpTimeScale;
-    return (8 * PLAYER.jumpHeight * this.jumpHeightScale) / (t * t);
+    const t = this.jumpTime();
+    return (8 * this.jumpApex()) / (t * t);
   }
 
   /** Signed lane-switch body lean (-1..1, + = right) for animation. */

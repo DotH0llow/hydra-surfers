@@ -8,7 +8,7 @@ import { BufferAttribute, Matrix4, Mesh, MeshLambertMaterial, type BufferGeometr
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 /** Mesh names referenced by engine code; never merged. */
-const KEEP = new Set(["ball", "head", "lampRed", "lampGreen", "cabFront"]);
+const KEEP = new Set(["ball", "head", "lampWarn", "lampCalm", "harness"]);
 
 interface Bucket {
   plain: boolean;

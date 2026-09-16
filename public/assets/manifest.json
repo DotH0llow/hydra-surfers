@@ -1,5 +1,11 @@
 {
   "version": 1,
-  "parts": ["manifest/core.json", "manifest/track.json", "manifest/ui.json", "manifest/audio.json"],
+  "parts": [
+    "manifest/core.json",
+    "manifest/track.json",
+    "manifest/world.json",
+    "manifest/ui.json",
+    "manifest/audio.json"
+  ],
   "fileIndex": "files.json"
 }

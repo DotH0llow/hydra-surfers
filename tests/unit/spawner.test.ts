@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Rng } from "../../src/core/rng";
+import { defaultRules } from "../../src/game/rules";
 import { tuning } from "../../src/core/tuning";
-import { TRAIN } from "../../src/game/obstacles/builtin";
+import { WAGON } from "../../src/game/obstacles/builtin";
 import { SPAWN, Spawner } from "../../src/game/spawn/Spawner";
 import { getScenario, listScenarios } from "../../src/game/spawn/scenarios";
 import { listPatterns } from "../../src/game/spawn/patterns";
@@ -23,10 +24,11 @@ function simulate(seed: number, seconds: number, scenarioId = "default", mode: R
   const state = { mode, time: 0, distance: 0, prevDistance: 0, speed: 12 };
   const ctx = {
     rng: new Rng(seed),
+    rules: defaultRules(),
     state,
     obstacles: {
       spawn: (type: string, lane: number, s: number, length?: number) => {
-        log.push({ kind: "obstacle", type, lane, s, length: length ?? (type === "train" ? TRAIN.carLength : 0.3) });
+        log.push({ kind: "obstacle", type, lane, s, length: length ?? (type === "wagon" ? WAGON.carLength : 0.3) });
         return null;
       },
     },
@@ -64,12 +66,12 @@ describe("Spawner determinism", () => {
 
   it("uses a registered pattern set with tunable weights", () => {
     const ids = listPatterns().map((p) => p.id);
-    expect(ids).toEqual(expect.arrayContaining(["barrierSingle", "trainSingle", "coinsOnly"]));
-    tuning.set("spawnWeights.trainSingle", 0);
-    tuning.set("spawnWeights.trainDouble", 0);
-    tuning.set("spawnWeights.trainRamp", 0);
-    const noTrains = simulate(9, 60);
-    expect(noTrains.log.some((p) => p.type === "train")).toBe(false);
+    expect(ids).toEqual(expect.arrayContaining(["barricadeSingle", "wagonSingle", "coinRun"]));
+    tuning.set("spawnWeights.wagonSingle", 0);
+    tuning.set("spawnWeights.wagonDouble", 0);
+    tuning.set("spawnWeights.wagonRamp", 0);
+    const noWagons = simulate(9, 60);
+    expect(noWagons.log.some((p) => p.type === "wagon")).toBe(false);
     tuning.reset();
   });
 
@@ -81,13 +83,13 @@ describe("Spawner determinism", () => {
     expect(furthest).toBeGreaterThan(state.distance + SPAWN.ahead * 0.8);
   });
 
-  it("never blocks all three lanes with trains at the same distance (always a path)", () => {
+  it("never blocks all three lanes with wagons at the same distance (always a path)", () => {
     for (const seed of [3, 11, 404, 2026]) {
       const { log } = simulate(seed, 180);
-      const trains = log.filter((p) => p.type === "train");
-      const maxS = Math.max(...trains.map((t) => t.s + (t.length ?? 0)));
+      const wagons = log.filter((p) => p.type === "wagon");
+      const maxS = Math.max(...wagons.map((t) => t.s + (t.length ?? 0)));
       for (let s = 0; s < maxS; s += 0.5) {
-        const blocked = new Set(trains.filter((t) => s >= t.s && s <= t.s + (t.length ?? 0)).map((t) => t.lane));
+        const blocked = new Set(wagons.filter((t) => s >= t.s && s <= t.s + (t.length ?? 0)).map((t) => t.lane));
         expect(blocked.size, `seed ${seed} s=${s}`).toBeLessThan(3);
       }
     }
@@ -96,8 +98,8 @@ describe("Spawner determinism", () => {
   it("does nothing on the idle/home track and places hand-authored scenario content", () => {
     expect(simulate(5, 10, "default", "idle").log).toEqual([]);
     const barrier = simulate(5, 5, "barrier-ahead");
-    expect(barrier.log).toEqual([{ kind: "obstacle", type: "barrierLow", lane: 0, s: 36, length: 0.3 }]);
+    expect(barrier.log).toEqual([{ kind: "obstacle", type: "barricade", lane: 0, s: 36, length: 0.3 }]);
     expect(simulate(5, 20, "flat-straight").log).toEqual([]);
-    expect(listScenarios().map((s) => s.id)).toEqual(expect.arrayContaining(["default", "flat-straight", "barrier-ahead", "train-ahead"]));
+    expect(listScenarios().map((s) => s.id)).toEqual(expect.arrayContaining(["default", "flat-straight", "barrier-ahead", "wagon-ahead"]));
   });
 });

@@ -48,32 +48,32 @@ registerScenario({
 
 registerScenario({
   id: "barrier-ahead",
-  description: "One low barrier in the centre lane at 36 m; nothing else.",
+  description: "One barricade in the centre lane at 36 m; nothing else.",
   procedural: false,
   build(api) {
-    api.obstacle("barrierLow", 0, 36);
+    api.obstacle("barricade", 0, 36);
   },
 });
 
 registerScenario({
-  id: "train-ahead",
-  description: "Two-car train in the centre lane from 60 m, coin line in the left lane alongside.",
+  id: "wagon-ahead",
+  description: "Two wagons in the centre lane from 60 m, coin line in the left lane alongside.",
   procedural: false,
   build(api) {
-    api.obstacle("train", 0, 60, 13);
-    api.obstacle("train", 0, 73.8, 13);
+    api.obstacle("wagon", 0, 60, 13);
+    api.obstacle("wagon", 0, 73.8, 13);
     api.coinLine(-1, 60, 12, 2.2);
   },
 });
 
 registerScenario({
-  id: "train-side",
-  description: "Three-car train in the left lane from 24 m (to ~65 m). Swipe left while alongside = stumble + bounce; twice quickly = caught.",
+  id: "wagon-side",
+  description: "Three wagons in the left lane from 24 m (to ~65 m). Swipe left while alongside = stumble + bounce; twice quickly = caught.",
   procedural: false,
   build(api) {
-    api.obstacle("train", -1, 24, 13);
-    api.obstacle("train", -1, 37.8, 13);
-    api.obstacle("train", -1, 51.6, 13);
+    api.obstacle("wagon", -1, 24, 13);
+    api.obstacle("wagon", -1, 37.8, 13);
+    api.obstacle("wagon", -1, 51.6, 13);
   },
 });
 
@@ -88,35 +88,35 @@ registerScenario({
 
 registerScenario({
   id: "obstacle-kit",
-  description: "Barrier centre at 40 m, train left from 70 m, barrier arc with coins right at 110 m.",
+  description: "Barricade centre at 40 m, wagon left from 70 m, barricade arc with coins right at 110 m.",
   procedural: false,
   build(api) {
-    api.obstacle("barrierLow", 0, 40);
-    api.obstacle("train", -1, 70, 13);
-    api.obstacle("barrierLow", 1, 110);
+    api.obstacle("barricade", 0, 40);
+    api.obstacle("wagon", -1, 70, 13);
+    api.obstacle("barricade", 1, 110);
     api.coinArc(1, 110, 5, 1.7, 1.3);
   },
 });
 
 registerScenario({
   id: "roof-run",
-  description: "Ramp in the centre lane at 30 m onto a three-car train (roof run), high barrier left at 60 m.",
+  description: "Ramp in the centre lane at 30 m onto three wagons (roof run), hanging beam left at 60 m.",
   procedural: false,
   build(api) {
     api.obstacle("ramp", 0, 30, 6.5);
-    for (let c = 0; c < 3; c++) api.obstacle("train", 0, 36.5 + c * 13.8, 13);
+    for (let c = 0; c < 3; c++) api.obstacle("wagon", 0, 36.5 + c * 13.8, 13);
     api.coinLine(0, 38, 16, 2.2, 3.6 + 0.75);
-    api.obstacle("barrierHigh", -1, 60);
+    api.obstacle("beam", -1, 60);
   },
 });
 
 registerScenario({
   id: "oncoming",
-  description: "Two-car oncoming train in the centre lane starting 150 m ahead; coins in the right lane.",
+  description: "Two runaway carts in the centre lane starting 150 m ahead; coins in the right lane.",
   procedural: false,
   build(api) {
-    const lead = api.obstacle("trainOncoming", 0, 150, 13, 9);
-    const tail = api.obstacle("trainOncoming", 0, 163.8, 13, 9);
+    const lead = api.obstacle("runaway", 0, 150, 13, 9);
+    const tail = api.obstacle("runaway", 0, 163.8, 13, 9);
     if (lead) lead.variant = 0;
     if (tail) tail.variant = 1;
     api.coinLine(1, 20, 20, 2.5);

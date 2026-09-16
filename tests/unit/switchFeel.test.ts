@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { PerspectiveCamera } from "three";
 import { EventBus } from "../../src/core/events";
+import { defaultRules } from "../../src/game/rules";
 import { tuning } from "../../src/core/tuning";
 import { CAMERA, RunCamera } from "../../src/game/camera/RunCamera";
 import { PLAYER, PlayerController } from "../../src/game/player/PlayerController";
@@ -23,7 +24,7 @@ function harness() {
   const state = { mode: "running", speed: 12, distance: 0, prevDistance: 0, time: 0, introT: 1 };
   const p = new PlayerController();
   const cam = new RunCamera();
-  const ctx = { bus, state, player: p, camera3: new PerspectiveCamera() } as unknown as RunContext;
+  const ctx = { bus, state, player: p, camera3: new PerspectiveCamera(), rules: defaultRules() } as unknown as RunContext;
   p.init(ctx);
   p.reset(ctx);
   cam.init(ctx);

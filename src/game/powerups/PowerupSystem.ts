@@ -62,7 +62,7 @@ export class PowerupSystem implements RunSystem {
       return false;
     }
     const refreshed = slot.active;
-    slot.duration = Math.max(0, slot.def.duration());
+    slot.duration = Math.max(0, slot.def.duration(ctx));
     slot.remaining = slot.duration;
     slot.active = true;
     if (!refreshed) slot.def.onStart?.(ctx);
@@ -71,6 +71,18 @@ export class PowerupSystem implements RunSystem {
     evStart.refreshed = refreshed;
     ctx.bus.emit("powerup:start", evStart);
     return true;
+  }
+
+  /** Ends one active power-up early (the aegis is spent the moment it saves the runner). */
+  clearOne(id: string): boolean {
+    const ctx = this.ctx;
+    if (!ctx) return false;
+    for (const s of this.slots) {
+      if (s.def.id !== id || !s.active) continue;
+      this.end(ctx, s, "cleared", true);
+      return true;
+    }
+    return false;
   }
 
   isActive(id: string): boolean {

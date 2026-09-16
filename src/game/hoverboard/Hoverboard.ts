@@ -61,11 +61,12 @@ export class HoverboardSystem implements RunSystem {
   activate(): boolean {
     const ctx = this.ctx;
     if (!ctx || this.active || this.charges < 1) return false;
+    if (ctx.rules.mountAllowed <= 0) return false; // challenges that forbid mounts
     const mode = ctx.state.mode;
     if (mode !== "running" && mode !== "intro") return false;
     this.charges--;
     this.active = true;
-    this.remaining = HOVERBOARD.durationSeconds;
+    this.remaining = HOVERBOARD.durationSeconds * ctx.rules.mountDurationMul;
     evStart.duration = this.remaining;
     ctx.bus.emit("hoverboard:start", evStart);
     return true;
@@ -126,7 +127,7 @@ export class HoverboardView implements RunSystem {
   init(ctx: RunContext): void {
     this.ctx = ctx;
     this.hb = ctx.getSystem<HoverboardSystem>("hoverboard");
-    this.setBoard("gear.hoverboard");
+    this.setBoard("mount.shield");
   }
 
   /** Swaps the board model (equipped board). No-op when `id` is already shown. */
@@ -136,7 +137,7 @@ export class HoverboardView implements RunSystem {
     const visible = this.board?.visible ?? false;
     if (this.board) ctx.scene.remove(this.board);
     this.boardId = id;
-    this.board = ctx.assets.getModel(ctx.assets.has(id) ? id : "gear.hoverboard");
+    this.board = ctx.assets.getModel(ctx.assets.has(id) ? id : "mount.shield");
     this.board.name = "hoverboard";
     this.board.visible = visible;
     curveObject(this.board);

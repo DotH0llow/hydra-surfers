@@ -251,7 +251,7 @@ export const WEEKLY_CHALLENGES: ChallengeDef[] = [
       { rule: "obstacleGapMul", value: 0.8 },
       { rule: "scoreMul", value: 1.3 },
     ],
-    biomes: ["castle", "walls", "battlefield"],
+    biomes: ["castle", "battlefield", "ruins"],
   },
 ];
 

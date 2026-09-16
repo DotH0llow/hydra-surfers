@@ -1,0 +1,146 @@
+{
+  "part": "world",
+  "description": "Roadside scenery for the biomes. Instanced and tinted per region, so one model dresses several places.",
+  "assets": [
+    {
+      "id": "env.house",
+      "type": "gltf",
+      "src": "models/world/house.glb",
+      "placeholder": "prop-house",
+      "color": "#c9ab84",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Village house: 5 m wide (X), 6 m deep (Z), 3.2 m walls, ridge at 4.8 m, origin at the ground centre. Model it in neutral greys with clear light/dark separation (walls bright, roof dark): the engine tints each instance with the region palette. <= 900 tris."
+    },
+    {
+      "id": "env.tree.pine",
+      "type": "gltf",
+      "src": "models/world/pine.glb",
+      "placeholder": "prop-pine",
+      "color": "#3f6030",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Conifer about 6 m tall and 2.5 m across, origin at the trunk foot. Greyscale with foliage brighter than trunk; tinted per instance. <= 400 tris."
+    },
+    {
+      "id": "env.tree.dead",
+      "type": "gltf",
+      "src": "models/world/dead_tree.glb",
+      "placeholder": "prop-dead-tree",
+      "color": "#4a4038",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Leafless tree about 4.5 m tall with three broken limbs, origin at the trunk foot. Greyscale, tinted per instance. <= 350 tris."
+    },
+    {
+      "id": "env.rock",
+      "type": "gltf",
+      "src": "models/world/rock.glb",
+      "placeholder": "prop-rock",
+      "color": "#6f7268",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Faceted boulder cluster about 1.6 m across and 1.2 m tall, origin at the ground. Greyscale, tinted per instance. <= 250 tris."
+    },
+    {
+      "id": "env.wall.stone",
+      "type": "gltf",
+      "src": "models/world/wall.glb",
+      "placeholder": "prop-wall",
+      "color": "#9b9a92",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Curtain-wall segment 8 m along Z, 1.2 m thick, 4.2 m tall plus crenellations to 5.2 m. Tiles end to end with no gap. Origin at the ground centre. <= 700 tris."
+    },
+    {
+      "id": "env.tower",
+      "type": "gltf",
+      "src": "models/world/tower.glb",
+      "placeholder": "prop-tower",
+      "color": "#8f8e86",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Round tower, 3.6 m diameter, 8.5 m to the parapet, conical cap to about 12 m. Origin at the ground centre. <= 900 tris."
+    },
+    {
+      "id": "env.tombstone",
+      "type": "gltf",
+      "src": "models/world/tombstone.glb",
+      "placeholder": "prop-tombstone",
+      "color": "#9a9a92",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Headstone about 0.9 m wide and 1.3 m tall, leaning slightly. Origin at the ground. <= 200 tris."
+    },
+    {
+      "id": "env.torch",
+      "type": "gltf",
+      "src": "models/world/torch.glb",
+      "placeholder": "prop-torch",
+      "color": "#5a4632",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Torch post about 3 m tall. Put the flame in a separate mesh named \"flame\" with an emissive material: the engine renders it untinted so it stays warm in every region. <= 250 tris."
+    },
+    {
+      "id": "env.banner",
+      "type": "gltf",
+      "src": "models/world/banner.glb",
+      "placeholder": "prop-banner",
+      "color": "#a8323a",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Banner pole about 4.4 m tall with hanging cloth 1.35 m wide. The cloth should be the brightest part (it carries the region colour), the pole dark. <= 250 tris."
+    },
+    {
+      "id": "env.tent",
+      "type": "gltf",
+      "src": "models/world/tent.glb",
+      "placeholder": "prop-tent",
+      "color": "#b0553f",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Ridge tent about 4 m wide, 4 m deep, 2.7 m tall, origin at the ground centre. Greyscale canvas, tinted per instance. <= 350 tris."
+    },
+    {
+      "id": "env.column",
+      "type": "gltf",
+      "src": "models/world/column.glb",
+      "placeholder": "prop-column",
+      "color": "#b0aa9c",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Broken stone column about 5 m tall on a square base, with one drum fallen beside it. Origin at the ground centre. <= 500 tris."
+    },
+    {
+      "id": "env.reed",
+      "type": "gltf",
+      "src": "models/world/reed.glb",
+      "placeholder": "prop-reed",
+      "color": "#6b7a45",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Clump of marsh reeds about 1.9 m tall and 0.8 m across. Origin at the ground. <= 150 tris."
+    },
+    {
+      "id": "env.minebeam",
+      "type": "gltf",
+      "src": "models/world/mine_support.glb",
+      "placeholder": "prop-minebeam",
+      "color": "#6b5236",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Mine support post about 4 m tall with a short lintel bracket, placed in pairs either side of the road. Origin at the ground. <= 200 tris."
+    },
+    {
+      "id": "env.fence",
+      "type": "gltf",
+      "src": "models/world/fence.glb",
+      "placeholder": "prop-fence",
+      "color": "#8a6b47",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Paling fence section 2 m along Z and 1.1 m tall, tiling end to end. Origin at the ground centre. <= 200 tris."
+    }
+  ]
+}

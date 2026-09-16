@@ -11,8 +11,13 @@ export interface ObstacleRules {
   jumpable: boolean;
   /** Can be cleared by rolling under it. */
   rollable: boolean;
-  /** Blocks the whole lane for its full length (trains). */
+  /** Blocks the whole lane for its full length (carts and wagons). */
   solid: boolean;
+  /**
+   * Light enough to be smashed through (barrels, crates, fences). Read by the build system:
+   * the hammer destroys the first one of a run, the bow rolls a chance on every one.
+   */
+  breakable?: boolean;
 }
 
 export interface ObstacleType {

@@ -55,7 +55,7 @@ export class Chaser implements RunSystem {
 
   reset(ctx: RunContext, opts: ResolvedRunOptions): void {
     const far = opts.skipIntro || ctx.state.mode === "idle";
-    this.gap = this.prevGap = far ? CHASER.farGap : CHASER.startGap;
+    this.gap = this.prevGap = far ? CHASER.farGap * ctx.rules.chaserGapMul : CHASER.startGap;
     this.nearT = far ? 0 : CHASER.startNearSeconds;
     this.x = this.prevX = ctx.player.x;
     this.phase = 0;
@@ -76,12 +76,13 @@ export class Chaser implements RunSystem {
     if (st.mode === "intro" || st.mode === "running") {
       let target: number;
       let k: number;
+      const gapScale = ctx.rules.chaserGapMul;
       if (this.nearT > 0) {
         this.nearT = Math.max(0, this.nearT - dt);
-        target = CHASER.stumbleGap;
+        target = CHASER.stumbleGap * gapScale;
         k = this.gap > target ? CHASER.approachSharpness : CHASER.retreatSharpness;
       } else {
-        target = CHASER.farGap;
+        target = CHASER.farGap * gapScale;
         k = CHASER.retreatSharpness;
       }
       this.gap += (target - this.gap) * (1 - Math.exp(-k * dt));
@@ -94,7 +95,7 @@ export class Chaser implements RunSystem {
 
   render(ctx: RunContext, alpha: number): void {
     const gap = this.prevGap + (this.gap - this.prevGap) * alpha;
-    const visible = ctx.state.mode !== "idle" && gap < CHASER.farGap - 0.25;
+    const visible = ctx.state.mode !== "idle" && gap < CHASER.farGap * ctx.rules.chaserGapMul - 0.25;
     this.root.visible = visible;
     if (!visible) return;
     this.root.position.set(this.prevX + (this.x - this.prevX) * alpha, 0, gap);

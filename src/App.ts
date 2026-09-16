@@ -271,7 +271,8 @@ export class App implements ScreenHost, DebugHost {
   }
 
   private offerRevive(st: Readonly<RunState>): boolean {
-    if (st.revives >= MAX_REVIVES || st.crashCause === "cheat") return false;
+    const allowed = Math.min(MAX_REVIVES, this.run.ctx.rules.revivesAllowed);
+    if (st.revives >= allowed || st.crashCause === "cheat") return false;
     if (this.store.get().currencies.keys < keysForRevive(st.revives)) return false;
     this.show("revive");
     return true;

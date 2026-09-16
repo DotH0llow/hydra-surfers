@@ -16,6 +16,8 @@ import "./powerups/PowerupSystem";
 import "./hoverboard/Hoverboard";
 import "./powerups/PickupSystem";
 import "./powerups/effects";
+import "./build/BuildSystem";
+import "./world/BiomeSystem";
 import { Atmosphere } from "./world/Atmosphere";
 import { Track } from "./world/Track";
 import { Environment } from "./world/Environment";
@@ -101,6 +103,7 @@ export class Run {
     multiplier: 1,
     god: false,
     speedOverride: 0,
+    speedScale: 1,
     endReason: "",
     crashCause: "",
     keys: 0,
@@ -138,6 +141,7 @@ export class Run {
       camera3: deps.camera3,
       rng,
       rules: defaultRules(),
+      lastHit: null,
       state: this.state,
       player: this.player,
       obstacles: this.obstacles,
@@ -425,7 +429,7 @@ export class Run {
    */
   private nominalSpeed(): number {
     const st = this.state;
-    return st.speedOverride > 0 ? st.speedOverride : speedAt(st.time) * this.ctx.rules.speedMul;
+    return (st.speedOverride > 0 ? st.speedOverride : speedAt(st.time) * this.ctx.rules.speedMul) * st.speedScale;
   }
 
   private resetState(seed: number, scenario: string): void {
@@ -444,6 +448,7 @@ export class Run {
     st.multiplier = 1;
     st.endReason = "";
     st.crashCause = "";
+    st.speedScale = 1;
     st.keys = 0;
     st.revives = 0;
     this.awaitingRevive = false;

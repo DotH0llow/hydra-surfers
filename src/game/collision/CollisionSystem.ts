@@ -53,6 +53,7 @@ export class CollisionSystem implements RunSystem {
     const list = ctx.obstacles.active;
     for (let i = 0; i < list.length; i++) {
       const inst = list[i];
+      if (inst.retired) continue;
       if (inst.s > pBox.maxS + 1 || inst.s + inst.length < pBox.minS - 1) continue;
       inst.type.collider(inst, oBox);
       // walkable tops (train roofs): feet within step-up height of the top step onto it (SurfaceSystem)
@@ -74,8 +75,11 @@ export class CollisionSystem implements RunSystem {
       evHit.s = inst.s;
       evHit.side = side;
       ctx.bus.emit("collision:hit", evHit);
+      // systems that can absorb the hit (mount, armour, hammer, bow) need to know what was struck
+      ctx.lastHit = inst;
       if (side) ctx.stumble(inst.type.id, true);
       else ctx.crash(inst.type.id);
+      ctx.lastHit = null;
       if (st.mode === "crashed") return;
     }
   }

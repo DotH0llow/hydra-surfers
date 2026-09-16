@@ -25,6 +25,7 @@ export function supportHeight(list: readonly ObstacleInstance[], x: number, minS
   let best = 0;
   for (let i = 0; i < list.length; i++) {
     const inst = list[i];
+    if (inst.retired) continue;
     const t = inst.type;
     if (!t.surface) continue;
     const end = inst.s + inst.length;

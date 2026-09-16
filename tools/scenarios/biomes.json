@@ -1,0 +1,14 @@
+{
+  "description": "Crosses several regions back to back (short biome segments, high speed) to check each palette, its props and the crossings between them.",
+  "query": "",
+  "seed": 7,
+  "setup": [
+    ["setTuning", "biome.segmentMetres", 70],
+    ["setTuning", "biome.transitionMetres", 18],
+    ["startRun", { "scenario": "flat-straight", "seed": 7, "skipIntro": true }],
+    ["cheat", "setSpeed", 40]
+  ],
+  "timeline": [],
+  "seconds": 14,
+  "fps": 1
+}

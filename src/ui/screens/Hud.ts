@@ -7,10 +7,12 @@ import { h, setText } from "../dom";
 import { registerScreen, type ScreenHost } from "./registry";
 
 const POWERUP_UI: Record<string, { label: string; color: string }> = {
-  jetpack: { label: "Jetpack", color: "#7fd1ff" },
-  sneakers: { label: "Sneakers", color: "#57e389" },
-  magnet: { label: "Magnet", color: "#ff6b6b" },
-  multiplier: { label: "2x Score", color: "#b57bff" },
+  jetpack: { label: "Grifo", color: "#e8dcc0" },
+  sneakers: { label: "Botas", color: "#c9a227" },
+  magnet: { label: "Amuleto", color: "#e5484d" },
+  multiplier: { label: "Bênção", color: "#e8c25a" },
+  aegis: { label: "Égide", color: "#7fd1ff" },
+  hourglass: { label: "Ampulheta", color: "#c9a227" },
 };
 
 const TIMER_ROWS = 4;

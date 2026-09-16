@@ -182,6 +182,26 @@ export class AssetLibrary {
     return { geometry, material };
   }
 
+  /**
+   * Every mesh of a model, each with its node transform baked into a geometry copy, in tree order.
+   * `getMeshParts` returns only the first one; instanced scenery needs them all, because a prop
+   * whose accent must not be tinted (a torch flame) is a second mesh the merge pass leaves alone.
+   */
+  getMeshPartList(id: string): Array<{ geometry: BufferGeometry; material: Material }> {
+    const rec = this.modelRecord(id);
+    rec.proto.updateMatrixWorld(true);
+    const out: Array<{ geometry: BufferGeometry; material: Material }> = [];
+    rec.proto.traverse((o) => {
+      const mesh = o as Mesh;
+      if (!mesh.isMesh) return;
+      const geometry = mesh.geometry.clone();
+      geometry.applyMatrix4(mesh.matrixWorld);
+      out.push({ geometry, material: Array.isArray(mesh.material) ? mesh.material[0] : mesh.material });
+    });
+    if (out.length === 0) out.push(this.getMeshParts(id));
+    return out;
+  }
+
   getTexture(id: string): Texture {
     const cached = this.textures.get(id);
     if (cached) return cached;

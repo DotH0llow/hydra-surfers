@@ -18,7 +18,9 @@ export const PICKUPS = defineTuning("pickups", "Pickups", {
   jetpackWeight: { default: 0.8, min: 0, max: 10, step: 0.1, label: "Weight: jetpack" },
   sneakersWeight: { default: 1, min: 0, max: 10, step: 0.1, label: "Weight: super sneakers" },
   magnetWeight: { default: 1.4, min: 0, max: 10, step: 0.1, label: "Weight: coin magnet" },
-  multiplierWeight: { default: 1.1, min: 0, max: 10, step: 0.1, label: "Weight: 2x multiplier" },
+  multiplierWeight: { default: 1.1, min: 0, max: 10, step: 0.1, label: "Weight: royal blessing (2x)" },
+  aegisWeight: { default: 0.9, min: 0, max: 10, step: 0.1, label: "Weight: aegis (absorbs one hit)" },
+  hourglassWeight: { default: 0.7, min: 0, max: 10, step: 0.1, label: "Weight: hourglass (slows the road)" },
   keyWeight: { default: 0.3, min: 0, max: 10, step: 0.05, label: "Weight: key" },
   jetpackMinDifficulty: { default: 0.04, min: 0, max: 1, step: 0.01, label: "Jetpack not offered below this difficulty" },
   height: { default: 1, min: 0, max: 3, step: 0.05, label: "Hover height", unit: "m" },
@@ -30,14 +32,16 @@ export const PICKUPS = defineTuning("pickups", "Pickups", {
   despawnBehind: { default: 12, min: 1, max: 60, step: 1, label: "Despawn distance behind", unit: "m" },
 });
 
-export type PickupKind = "jetpack" | "sneakers" | "magnet" | "multiplier" | "key";
-export const PICKUP_KINDS: readonly PickupKind[] = ["jetpack", "sneakers", "magnet", "multiplier", "key"];
+export type PickupKind = "jetpack" | "sneakers" | "magnet" | "multiplier" | "aegis" | "hourglass" | "key";
+export const PICKUP_KINDS: readonly PickupKind[] = ["jetpack", "sneakers", "magnet", "multiplier", "aegis", "hourglass", "key"];
 
 const ASSET: Record<PickupKind, string> = {
-  jetpack: "pickup.jetpack",
-  sneakers: "pickup.sneakers",
-  magnet: "pickup.magnet",
-  multiplier: "pickup.multiplier",
+  jetpack: "pickup.griffin",
+  sneakers: "pickup.boots",
+  magnet: "pickup.amulet",
+  multiplier: "pickup.blessing",
+  aegis: "pickup.aegis",
+  hourglass: "pickup.hourglass",
   key: "pickup.key",
 };
 
@@ -58,7 +62,9 @@ export function choosePickup(rng: Rng, difficulty: number): PickupKind {
   weights[1] = P.sneakersWeight;
   weights[2] = P.magnetWeight;
   weights[3] = P.multiplierWeight;
-  weights[4] = P.keyWeight;
+  weights[4] = P.aegisWeight;
+  weights[5] = P.hourglassWeight;
+  weights[6] = P.keyWeight;
   const i = rng.weighted(weights, PICKUP_KINDS.length);
   return PICKUP_KINDS[i < 0 ? 2 : i];
 }

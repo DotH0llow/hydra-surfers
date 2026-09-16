@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { EventBus, type EventMap } from "../../src/core/events";
+import { defaultRules } from "../../src/game/rules";
 import { tuning } from "../../src/core/tuning";
 import { PLAYER, PLAYER_HITBOX, PlayerController } from "../../src/game/player/PlayerController";
 import { LANES, laneX } from "../../src/game/world/coords";
@@ -25,7 +26,7 @@ function makeHarness(mode: RunMode = "running") {
   ];
   for (const n of names) bus.on(n, (p) => events.push({ name: n, payload: { ...(p as object) } }));
   const state = { mode, speed: 12, distance: 0, prevDistance: 0, time: 0 };
-  const ctx = { bus, state } as unknown as RunContext;
+  const ctx = { bus, state, rules: defaultRules() } as unknown as RunContext;
   const p = new PlayerController();
   p.init(ctx);
   p.reset(ctx);

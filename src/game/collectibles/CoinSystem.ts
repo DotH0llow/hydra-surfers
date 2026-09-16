@@ -112,10 +112,10 @@ export class CoinSystem implements RunSystem {
     const limit = st.distance - COINS.despawnBehind;
     if (live) ctx.player.getHitbox(box);
     const magnet = this.magnet;
-    const hw = magnet ? Math.max(COINS.pickupHalfWidth, LANES.spacing * 2 + 0.5) : COINS.pickupHalfWidth;
+    const hw = magnet ? Math.max(COINS.pickupHalfWidth, LANES.spacing * 2 + 0.5) * ctx.rules.magnetReachMul : COINS.pickupHalfWidth;
     const hd = COINS.pickupHalfDepth;
     const pad = magnet ? Math.max(COINS.pickupPadY, COINS.magnetPadY) : COINS.pickupPadY;
-    const reach = magnet ? COINS.magnetReach : 0;
+    const reach = magnet ? COINS.magnetReach * ctx.rules.magnetReachMul : 0;
     for (let i = 0; i < COIN_CAPACITY; i++) {
       const stt = this.status[i];
       if (stt === 0) continue;
@@ -140,6 +140,7 @@ export class CoinSystem implements RunSystem {
         evCollect.lane = this.lane[i];
         evCollect.s = s;
         evCollect.y = cy;
+        evCollect.value = ctx.rules.coinValue;
         ctx.bus.emit("coin:collect", evCollect);
       }
     }

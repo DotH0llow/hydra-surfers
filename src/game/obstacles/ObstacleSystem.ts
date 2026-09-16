@@ -14,6 +14,12 @@ export interface ObstacleInstance {
   readonly uid: number;
   type: ObstacleType;
   active: boolean;
+  /**
+   * Smashed this tick (a weapon went through it). It stays in `active` until the next obstacle
+   * update reaps it, so nothing mutates the list while collision is iterating it; collision and
+   * surface checks skip retired instances.
+   */
+  retired: boolean;
   lane: number;
   /** Near edge along the track (smallest s). */
   s: number;
@@ -64,12 +70,23 @@ export class ObstacleSystem implements RunSystem {
     inst.length = length ?? type.defaultLength();
     inst.speed = speed;
     inst.variant = 0;
+    inst.retired = false;
     this.active.push(inst);
     return inst;
   }
 
   clear(): void {
     for (let i = this.active.length - 1; i >= 0; i--) this.despawnAt(i);
+  }
+
+  /**
+   * Marks an instance as smashed: it disappears now and is reaped by the next update. Safe to
+   * call from inside the collision loop (see ObstacleInstance.retired).
+   */
+  retire(inst: ObstacleInstance): void {
+    if (inst.retired) return;
+    inst.retired = true;
+    inst.view.visible = false;
   }
 
   /** Despawns every instance overlapping [from, to] along the track (revive clears the crash site). */
@@ -99,7 +116,7 @@ export class ObstacleSystem implements RunSystem {
         const within = inst.type.moveWithin ? inst.type.moveWithin() : Infinity;
         if (inst.s - ctx.state.distance <= within) inst.s -= inst.speed * dt;
       }
-      if (inst.s + inst.length < limit) this.despawnAt(i);
+      if (inst.retired || inst.s + inst.length < limit) this.despawnAt(i);
     }
   }
 
@@ -140,6 +157,6 @@ export class ObstacleSystem implements RunSystem {
     view.visible = false;
     curveObject(view);
     this.ctx.scene.add(view);
-    return { uid: this.uid++, type, active: false, lane: 0, s: 0, prevS: 0, length: 0, speed: 0, variant: 0, view };
+    return { uid: this.uid++, type, active: false, retired: false, lane: 0, s: 0, prevS: 0, length: 0, speed: 0, variant: 0, view };
   }
 }

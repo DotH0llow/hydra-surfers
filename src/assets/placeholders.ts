@@ -10,6 +10,7 @@ import {
   BoxGeometry,
   CanvasTexture,
   Color,
+  ConeGeometry,
   CylinderGeometry,
   Group,
   Mesh,
@@ -74,6 +75,9 @@ function box(w: number, h: number, d: number, mat: Material, x = 0, y = 0, z = 0
   return m;
 }
 
+type Headgear = "none" | "helm" | "hood" | "wizard" | "cap" | "crown" | "circlet";
+type BackItem = "none" | "pack" | "quiver" | "shield" | "lute" | "satchel";
+
 interface HumanoidOpts {
   height: number;
   shirt: string;
@@ -81,7 +85,12 @@ interface HumanoidOpts {
   skin: string;
   accent: string;
   bulk: number;
-  hat: boolean;
+  /** What the archetype wears on its head. */
+  headgear: Headgear;
+  /** What it carries on its back (the camera sees the back all run long). */
+  back: BackItem;
+  /** Cloak colour, or null for none. */
+  cape: string | null;
 }
 
 /**
@@ -111,7 +120,55 @@ function humanoid(o: HumanoidOpts): Group {
   torso.name = "torso";
   hips.add(torso);
   torso.add(box(0.46 * s * o.bulk, 0.56 * s, 0.28 * s * o.bulk, shirt, 0, 0.3 * s, 0));
-  torso.add(box(0.34 * s, 0.36 * s, 0.14 * s, accent, 0, 0.32 * s, 0.2 * s * o.bulk, "pack"));
+  // belt, so the silhouette has a waist at a glance
+  torso.add(box(0.48 * s * o.bulk, 0.09 * s, 0.3 * s * o.bulk, pants, 0, 0.06 * s, 0));
+
+  // back item: the camera looks at the runner's back for the whole run, so this is the read
+  const backZ = 0.2 * s * o.bulk;
+  switch (o.back) {
+    case "quiver": {
+      const q = box(0.14 * s, 0.5 * s, 0.14 * s, accent, 0.1 * s, 0.34 * s, backZ, "pack");
+      q.rotation.x = 0.3;
+      q.rotation.z = -0.35;
+      for (let i = 0; i < 3; i++) torso.add(box(0.02 * s, 0.2 * s, 0.02 * s, lambert("#d8cbb0"), (0.06 + i * 0.04) * s, 0.62 * s, backZ + 0.02 * s));
+      torso.add(q);
+      break;
+    }
+    case "shield": {
+      const sh = box(0.42 * s, 0.5 * s, 0.09 * s, accent, 0, 0.34 * s, backZ + 0.03 * s, "pack");
+      torso.add(sh);
+      torso.add(box(0.1 * s, 0.44 * s, 0.03 * s, lambert("#e8e2d4"), 0, 0.34 * s, backZ + 0.09 * s));
+      break;
+    }
+    case "lute": {
+      const body = new Mesh(new SphereGeometry(0.19 * s, 10, 8), accent);
+      body.scale.set(1, 1.15, 0.5);
+      body.position.set(-0.05 * s, 0.3 * s, backZ + 0.04 * s);
+      body.name = "pack";
+      torso.add(body);
+      const neck = box(0.05 * s, 0.42 * s, 0.05 * s, lambert("#6b4a2a"), 0.08 * s, 0.6 * s, backZ + 0.02 * s);
+      neck.rotation.z = -0.4;
+      torso.add(neck);
+      break;
+    }
+    case "satchel": {
+      const bag = box(0.3 * s, 0.26 * s, 0.16 * s, accent, 0, 0.2 * s, backZ, "pack");
+      torso.add(bag);
+      torso.add(box(0.07 * s, 0.5 * s, 0.05 * s, lambert("#6b5a3a"), 0.12 * s, 0.42 * s, backZ - 0.04 * s));
+      break;
+    }
+    case "pack":
+      torso.add(box(0.34 * s, 0.36 * s, 0.14 * s, accent, 0, 0.32 * s, backZ, "pack"));
+      break;
+    default:
+      break;
+  }
+
+  if (o.cape) {
+    const cape = box(0.44 * s * o.bulk, 0.7 * s, 0.05 * s, lambert(o.cape), 0, 0.28 * s, backZ + 0.04 * s, "cape");
+    cape.rotation.x = -0.08;
+    torso.add(cape);
+  }
 
   const head = new Group();
   head.name = "head";
@@ -120,11 +177,50 @@ function humanoid(o: HumanoidOpts): Group {
   const headMesh = new Mesh(new SphereGeometry(0.155 * s, 14, 10), skin);
   headMesh.position.y = 0.0;
   head.add(headMesh);
-  if (o.hat) {
-    head.add(box(0.34 * s, 0.1 * s, 0.34 * s, accent, 0, 0.13 * s, 0));
-    head.add(box(0.3 * s, 0.03 * s, 0.16 * s, accent, 0, 0.09 * s, -0.2 * s));
-  } else {
-    head.add(box(0.32 * s, 0.08 * s, 0.32 * s, accent, 0, 0.12 * s, 0.01 * s));
+  const steel = lambert("#b9bec6");
+  switch (o.headgear) {
+    case "helm": {
+      const dome = new Mesh(new SphereGeometry(0.175 * s, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), steel);
+      dome.position.y = 0.02 * s;
+      head.add(dome);
+      head.add(box(0.36 * s, 0.07 * s, 0.36 * s, steel, 0, 0.02 * s, 0));
+      head.add(box(0.06 * s, 0.2 * s, 0.2 * s, steel, 0, -0.04 * s, -0.14 * s)); // nasal bar
+      head.add(box(0.1 * s, 0.22 * s, 0.1 * s, accent, 0, 0.2 * s, 0)); // crest
+      break;
+    }
+    case "hood": {
+      const hood = new Mesh(new SphereGeometry(0.2 * s, 12, 9), accent);
+      hood.scale.set(1, 0.95, 1.1);
+      hood.position.set(0, 0.02 * s, 0.03 * s);
+      head.add(hood);
+      head.add(box(0.26 * s, 0.24 * s, 0.06 * s, lambert("#1d1a17"), 0, -0.01 * s, -0.16 * s)); // shadowed face
+      break;
+    }
+    case "wizard": {
+      const hat = new Mesh(new ConeGeometry(0.22 * s, 0.5 * s, 9), accent);
+      hat.position.y = 0.3 * s;
+      hat.rotation.z = 0.12;
+      head.add(hat);
+      head.add(box(0.44 * s, 0.04 * s, 0.44 * s, accent, 0, 0.1 * s, 0));
+      break;
+    }
+    case "cap":
+      head.add(box(0.33 * s, 0.11 * s, 0.33 * s, accent, 0, 0.13 * s, 0));
+      head.add(box(0.3 * s, 0.04 * s, 0.18 * s, accent, 0, 0.09 * s, -0.2 * s));
+      break;
+    case "crown":
+      head.add(box(0.33 * s, 0.09 * s, 0.33 * s, lambert("#e8c25a"), 0, 0.15 * s, 0));
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2 + 0.4;
+        head.add(box(0.05 * s, 0.1 * s, 0.05 * s, lambert("#e8c25a"), Math.cos(a) * 0.13 * s, 0.23 * s, Math.sin(a) * 0.13 * s));
+      }
+      break;
+    case "circlet":
+      head.add(box(0.33 * s, 0.05 * s, 0.33 * s, lambert("#cfae6a"), 0, 0.14 * s, 0));
+      break;
+    default:
+      head.add(box(0.32 * s, 0.08 * s, 0.32 * s, accent, 0, 0.12 * s, 0.01 * s));
+      break;
   }
 
   const limb = (name: string, x: number, y: number, len: number, w: number, mat: Material, parent: Object3D) => {
@@ -151,68 +247,41 @@ function humanoid(o: HumanoidOpts): Group {
   return root;
 }
 
-registerMeshPlaceholder("capsule-runner", ({ entry }) =>
-  humanoid({ height: 1.7, shirt: entry.color ?? "#ff7a1a", pants: "#2b3a55", skin: "#e0b089", accent: "#2fc4b2", bulk: 1, hat: false }),
+/**
+ * Playable archetypes. The silhouette (headgear, back item, cloak, bulk) comes from the manifest
+ * entry's `meta`, so a new character is a manifest entry with no code change at all.
+ */
+registerMeshPlaceholder("runner", ({ entry }) => {
+  const meta = (entry.meta ?? {}) as Record<string, unknown>;
+  const str = (k: string, fallback: string): string => (typeof meta[k] === "string" ? (meta[k] as string) : fallback);
+  const num = (k: string, fallback: number): number => (typeof meta[k] === "number" ? (meta[k] as number) : fallback);
+  return humanoid({
+    height: num("height", 1.7),
+    shirt: entry.color ?? "#9a6b3c",
+    pants: str("pants", "#4a3a2a"),
+    skin: str("skin", "#e0b089"),
+    accent: str("accent", "#2f6b4f"),
+    bulk: num("bulk", 1),
+    headgear: str("headgear", "none") as Headgear,
+    back: str("back", "pack") as BackItem,
+    cape: typeof meta.cape === "string" ? (meta.cape as string) : null,
+  });
+});
+
+/** The royal guard giving chase: heavier, helmed, tabard over mail. */
+registerMeshPlaceholder("guard", ({ entry }) =>
+  humanoid({
+    height: 1.85,
+    shirt: entry.color ?? "#8d3b46",
+    pants: "#3a3a42",
+    skin: "#c99873",
+    accent: "#c9a227",
+    bulk: 1.25,
+    headgear: "helm",
+    back: "none",
+    cape: "#8d3b46",
+  }),
 );
-
-registerMeshPlaceholder("capsule-chaser", ({ entry }) =>
-  humanoid({ height: 1.85, shirt: entry.color ?? "#3d5a80", pants: "#1e2a3a", skin: "#c99873", accent: "#f2c14e", bulk: 1.2, hat: true }),
-);
-
-registerMeshPlaceholder("rail", ({ entry }) => {
-  const g = new Group();
-  g.add(box(0.07, 0.12, 1, lambert(entry.color ?? "#b9bec6"), 0, 0.06, 0));
-  return g;
-});
-
-registerMeshPlaceholder("sleeper", ({ entry }) => {
-  const g = new Group();
-  g.add(box(2.3, 0.12, 0.24, lambert(entry.color ?? "#5b4636"), 0, 0.06, 0));
-  return g;
-});
-
-registerMeshPlaceholder("building-block", ({ entry, getTexture }) => {
-  const map = entry.maps?.map ? getTexture(entry.maps.map) : null;
-  const g = new Group();
-  g.add(box(1, 1, 1, lambert(map ? "#ffffff" : entry.color ?? "#9aa5b1", { map }), 0, 0.5, 0, "block", 2));
-  return g;
-});
-
-registerMeshPlaceholder("barrier-low", ({ entry, getTexture }) => {
-  const g = new Group();
-  const post = lambert("#3b4252");
-  const map = entry.maps?.map ? getTexture(entry.maps.map) : null;
-  const plank = lambert(map ? "#ffffff" : entry.color ?? "#f2f2f2", { map });
-  g.add(box(0.14, 1.12, 0.14, post, -1.05, 0.56, 0));
-  g.add(box(0.14, 1.12, 0.14, post, 1.05, 0.56, 0));
-  g.add(box(2.2, 0.5, 0.12, plank, 0, 0.8, 0, "plank"));
-  g.add(box(2.0, 0.06, 0.3, post, 0, 0.03, 0)); // foot rail for grounding
-  return g;
-});
-
-registerMeshPlaceholder("train-car", ({ entry, getTexture }) => {
-  const g = new Group();
-  const map = entry.maps?.map ? getTexture(entry.maps.map) : null;
-  const bodyMat = lambert(map ? "#ffffff" : entry.color ?? "#2d6cdf", { map });
-  const roof = lambert("#c9ced6");
-  const under = lambert("#23262d");
-  const face = lambert(entry.color ? shade(entry.color, -0.12) : "#23508f");
-  const rear = lambert("#3a4150");
-  const glass = lambert("#9fd3f0");
-  const len = 13;
-  g.add(box(2.3, 2.9, len, bodyMat, 0, 0.5 + 1.45, 0, "car", 8));
-  g.add(box(2.1, 0.2, len - 0.2, roof, 0, 3.5, 0, "roof", 8));
-  g.add(box(1.9, 0.5, len - 1.5, under, 0, 0.25, 0, "bogies", 4));
-  // Cab end faces +Z — toward the approaching runner and camera — so it reads at a glance.
-  g.add(box(2.32, 2.9, 0.05, face, 0, 1.95, len / 2 + 0.02, "cab"));
-  g.add(box(1.7, 0.8, 0.05, glass, 0, 2.6, len / 2 + 0.05));
-  g.add(box(2.2, 0.12, 0.06, lambert("#f2c14e"), 0, 1.55, len / 2 + 0.05));
-  const lamp = lambert("#fff3b0", { emissive: new Color("#fff3b0") });
-  g.add(box(0.3, 0.18, 0.06, lamp, -0.7, 1.2, len / 2 + 0.06));
-  g.add(box(0.3, 0.18, 0.06, lamp, 0.7, 1.2, len / 2 + 0.06));
-  g.add(box(2.32, 2.9, 0.05, rear, 0, 1.95, -len / 2 - 0.02));
-  return g;
-});
 
 registerMeshPlaceholder("coin", ({ entry }) => {
   const geo = new CylinderGeometry(0.35, 0.35, 0.08, 20, 1);
@@ -277,53 +346,36 @@ function speckle(entry: AssetEntry, base: string, n: number, sizeMin: number, si
   return finishTexture(c, entry);
 }
 
-registerTexturePlaceholder("gravel", (e) => speckle(e, e.color ?? "#8a8174", 2600, 2, 6, 0.12));
-registerTexturePlaceholder("dirt", (e) => speckle(e, e.color ?? "#6f7a5a", 900, 4, 18, 0.06));
+/** Packed earth and grass tufts: the field either side of the road. */
+registerTexturePlaceholder("field", (e) => speckle(e, e.color ?? "#6f7a5a", 1100, 4, 18, 0.07));
 
-registerTexturePlaceholder("wall-panels", (e) => {
+/** Cobbles: offset rows of rounded stones with dark mortar between them. */
+registerTexturePlaceholder("cobble", (e) => {
   const [c, g] = canvas(256, 256);
-  const base = e.color ?? "#9aa5b1";
-  g.fillStyle = base;
+  const base = e.color ?? "#9a8b73";
+  g.fillStyle = shade(base, -0.22);
   g.fillRect(0, 0, 256, 256);
-  for (let x = 0; x < 256; x += 16) {
-    g.fillStyle = shade(base, x % 32 === 0 ? -0.06 : 0.04);
-    g.fillRect(x, 0, 8, 256);
+  const rng = new Rng(strHash(e.id));
+  const rows = 8;
+  const cols = 8;
+  const h = 256 / rows;
+  const w = 256 / cols;
+  for (let r = 0; r < rows; r++) {
+    const offset = (r % 2) * (w / 2);
+    for (let i = -1; i <= cols; i++) {
+      const x = i * w + offset + rng.range(-1.5, 1.5);
+      const y = r * h + rng.range(-1.5, 1.5);
+      g.fillStyle = shade(base, rng.range(-0.09, 0.09));
+      const pad = rng.range(1.5, 3);
+      const rad = Math.min(w, h) * 0.32;
+      g.beginPath();
+      // rounded stone, drawn wrapped so the tile stays seamless
+      for (const ox of [-256, 0, 256]) {
+        g.roundRect(x + pad + ox, y + pad, w - pad * 2, h - pad * 2, rad);
+      }
+      g.fill();
+    }
   }
-  g.fillStyle = shade(base, -0.18);
-  g.fillRect(0, 0, 256, 10);
-  g.fillStyle = "rgba(20,26,40,0.55)";
-  for (let y = 60; y < 256; y += 96) for (let x = 20; x < 256; x += 64) g.fillRect(x, y, 34, 22);
-  return finishTexture(c, e);
-});
-
-registerTexturePlaceholder("hazard-stripes", (e) => {
-  const [c, g] = canvas(256, 64);
-  g.fillStyle = "#f4f4f4";
-  g.fillRect(0, 0, 256, 64);
-  g.fillStyle = e.color ?? "#e5484d";
-  for (let x = -64; x < 320; x += 48) {
-    g.beginPath();
-    g.moveTo(x, 64);
-    g.lineTo(x + 24, 64);
-    g.lineTo(x + 24 + 64, 0);
-    g.lineTo(x + 64, 0);
-    g.closePath();
-    g.fill();
-  }
-  return finishTexture(c, e);
-});
-
-registerTexturePlaceholder("train-side", (e) => {
-  const [c, g] = canvas(512, 256);
-  const base = e.color ?? "#2d6cdf";
-  g.fillStyle = base;
-  g.fillRect(0, 0, 512, 256);
-  g.fillStyle = shade(base, 0.15);
-  g.fillRect(0, 170, 512, 18);
-  g.fillStyle = "#1b2233";
-  for (let x = 24; x < 512; x += 62) g.fillRect(x, 50, 40, 60);
-  g.fillStyle = shade(base, -0.15);
-  g.fillRect(230, 40, 52, 170);
   return finishTexture(c, e);
 });
 

@@ -8,7 +8,7 @@ import type { Rng } from "../core/rng";
 import type { RunRules } from "./rules";
 import type { AssetLibrary } from "../assets/AssetLibrary";
 import type { PlayerController } from "./player/PlayerController";
-import type { ObstacleSystem } from "./obstacles/ObstacleSystem";
+import type { ObstacleInstance, ObstacleSystem } from "./obstacles/ObstacleSystem";
 import type { CoinSystem } from "./collectibles/CoinSystem";
 import type { RunCamera } from "./camera/RunCamera";
 import type { Scenario } from "./spawn/scenarios";
@@ -36,6 +36,11 @@ export interface RunState {
   god: boolean;
   /** Cheat: fixed forward speed when > 0. */
   speedOverride: number;
+  /**
+   * Temporary slow-down of the road (hourglass). Scoring divides by it, so slowing down costs no
+   * points: it buys reaction time, not score.
+   */
+  speedScale: number;
   endReason: string;
   crashCause: string;
   /** Keys picked up this run (banked to the profile as they are collected). */
@@ -58,6 +63,10 @@ export interface ResolvedRunOptions {
   skipIntro: boolean;
   /** Modifiers for this run (mode mutators + equipped build). Defaults to neutral rules. */
   rules?: RunRules;
+  /** Restrict the run to these biome ids (a challenge may); undefined = the full rotation. */
+  biomes?: string[];
+  /** Force a weather state for the whole run instead of letting the director pick. */
+  weather?: string;
 }
 
 export interface RunContext {
@@ -81,6 +90,11 @@ export interface RunContext {
   renderDistance: number;
   /** Interpolation alpha for the frame being rendered. */
   renderAlpha: number;
+  /**
+   * The obstacle behind the crash/stumble currently being resolved, set by the collision system
+   * just before it asks systems to absorb it. Null for causes with no obstacle ("wall", "caught").
+   */
+  lastHit: ObstacleInstance | null;
   /** Request a crash (ignored in god mode or when not running). */
   crash(cause: string): void;
   /** Light bump: stumbles the runner (optional bounce back); caught if the chaser is near. */
