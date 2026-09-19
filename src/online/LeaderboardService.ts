@@ -111,6 +111,13 @@ export interface CommunityState {
   goal: number;
 }
 
+export interface Community {
+  /** The bounty running now (progress bar), or null. */
+  active: CommunityState | null;
+  /** Every bounty started this season, finished ones included (their rewards are claimable). */
+  bounties: CommunityState[];
+}
+
 export interface PublicProfile {
   crest: string;
   title: string;
@@ -127,7 +134,8 @@ export interface LeaderboardService {
   /** Pushes what other players see next to the name (crest, title, level). */
   updateProfile(profile: PublicProfile): Promise<void>;
   /** Community bounty progress, or null offline / when none is running. */
-  community(): Promise<CommunityState | null>;
+  /** Community bounties: the running one and every one started this season; null offline. */
+  community(): Promise<Community | null>;
   /** Restores an identity from a recovery code on a new device. */
   recover(code: string): Promise<boolean>;
   /** Weekly house standings, or null offline. */

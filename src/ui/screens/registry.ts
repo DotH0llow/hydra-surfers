@@ -54,7 +54,8 @@ export interface ScreenHost {
   readonly nameChosen: boolean;
   renamePlayer(name: string): Promise<{ ok: boolean; error?: "invalid" | "taken" | "offline" }>;
   /** One line about the nearest rival ("#4 no Diário · 230 pontos atrás de Marina"), or null. */
-  rivalLine(): Promise<string | null>;
+  /** Tavern arrival: the rival line and one-off notices (group rewards claimed, who passed you). */
+  tavernNews(): Promise<{ rival: string | null; notices: string[] }>;
   /** The ghost being raced (daily run): whose it is and how far ahead (m, negative = behind). */
   ghostLead(): { name: string; lead: number } | null;
   /** Nearest power-up ahead when the build reveals them, else null. */

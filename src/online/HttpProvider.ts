@@ -8,6 +8,7 @@
  */
 import type {
   Board,
+  Community,
   CommunityState,
   GhostData,
   HouseStanding,
@@ -124,12 +125,12 @@ export class HttpProvider implements LeaderboardService {
     }
   }
 
-  async community(): Promise<CommunityState | null> {
+  async community(): Promise<Community | null> {
     try {
       const res = await this.fetchImpl(`${this.base}/api/community`);
       if (!res.ok) return null;
-      const body = (await res.json()) as { bounty: CommunityState | null };
-      return body.bounty;
+      const body = (await res.json()) as { bounty: CommunityState | null; bounties?: CommunityState[] };
+      return { active: body.bounty, bounties: body.bounties ?? (body.bounty ? [body.bounty] : []) };
     } catch {
       return null;
     }

@@ -25,6 +25,8 @@ import { applyRunToContracts, contractXp, type ContractOutcome } from "./contrac
 import { applyRunMissions, type MissionOutcome } from "./missions";
 import { grantReward } from "./rewards";
 import { addRunToLifetime, recordsBroken, type RecordBreak, type RunSummary } from "./stats";
+import { BOUNTIES, type BountyDef } from "../shared/content/season";
+import type { CommunityState } from "../online/LeaderboardService";
 
 /** Everything that changed, in the order the results screen shows it. */
 export interface RunReport {
@@ -80,6 +82,25 @@ export function ensureSeason(p: Profile): void {
   p.progress.seasonId = SEASON.id;
   p.progress.seasonXp = 0;
   p.progress.claimedLevels = [];
+  p.progress.claimedBounties = [];
+}
+
+/**
+ * Hands out the reward of every community bounty the group completed that this player has not
+ * received yet — to everyone, whether or not they contributed. Returns the bounties granted.
+ */
+export function claimBounties(p: Profile, states: readonly CommunityState[]): BountyDef[] {
+  ensureSeason(p);
+  const out: BountyDef[] = [];
+  for (const s of states) {
+    if (s.value < s.goal || p.progress.claimedBounties.includes(s.id)) continue;
+    const def = BOUNTIES.find((b) => b.id === s.id);
+    if (!def) continue;
+    grantReward(p, def.reward);
+    p.progress.claimedBounties.push(def.id);
+    out.push(def);
+  }
+  return out;
 }
 
 /**

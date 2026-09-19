@@ -4,9 +4,10 @@
  */
 import { beforeEach, describe, expect, it } from "vitest";
 import worker, { attemptLimit, handleApi, type Env } from "./index";
-import { dayKey, seedFor, weekKey } from "../src/shared/calendar";
+import { dayIndex, dayKey, seedFor, weekKey } from "../src/shared/calendar";
 import { DAILY_ATTEMPTS } from "../src/shared/content/season";
 import { GHOST_HZ, decodeGhost, encodeGhost } from "../src/shared/ghost";
+import { BOUNTIES, seasonStartDay } from "../src/shared/content/season";
 
 interface SqliteStatement {
   all(params?: Record<string, unknown>): unknown[];
@@ -213,6 +214,19 @@ describe("worker /api", () => {
     expect(decodeGhost(own!.data)?.count).toBe(60 * GHOST_HZ + 1);
     expect((await call(`/api/ghosts/daily?period=2020-01-01&player=${me.playerId}`)).status).toBe(404);
     expect((await call(`/api/ghosts/weekly?period=${today}`)).status).toBe(400);
+  });
+
+  it("reports every bounty started this season, finished ones included, with the group's total", async () => {
+    const { token } = await register("Coletor");
+    await post("/api/runs", run({ coins: 700 }), token);
+    const body = (await (await call("/api/community")).json()) as { bounty: { id: string } | null; bounties: Array<{ id: string; value: number; goal: number }> };
+    const day = dayIndex(NOW) - seasonStartDay();
+    const started = BOUNTIES.filter((b) => day >= b.startDayOffset);
+    expect(body.bounties.map((b) => b.id)).toEqual(started.map((b) => b.id));
+    const running = BOUNTIES.find((b) => day >= b.startDayOffset && day < b.startDayOffset + b.days);
+    expect(body.bounty?.id ?? null).toBe(running?.id ?? null);
+    // the run counts only for the bounty whose window covers today
+    for (const b of body.bounties) expect(b.value).toBe(b.id === running?.id && running.stat === "coins" ? 700 : b.id === running?.id && running.stat === "runs" ? 1 : b.id === running?.id && running.stat === "distance" ? 1200 : 0);
   });
 
   it("rejects implausible runs and stale periods", async () => {

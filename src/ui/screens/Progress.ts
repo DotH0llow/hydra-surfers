@@ -383,6 +383,7 @@ registerScreen("season", (host) => {
         bounty.append(h("b", { text: `Missão do Reino: ${b.name}` }), line);
         host.communityProgress().then((c) => {
           if (!c || c.id !== b.id) setText(line, "Progresso do reino disponível só online.");
+          else if (c.value >= b.goal) setText(line, `Cumprida! ${formatInt(c.value)}/${formatInt(b.goal)} · todos recebem ${describeReward(b.reward)} ao voltar à taverna.`);
           else setText(line, `${formatInt(c.value)}/${formatInt(b.goal)} · recompensa para todos: ${describeReward(b.reward)}`);
         });
       }

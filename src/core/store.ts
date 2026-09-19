@@ -7,6 +7,8 @@
  * Modules that need their own persisted data can use `profile.ext[<moduleId>]`.
  */
 
+import type { RankSnapshot } from "../meta/social";
+
 /** Procedurally drawn coat of arms: indices into the part lists in src/ui/crest.ts. */
 export interface Crest {
   bg: number;
@@ -38,6 +40,8 @@ export interface Profile {
     seasonXp: number;
     /** Season levels whose reward has already been handed out. */
     claimedLevels: number[];
+    /** Community bounties whose reward this player already received. */
+    claimedBounties: string[];
     /** Local day index of the last XP grant, with how much was granted (daily cap). */
     xpDay: number;
     xpToday: number;
@@ -85,8 +89,8 @@ export interface Profile {
   social: {
     /** House id ("" = not chosen yet). */
     faction: string;
-    /** Last seen rank per board, so the results screen can say "you dropped to #6". */
-    lastRanks: Record<string, number>;
+    /** Rank and the players just below, per board, at the last tavern visit (see meta/social.ts). */
+    lastRanks: Record<string, RankSnapshot>;
     /** Whether the onboarding (name, crest, house) has been completed. */
     registered: boolean;
   };
@@ -127,7 +131,7 @@ export function defaultProfile(): Profile {
       title: "",
       crest: { bg: 0, symbol: 0, frame: 0, color: 0 },
     },
-    progress: { xp: 0, seasonId: "", seasonXp: 0, claimedLevels: [], xpDay: 0, xpToday: 0 },
+    progress: { xp: 0, seasonId: "", seasonXp: 0, claimedLevels: [], claimedBounties: [], xpDay: 0, xpToday: 0 },
     stats: {
       bestScore: 0,
       bestDistance: 0,

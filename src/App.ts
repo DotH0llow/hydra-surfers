@@ -24,7 +24,6 @@ import { emptyRunStats, type RunStat, type RunStats, type RunSummary } from "./m
 import { SLOTS, buildEffects, equippedItem } from "./meta/equipment";
 import { dailyMode, modeById, seedForMode, type RunMode, type RunModeId } from "./meta/modes";
 import { accountLevel, recordDailyWin } from "./meta/progression";
-import { formatInt } from "./ui/dom";
 import type { CommunityState } from "./online";
 import { resolveRules } from "./game/rules";
 import type { SkillSystem } from "./game/skill/SkillSystem";
@@ -40,6 +39,10 @@ import { UiRoot } from "./ui/UiRoot";
 import type { ResultView, ScreenHost, ScreenName } from "./ui/screens/registry";
 import type { GhostRecorder, GhostRunner } from "./game/ghost/Ghost";
 import { decodeGhost, encodeGhost } from "./shared/ghost";
+import { claimBounties } from "./meta/progression";
+import { rankNews, rankSnapshot, rivalText, type RankSnapshot } from "./meta/social";
+import { describeReward } from "./meta/rewards";
+import type { BountyDef } from "./shared/content/season";
 
 export const DISPLAY = defineTuning("display", "Display", {
   dprCap: { default: 2, min: 0.5, max: 4, step: 0.25, label: "Device pixel ratio cap" },
@@ -181,32 +184,50 @@ export class App implements ScreenHost, DebugHost {
     return g && g.name && Number.isFinite(g.lead) ? { name: g.name, lead: g.lead } : null;
   }
 
-  communityProgress(): Promise<CommunityState | null> {
-    return this.online.community();
+  async communityProgress(): Promise<CommunityState | null> {
+    return (await this.online.community())?.active ?? null;
   }
 
   /**
-   * One line about the nearest rival: today's daily board if the player has run it, otherwise
-   * the season. In a group of ~40 people this line does more for "one more run" than any reward.
+   * What the tavern says on arrival: rewards the whole group earned (claimed here, once), who
+   * overtook the player since the last visit, and the rival line. Only the real league counts:
+   * the offline one would invent rivals.
    */
-  async rivalLine(): Promise<string | null> {
+  async tavernNews(): Promise<{ rival: string | null; notices: string[] }> {
+    const notices: string[] = [];
+    const community = await this.online.community().catch(() => null);
+    if (community) {
+      const granted: BountyDef[] = [];
+      this.store.update((p) => void granted.push(...claimBounties(p, community.bounties)));
+      for (const b of granted) notices.push(`Missão do Reino cumprida: ${b.name}! Todos recebem ${describeReward(b.reward)}.`);
+    }
+    let rival: string | null = null;
     try {
       const daily = dailyMode(Date.now());
-      let board = await this.online.getBoard("daily", daily.period);
-      let where = "na Corrida do Dia";
-      if (!board.me) {
-        board = await this.online.getBoard("season");
-        where = "na temporada";
+      const dailyKey = `daily:${daily.period}`;
+      const boards = [
+        { key: dailyKey, where: "na Corrida do Dia", board: await this.online.getBoard("daily", daily.period) },
+        { key: "season", where: "na temporada", board: await this.online.getBoard("season") },
+      ];
+      const last = this.store.get().social.lastRanks;
+      const seen: Record<string, RankSnapshot> = {};
+      for (const b of boards) {
+        if (b.board.provider !== "http") continue;
+        const news = rankNews(b.where, b.board, last[b.key]);
+        if (news) notices.push(news);
+        const snap = rankSnapshot(b.board);
+        if (snap) seen[b.key] = snap;
       }
-      const me = board.me;
-      if (!me) return null;
-      if (me.rank === 1) return `Você lidera ${where}. Todos estão atrás de você.`;
-      const above = board.entries.find((e) => e.rank === me.rank - 1);
-      if (!above) return `Você é #${me.rank} ${where}.`;
-      return `#${me.rank} ${where} · ${formatInt(above.score - me.score)} pontos atrás de ${above.name}`;
+      this.store.update((p) => {
+        for (const k of Object.keys(p.social.lastRanks)) if (k.startsWith("daily:") && k !== dailyKey) delete p.social.lastRanks[k];
+        Object.assign(p.social.lastRanks, seen);
+      });
+      const main = boards.find((b) => b.board.me) ?? null;
+      rival = main ? rivalText(main.where, main.board) : null;
     } catch {
-      return null;
+      /* offline: no rival line */
     }
+    return { rival, notices };
   }
 
   init(): void {

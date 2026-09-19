@@ -18,7 +18,7 @@
  *   PUT  /api/players/me              (auth) { name?, crest?, title?, level? }
  *   POST /api/runs                    (auth) run claim + extras        -> 201 { accepted, ranked, rank, previousRank, best, above }
  *   GET  /api/boards/:board?period=&metric=&player=                    -> { entries, me }
- *   GET  /api/community                                                -> { bounty: { id, value } | null }
+ *   GET  /api/community                                                -> { bounty: { id, value, goal } | null, bounties: [...] }
  *   GET  /api/houses?period=<week>                                     -> { period, standings: [{ house, value, players }] }
  *   GET  /api/ghosts/daily?period=&player=                             -> { playerId, name, score, data } | 404
  *
@@ -26,7 +26,7 @@
  * falls back to its offline league. Schema: worker/schema.sql.
  */
 import { dayIndex, dayStart } from "../src/shared/calendar";
-import { DAILY_ATTEMPTS, HOUSES, SEASON, TOURNAMENTS, WEEKLY_ATTEMPTS, activeBounty, houseById, houseScore, seasonStartDay } from "../src/shared/content/season";
+import { DAILY_ATTEMPTS, HOUSES, SEASON, TOURNAMENTS, WEEKLY_ATTEMPTS, activeBounty, houseById, houseScore, seasonStartDay, startedBounties, type BountyDef } from "../src/shared/content/season";
 import { LIMITS, checkRun, nameKey, validName, type RunClaim } from "../src/shared/plausibility";
 import { GHOST_MAX_CHARS, decodeGhost, ghostMatchesRun } from "../src/shared/ghost";
 
@@ -301,15 +301,25 @@ async function board(url: URL, boardId: string, db: D1Database): Promise<Respons
   return json({ board: boardId, period, metric, entries, me });
 }
 
-async function community(db: D1Database): Promise<Response> {
-  const today = dayIndex(Date.now());
-  const b = activeBounty(today);
-  if (!b) return json({ bounty: null });
+/** The group's total for a bounty over its window. */
+async function bountyValue(db: D1Database, b: BountyDef): Promise<number> {
   const from = dayStart(seasonStartDay() + b.startDayOffset);
   const to = dayStart(seasonStartDay() + b.startDayOffset + b.days);
   const col = b.stat === "coins" ? "SUM(coins)" : b.stat === "distance" ? "SUM(distance)" : b.stat === "contracts" ? "SUM(contracts)" : "COUNT(*)";
   const row = await db.prepare(`SELECT ${col} AS v FROM runs WHERE created_at >= ?1 AND created_at < ?2`).bind(from, to).first<{ v: number | null }>();
-  return json({ bounty: { id: b.id, value: Math.floor(row?.v ?? 0), goal: b.goal } });
+  return Math.floor(row?.v ?? 0);
+}
+
+/**
+ * Community bounties: the running one (for the progress bar) and every one started this season,
+ * finished ones included, so a player who comes back after the window still gets the reward.
+ */
+async function community(db: D1Database): Promise<Response> {
+  const today = dayIndex(Date.now());
+  const active = activeBounty(today);
+  const bounties = [];
+  for (const b of startedBounties(today)) bounties.push({ id: b.id, value: await bountyValue(db, b), goal: b.goal });
+  return json({ bounty: bounties.find((b) => b.id === active?.id) ?? null, bounties });
 }
 
 /**

@@ -362,6 +362,12 @@ export const BOUNTIES: BountyDef[] = [
   { id: "mil-contratos", name: "Mil Contratos", stat: "contracts", goal: 1000, startDayOffset: 20, days: 10, reward: { kind: "mount", id: "mount.ghosthorse" } },
 ];
 
+/** Every bounty of the season that has started by a day (finished ones included: their rewards are still owed). */
+export function startedBounties(dayIdx: number): BountyDef[] {
+  const day = dayIdx - seasonStartDay();
+  return BOUNTIES.filter((b) => day >= b.startDayOffset);
+}
+
 /** The bounty running on a season day, if any. */
 export function activeBounty(dayIdx: number): BountyDef | null {
   const day = seasonDay(dayIdx);

@@ -28,6 +28,7 @@ registerScreen("home", (host: ScreenHost) => {
   const keys = h("b");
   const mounts = h("b");
   const rival = h("div", { class: "tv-rival" });
+  const notices = h("div", { class: "tv-notices" });
   const modes = h("div", { class: "tv-modes" });
   const build = h("div", { class: "tv-build interactive", attrs: { "data-id": "build-summary" } });
   build.addEventListener("click", () => go("arsenal"));
@@ -94,6 +95,7 @@ registerScreen("home", (host: ScreenHost) => {
       h("div", { class: "chip chip-mount" }, h("span", { class: "chip-label", text: "MONTARIAS" }), mounts),
     ),
     welcome,
+    notices,
     rival,
     modes,
     build,
@@ -160,13 +162,18 @@ registerScreen("home", (host: ScreenHost) => {
       modes.textContent = "";
       for (const mode of availableModes(Date.now())) modes.append(modeCard(mode));
 
-      // rival line: fetched fresh each visit, silently absent offline
+      // rival line and news since the last visit: fetched fresh each visit, silently absent offline
       setText(rival, "");
       rival.hidden = true;
-      host.rivalLine().then((line) => {
-        if (!line) return;
-        setText(rival, line);
-        rival.hidden = false;
+      notices.textContent = "";
+      notices.hidden = true;
+      host.tavernNews().then(({ rival: line, notices: news }) => {
+        if (line) {
+          setText(rival, line);
+          rival.hidden = false;
+        }
+        for (const n of news) notices.append(h("div", { class: "tv-notice", text: n }));
+        notices.hidden = news.length === 0;
       });
     },
     hide() {},
