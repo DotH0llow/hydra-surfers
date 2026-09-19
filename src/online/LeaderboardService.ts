@@ -35,6 +35,18 @@ export interface ScoreSubmission {
   coins: number;
   distance: number;
   seed?: number;
+  /** Board the run counts for ("season" | "daily" | "weekly" | "event:<id>"). */
+  board?: string;
+  /** Period key of that board. */
+  period?: string;
+  /** False for practice runs after the ranked attempts are spent. */
+  ranked?: boolean;
+  /** Run time in seconds (server plausibility checks). */
+  duration?: number;
+  maxCombo?: number;
+  cleanDistance?: number;
+  /** What ended the run (balance metrics). */
+  cause?: string;
 }
 
 export interface SubmitResult {

@@ -18,8 +18,13 @@ import type { HoverboardSystem, HoverboardView } from "./game/hoverboard/Hoverbo
 import { equippedId } from "./meta/catalog";
 import type { PlayerAnimator } from "./game/player/PlayerAnimator";
 import type { PowerupSystem } from "./game/powerups/PowerupSystem";
-import { activeMissions, applyRunMissions, emptyRunStats, liveProgress, multiplierBonus, type ActiveMission, type MissionOutcome, type MissionStat, type RunStats } from "./meta/missions";
-import { applyRunResult } from "./meta/progression";
+import { activeMissions, applyRunMissions, liveProgress, multiplierBonus, type ActiveMission } from "./meta/missions";
+import { applyRun, attemptsUsed, recordBoardAttempt, recordBoardResult, type RunReport } from "./meta/progression";
+import { emptyRunStats, type RunStat, type RunStats, type RunSummary } from "./meta/stats";
+import { SLOTS, buildEffects, equippedItem } from "./meta/equipment";
+import { modeById, seedForMode, type RunMode, type RunModeId } from "./meta/modes";
+import { resolveRules } from "./game/rules";
+import type { SkillSystem } from "./game/skill/SkillSystem";
 import { MAX_REVIVES, reviveCost as keysForRevive, syncUpgrades } from "./meta/upgrades";
 import { createLeaderboardService, type LeaderboardService, type SubmitResult } from "./online";
 import { DEFAULT_SCENARIO, getScenario, listScenarios } from "./game/spawn/scenarios";
@@ -77,6 +82,12 @@ export class App implements ScreenHost, DebugHost {
   private height = 0;
   private dpr = 1;
   private runStats: RunStats = emptyRunStats();
+  /** Mode the current (or last) run was started in. */
+  currentMode: RunMode = modeById("normal", Date.now());
+  /** Whether the current run counts for its board (seeded modes have limited ranked attempts). */
+  ranked = true;
+  private runBiomes: string[] = [];
+  private runPowerups: string[] = [];
   private missions: ActiveMission[] = [];
   private readonly notified = new Set<string>();
   private missionTimer = 0;
@@ -201,14 +212,29 @@ export class App implements ScreenHost, DebugHost {
       console.warn(`[app] unknown scenario "${scenarioId}", using "${DEFAULT_SCENARIO}"`);
       scenario = getScenario(DEFAULT_SCENARIO)!;
     }
-    const seed = opts.seed ?? this.seedOverride ?? Math.floor(Math.random() * 0x7fffffff);
+    const now = Date.now();
+    const mode = modeById((opts.mode as RunModeId | undefined) ?? "normal", now);
+    this.currentMode = mode;
+    // Seeded boards allow a few ranked attempts per period. The attempt is spent at the START, so
+    // quitting a bad run cannot be used to retry for free; runs after that are practice.
+    if (mode.attempts > 0) {
+      this.ranked = attemptsUsed(this.store.get(), mode.board, mode.period) < mode.attempts;
+      if (this.ranked) this.store.update((p) => recordBoardAttempt(p, mode.board, mode.period));
+    } else {
+      this.ranked = true;
+    }
+    const seed = opts.seed ?? this.seedOverride ?? seedForMode(mode);
     const profile = this.store.get();
     this.run.state.multiplierBonus = multiplierBonus(profile);
-    this.run.start({ scenario, seed: seed >>> 0, skipIntro: !!opts.skipIntro });
+    // mode mutators first, then the equipped build: both are just effect lists over RunRules
+    const rules = resolveRules(mode.effects, buildEffects(profile));
+    this.run.start({ scenario, seed: seed >>> 0, skipIntro: !!opts.skipIntro, rules, biomes: mode.biomes, weather: mode.weather });
     const hb = this.hoverboard;
     if (hb) hb.charges = profile.currencies.mounts;
     this.runStats = emptyRunStats();
     this.runStats.runs = 1;
+    this.runBiomes = [];
+    this.runPowerups = [];
     this.missions = activeMissions(profile);
     this.notified.clear();
     this.missionTimer = 0;
@@ -281,22 +307,45 @@ export class App implements ScreenHost, DebugHost {
   private onRunEnd(r: RunResult): void {
     this.resumeCountdown = 0;
     this.releaseWakeLock();
-    this.runStats.distance = Math.floor(r.distance);
-    this.runStats.score = r.score;
-    const out: { best: number; newBest: boolean; missions: MissionOutcome | null } = { best: 0, newBest: false, missions: null };
+    const mode = this.currentMode;
+    const summary = this.buildSummary(r);
+    const prevBest = this.store.get().stats.bestScore;
+    const holder: { report: RunReport | null } = { report: null };
     this.store.update((p) => {
-      const o = applyRunResult(p, r);
-      out.best = o.best;
-      out.newBest = o.newBest;
-      out.missions = applyRunMissions(p, this.runStats);
+      holder.report = applyRun(p, summary, Date.now());
+      if (this.ranked && mode.attempts > 0) recordBoardResult(p, mode.board, mode.period, r.score, r.distance);
     });
-    this.lastResult = { ...r, newBest: out.newBest, best: out.best, missions: out.missions };
-    if (out.missions?.setAdvanced) this.toast(`Score multiplier x${1 + out.missions.multiplierBonus}!`, "mission");
+    const report = holder.report!;
+    this.lastResult = {
+      ...r,
+      newBest: r.score > prevBest,
+      best: this.store.get().stats.bestScore,
+      missions: report.missions,
+      report,
+      modeName: mode.name,
+      board: mode.board,
+      ranked: this.ranked,
+    };
+    if (report.missions?.setAdvanced) this.toast(`Multiplicador da guilda x${1 + report.missions.multiplierBonus}!`, "mission");
     if (r.score > 0 && r.reason !== "forced") {
-      this.lastSubmit = this.online.submitScore({ score: r.score, coins: r.coins, distance: r.distance, seed: r.seed }).catch((err) => {
-        console.warn("[online] score submit failed", err);
-        return null;
-      });
+      this.lastSubmit = this.online
+        .submitScore({
+          score: r.score,
+          coins: r.coins,
+          distance: r.distance,
+          seed: r.seed,
+          board: mode.board,
+          period: mode.period,
+          ranked: this.ranked,
+          duration: r.time,
+          maxCombo: summary.stats.maxCombo,
+          cleanDistance: summary.stats.cleanDistance,
+          cause: r.cause,
+        })
+        .catch((err) => {
+          console.warn("[online] score submit failed", err);
+          return null;
+        });
     }
     if (this.quitting) return;
     this.show("gameover");
@@ -316,20 +365,67 @@ export class App implements ScreenHost, DebugHost {
     bus.on("player:roll", () => this.bumpStat("rolls"));
     bus.on("player:laneChange", () => this.bumpStat("laneChanges"));
     bus.on("hoverboard:start", () => {
-      this.bumpStat("hoverboards");
+      this.bumpStat("mounts");
       this.store.update((p) => (p.currencies.mounts = Math.max(0, p.currencies.mounts - 1)));
     });
     bus.on("pickup:collect", ({ kind }) => {
       if (kind === "key") {
         this.store.update((p) => (p.currencies.keys += 1));
-        this.toast("+1 key", "key");
+        this.bumpStat("keys");
+        this.toast("+1 chave", "key");
       } else {
+        if (this.run.active && !this.runPowerups.includes(kind)) this.runPowerups.push(kind);
         this.bumpStat("powerups");
       }
     });
+    bus.on("run:crash", () => this.bumpStat("crashes"));
+    bus.on("run:stumble", () => this.bumpStat("stumbles"));
+    bus.on("biome:enter", ({ id, name, index }) => {
+      if (!this.run.active) return;
+      if (!this.runBiomes.includes(id)) this.runBiomes.push(id);
+      if (index > 0) this.toast(name, "biome");
+    });
   }
 
-  private bumpStat(stat: MissionStat): void {
+  /** Everything the meta layer needs about the run that just ended. */
+  private buildSummary(r: RunResult): RunSummary {
+    const s = this.runStats;
+    s.distance = r.distance;
+    s.score = r.score;
+    s.coins = r.coins;
+    s.revives = r.revives;
+    s.time = r.time;
+    s.biomes = this.runBiomes.length;
+    const skill = this.run.ctx.getSystem<SkillSystem>("skill")?.snapshot();
+    if (skill) {
+      s.obstacles = skill.dodges;
+      s.nearMisses = skill.near;
+      s.perfectDodges = skill.perfect;
+      s.maxCombo = skill.best;
+      s.cleanDistance = skill.clean;
+    }
+    const p = this.store.get();
+    const equipment: string[] = [];
+    for (const slot of SLOTS) {
+      const item = equippedItem(p, slot);
+      if (item) equipment.push(item.id);
+    }
+    return {
+      stats: s,
+      biomes: this.runBiomes.slice(),
+      equipment,
+      board: this.currentMode.board,
+      period: this.currentMode.period,
+      seed: r.seed,
+      reason: r.reason,
+      cause: r.cause,
+      noPowerups: this.runPowerups.length === 0,
+      coinsBanked: Math.round(r.coins * this.run.ctx.rules.coinValue),
+      powerupKinds: this.runPowerups.slice(),
+    };
+  }
+
+  private bumpStat(stat: RunStat): void {
     if (!this.run.active) return;
     this.runStats[stat] += 1;
     this.checkMissions();
@@ -394,6 +490,7 @@ export class App implements ScreenHost, DebugHost {
       }
     }
     if (this.run.state.mode === "running") {
+      if (this.run.state.speed > this.runStats.topSpeed) this.runStats.topSpeed = this.run.state.speed;
       this.missionTimer += frameDt;
       if (this.missionTimer >= FLOW.missionCheckSeconds) {
         this.missionTimer = 0;

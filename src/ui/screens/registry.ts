@@ -11,6 +11,8 @@ import type { PowerupSystem } from "../../game/powerups/PowerupSystem";
 import type { RunState, StartRunOptions } from "../../game/types";
 import type { Action } from "../../input/actions";
 import type { LeaderboardService, SubmitResult } from "../../online/LeaderboardService";
+import type { RunReport } from "../../meta/progression";
+import type { RunMode } from "../../meta/modes";
 import type brandJson from "../../brand/brand.json";
 
 export const SCREEN_NAMES = ["home", "run", "pause", "revive", "gameover", "shop", "missions", "leaderboard", "settings"] as const;
@@ -21,6 +23,12 @@ export interface ResultView extends RunResult {
   best: number;
   /** Missions completed by this run (null for runs that do not count). */
   missions?: { completed: string[]; setAdvanced: boolean; multiplierBonus: number } | null;
+  /** Everything the run earned (see meta/progression.ts). */
+  report?: RunReport;
+  modeName?: string;
+  board?: string;
+  /** False for practice runs after the ranked attempts of a seeded board are spent. */
+  ranked?: boolean;
 }
 
 export interface ScreenHost {
@@ -33,6 +41,8 @@ export interface ScreenHost {
   /** Score submission of the last run (resolves with the rank when the provider knows it). */
   readonly lastSubmit: Promise<SubmitResult | null> | null;
   readonly online: LeaderboardService;
+  /** Mode of the current or last run. */
+  readonly currentMode: RunMode;
   readonly powerups: PowerupSystem | undefined;
   readonly hoverboard: HoverboardSystem | undefined;
   /** Seconds left of the resume countdown after un-pausing (0 = none). */

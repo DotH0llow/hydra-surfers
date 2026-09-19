@@ -20,6 +20,15 @@ export interface ObstacleInstance {
    * surface checks skip retired instances.
    */
   retired: boolean;
+  /** Skill bookkeeping (see game/skill): run time it became a threat to the runner, or -1. */
+  threatT: number;
+  /** Run time it first reached the runner, or -1. */
+  reachT: number;
+  /** Tightest sideways / over-the-top clearance seen while alongside it (m). */
+  minLateral: number;
+  minVertical: number;
+  /** Already scored by the skill system. */
+  resolved: boolean;
   lane: number;
   /** Near edge along the track (smallest s). */
   s: number;
@@ -71,6 +80,11 @@ export class ObstacleSystem implements RunSystem {
     inst.speed = speed;
     inst.variant = 0;
     inst.retired = false;
+    inst.threatT = -1;
+    inst.reachT = -1;
+    inst.minLateral = Infinity;
+    inst.minVertical = Infinity;
+    inst.resolved = false;
     this.active.push(inst);
     return inst;
   }
@@ -157,6 +171,6 @@ export class ObstacleSystem implements RunSystem {
     view.visible = false;
     curveObject(view);
     this.ctx.scene.add(view);
-    return { uid: this.uid++, type, active: false, retired: false, lane: 0, s: 0, prevS: 0, length: 0, speed: 0, variant: 0, view };
+    return { uid: this.uid++, type, active: false, retired: false, threatT: -1, reachT: -1, minLateral: Infinity, minVertical: Infinity, resolved: false, lane: 0, s: 0, prevS: 0, length: 0, speed: 0, variant: 0, view };
   }
 }

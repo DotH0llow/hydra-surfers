@@ -8,8 +8,10 @@
  */
 import { Rng, hash32 } from "../core/rng";
 import type { Profile } from "../core/store";
+import { emptyRunStats, type RunStats } from "./stats";
 
-export type MissionStat = "coins" | "jumps" | "rolls" | "laneChanges" | "distance" | "score" | "hoverboards" | "powerups" | "runs";
+/** The counters a guild contract can ask for: a subset of the shared run stats. */
+export type MissionStat = "coins" | "jumps" | "rolls" | "laneChanges" | "distance" | "score" | "mounts" | "powerups" | "runs";
 
 export interface MissionDef {
   id: string;
@@ -22,26 +24,23 @@ export interface MissionDef {
 }
 
 export const MISSION_POOL: readonly MissionDef[] = [
-  { id: "coins-total", stat: "coins", perRun: false, base: 150, step: 100, label: (g) => `Collect ${g} coins` },
-  { id: "coins-run", stat: "coins", perRun: true, base: 60, step: 30, label: (g) => `Collect ${g} coins in one run` },
-  { id: "jumps", stat: "jumps", perRun: false, base: 25, step: 15, label: (g) => `Jump ${g} times` },
-  { id: "rolls", stat: "rolls", perRun: false, base: 20, step: 12, label: (g) => `Roll ${g} times` },
-  { id: "lanes", stat: "laneChanges", perRun: false, base: 60, step: 40, label: (g) => `Change lanes ${g} times` },
-  { id: "distance-run", stat: "distance", perRun: true, base: 500, step: 250, label: (g) => `Run ${g} m in one run` },
-  { id: "score-run", stat: "score", perRun: true, base: 1500, step: 1200, label: (g) => `Score ${g} in one run` },
-  { id: "boards", stat: "hoverboards", perRun: false, base: 1, step: 1, label: (g) => (g === 1 ? "Use a hoverboard" : `Use ${g} hoverboards`) },
-  { id: "powerups", stat: "powerups", perRun: false, base: 3, step: 2, label: (g) => `Collect ${g} power-ups` },
-  { id: "runs", stat: "runs", perRun: false, base: 3, step: 2, label: (g) => `Play ${g} runs` },
+  { id: "coins-total", stat: "coins", perRun: false, base: 150, step: 100, label: (g) => `Colete ${g} moedas` },
+  { id: "coins-run", stat: "coins", perRun: true, base: 60, step: 30, label: (g) => `Colete ${g} moedas numa corrida` },
+  { id: "jumps", stat: "jumps", perRun: false, base: 25, step: 15, label: (g) => `Salte ${g} vezes` },
+  { id: "rolls", stat: "rolls", perRun: false, base: 20, step: 12, label: (g) => `Role ${g} vezes` },
+  { id: "lanes", stat: "laneChanges", perRun: false, base: 60, step: 40, label: (g) => `Troque de pista ${g} vezes` },
+  { id: "distance-run", stat: "distance", perRun: true, base: 500, step: 250, label: (g) => `Corra ${g} m numa corrida` },
+  { id: "score-run", stat: "score", perRun: true, base: 1500, step: 1200, label: (g) => `Faça ${g} pontos numa corrida` },
+  { id: "mounts", stat: "mounts", perRun: false, base: 1, step: 1, label: (g) => (g === 1 ? "Use uma montaria" : `Use ${g} montarias`) },
+  { id: "powerups", stat: "powerups", perRun: false, base: 3, step: 2, label: (g) => `Colete ${g} poderes` },
+  { id: "runs", stat: "runs", perRun: false, base: 3, step: 2, label: (g) => `Jogue ${g} corridas` },
 ];
 
 export const MISSIONS_PER_SET = 3;
 export const MAX_MULTIPLIER_BONUS = 29;
 
-export type RunStats = Record<MissionStat, number>;
-
-export function emptyRunStats(): RunStats {
-  return { coins: 0, jumps: 0, rolls: 0, laneChanges: 0, distance: 0, score: 0, hoverboards: 0, powerups: 0, runs: 0 };
-}
+export type { RunStats };
+export { emptyRunStats };
 
 export interface ActiveMission {
   /** Unique per set: `<set>:<id>`. */

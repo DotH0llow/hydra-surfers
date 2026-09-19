@@ -65,6 +65,8 @@ export interface Profile {
     bestCleanDistance: number;
     bestSpeed: number;
     bestDailyScore: number;
+    /** Times the player finished first on a daily board. */
+    dailyWins: number;
     contractsDone: number;
     timePlayed: number;
     biomesVisited: string[];
@@ -148,6 +150,7 @@ export function defaultProfile(): Profile {
       bestCleanDistance: 0,
       bestSpeed: 0,
       bestDailyScore: 0,
+      dailyWins: 0,
       contractsDone: 0,
       timePlayed: 0,
       biomesVisited: [],

@@ -55,6 +55,8 @@ export interface StartRunOptions {
   scenario?: string;
   seed?: number;
   skipIntro?: boolean;
+  /** Run mode id ("normal" | "daily" | "weekly" | "event"); see meta/modes.ts. */
+  mode?: string;
 }
 
 export interface ResolvedRunOptions {

@@ -54,6 +54,7 @@ export interface StartRunArgs {
   scenario?: string;
   seed?: number;
   skipIntro?: boolean;
+  mode?: string;
 }
 
 /** Implemented by App. */
