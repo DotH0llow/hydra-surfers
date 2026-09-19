@@ -33,7 +33,7 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 
 ## Status
 
-78 assets in 5 parts. 0 have files and 78 still use procedural placeholders.
+79 assets in 5 parts. 0 have files and 79 still use procedural placeholders.
 
 ## core (`public/assets/manifest/core.json`)
 
@@ -185,6 +185,7 @@ Road, obstacles and collectibles.
 | `obstacle.wagon` | gltf | `models/obstacles/wagon.glb` | placeholder (`wagon`) | bottom-center, faces -z | <= 3000 tris |
 | `collect.coin` | gltf | `models/collectibles/coin.glb` | placeholder (`coin`) | center, faces -z | <= 300 tris |
 | `obstacle.beam` | gltf | `models/obstacles/beam.glb` | placeholder (`beam`) | bottom-center, faces -z | <= 800 tris |
+| `obstacle.hole` | gltf | `models/obstacles/hole.glb` | placeholder (`hole`) | bottom-center, faces -z | <= 800 tris |
 | `obstacle.cart.runaway` | gltf | `models/obstacles/cart_runaway.glb` | placeholder (`cart-runaway`) | bottom-center, faces -z | <= 3000 tris |
 | `obstacle.ramp` | gltf | `models/obstacles/ramp.glb` | placeholder (`ramp`) | bottom-center, faces -z | <= 600 tris |
 | `struct.gate` | gltf | `models/world/gatehouse.glb` | placeholder (`gate`) | bottom-center, faces -z | <= 2000 tris |
@@ -270,6 +271,14 @@ Road, obstacles and collectibles.
 - **Placeholder tint / palette hint:** `#9a6b3c`
 - **Placeholder:** `beam`
 - **Brief:** Trunk slung from a gallows frame over one lane: 2.3 m wide, trunk from 0.95 m to 3.25 m with open space underneath (roll under it; it cannot be jumped), 0.3 m deep. Origin bottom centre. <= 800 tris.
+
+### `obstacle.hole`
+
+- **File:** `public/assets/models/obstacles/hole.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#8a6238`
+- **Placeholder:** `hole`
+- **Brief:** Broken bridge section over one lane: plank decking 2.2 m wide and 5.6 m long lying flat on the road (<= 0.1 m high), with a 2.4 m gap in the middle showing dark water below. Only the gap is the obstacle (jump it). Origin bottom centre of the gap. <= 800 tris.
 
 ### `obstacle.cart.runaway`
 

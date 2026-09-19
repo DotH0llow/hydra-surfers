@@ -20,6 +20,8 @@ The game became a medieval runner for a private group of ~30-40 friends over a 3
 
 **Late game.** After top speed (~4 min, `late.*` tuning) the pressure keeps building through the layout: gaps tighten toward `late.gapMul`, each pattern's `lateWeight` shifts the mix toward the harder ones, and a late-only wagon slalom appears (the open lane moves one step per gate). Announced with a toast and horn ("O cerco se fecha!"). The fairness test covers it (8 km). Capture: `npm run capture -- --scenario late --devtools`.
 
+**Broken bridge.** New obstacle `hole` (jump only; falling in is a crash, rolling does not help) with a plank-deck placeholder, a `brokenBridge` pattern (first row spans the road, later rows leave one or two lanes whole, rows spaced to land and jump again, coins arc over a hole) and a "Ponte quebrada!" road event that favours it. Capture: `--scenario bridge`.
+
 **Ghosts.** Daily run only (the road must be the same). `GhostRecorder` samples the runner at 10 Hz of run time into preallocated arrays; a ranked daily run that beats the day's best uploads the track with the run (`src/shared/ghost.ts`, checked by the Worker against the run's time and distance, one ghost per player and day). `GhostRunner` replays the ghost of the player just above you (your own when you lead, the lowest before your first run) as a translucent runner with a HUD line; settings can turn it off. Dev: cheat `ghostDemo`, capture `--scenario ghost --devtools`.
 
 **Rain.** Rain weather and the storm event draw rain streaks (`src/game/world/Rain.ts`: one LineSegments draw call animated in the vertex shader, amount = draw range, `rain.*` tuning), driven by the mood's `rain` value. Capture: `npm run capture -- --scenario rain`.
@@ -30,8 +32,8 @@ The game became a medieval runner for a private group of ~30-40 friends over a 3
 
 ## Not done (deliberately left for a second stage)
 
-1. **Special moments and set pieces** (dragon pass, closing gate, broken bridge, rooftop sequences). New patterns are covered by the fairness test as soon as they use wagons or carts.
-2. **Local analytics dashboard.** Run `cause` is sent to the server (opt-out in settings) so balance can be read with SQL on `runs`; there is no in-game dashboard.
+1. **More set pieces**: dragon pass, closing gate. The broken bridge is done (below); the wagon ramp, gatehouse and late slalom are the other authored moments. New patterns are covered by the fairness test as soon as they use wagons or carts.
+2. **In-game analytics dashboard**: deliberately replaced by the ready-made queries in `docs/ONLINE.md` ("Reading the season"). Run `cause` is opt-out in the settings.
 
 ## Operating the season
 

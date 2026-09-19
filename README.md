@@ -18,8 +18,8 @@ Feito com **Vite + TypeScript + three.js** (sem engine), UI em DOM sobre o canva
 
 **A estrada**
 - Oito regiões que se sucedem na mesma corrida, cada uma com paleta, neblina, luz, cenário e padrões de obstáculo próprios. A ordem é uma função da seed: a mesma seed atravessa as mesmas regiões no mesmo metro.
-- Obstáculos: barricadas (salte ou role por baixo), vigas suspensas (só rolando), carroças de carga (desvie ou corra pelo teto), carroças desgovernadas vindo na sua direção, rampas de feno, portais da muralha.
-- Eventos curtos na estrada (feira, emboscada, carroças soltas, tempestade, neblina) e clima por corrida (entardecer, neblina, noite, chuva). Eles só mudam densidade, moedas e luz.
+- Obstáculos: barricadas (salte ou role por baixo), vigas suspensas (só rolando), carroças de carga (desvie ou corra pelo teto), carroças desgovernadas vindo na sua direção, rampas de feno, portais da muralha e pontes quebradas (só saltando).
+- Eventos curtos na estrada (feira, emboscada, carroças soltas, ponte quebrada, tempestade com chuva, neblina) e clima por corrida (entardecer, neblina, noite, chuva). Eles só mudam densidade, moedas e luz.
 - Poderes: Asas do Grifo (voo), Botas do Gigante, Amuleto Magnético, Bênção do Rei (2x), Égide (absorve um impacto), Ampulheta (desacelera a estrada sem tirar pontos).
 
 **Habilidade**

@@ -76,6 +76,19 @@ Re-running `worker/schema.sql` is always safe and creates tables added later (su
 
 The schema changed from the first version (one `scores` table) to `players` + `runs`. The first version was never deployed with a database, so there is nothing to migrate.
 
+## Reading the season (balance and retention)
+
+There is no dashboard on purpose: with ~40 players a handful of queries answer everything. Run them with `npx wrangler d1 execute hydra-surfers --remote --command "<query>"`. Times are stored in UTC milliseconds; `'-3 hours'` shifts them to the game's day (Brasília).
+
+| question | query |
+|---|---|
+| What ends runs, and how far people get before it | `SELECT cause, COUNT(*) AS runs, ROUND(AVG(distance)) AS avg_m FROM runs WHERE cause != '' GROUP BY cause ORDER BY runs DESC` |
+| Players and runs per day | `SELECT date(created_at / 1000, 'unixepoch', '-3 hours') AS day, COUNT(DISTINCT player_id) AS players, COUNT(*) AS runs FROM runs GROUP BY day ORDER BY day` |
+| How long runs last (does anyone reach the late game at ~4 min?) | `SELECT CAST(duration / 60 AS INT) AS minutes, COUNT(*) AS runs FROM runs GROUP BY minutes ORDER BY minutes` |
+| Daily run turnout | `SELECT period, COUNT(DISTINCT player_id) AS players, SUM(ranked) AS ranked_runs FROM runs WHERE board = 'daily' GROUP BY period ORDER BY period DESC LIMIT 14` |
+| Who has gone quiet | `SELECT p.name, datetime(MAX(r.created_at) / 1000, 'unixepoch', '-3 hours') AS last_run, COUNT(r.id) AS runs FROM players p LEFT JOIN runs r ON r.player_id = p.id GROUP BY p.id ORDER BY last_run` |
+| House sizes this week | `SELECT house, COUNT(DISTINCT player_id) AS players FROM runs WHERE board = 'weekly' AND period = '2026-W38' GROUP BY house` |
+
 ## Local end-to-end
 
 ```sh

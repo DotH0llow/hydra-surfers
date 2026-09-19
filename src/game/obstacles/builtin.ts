@@ -28,6 +28,12 @@ export const BARRICADE = defineTuning("obsBarricade", "Obstacle: barricade", {
   length: { default: 0.3, min: 0.05, max: 3, step: 0.01, label: "Collider depth", unit: "m" },
 });
 
+export const HOLE = defineTuning("obsHole", "Obstacle: hole in a broken bridge (jump only)", {
+  width: { default: 2.1, min: 0.5, max: 3, step: 0.05, label: "Collider width", unit: "m" },
+  length: { default: 2.4, min: 0.5, max: 8, step: 0.1, label: "Gap length", unit: "m" },
+  top: { default: 0.3, min: 0.05, max: 1, step: 0.01, label: "Collider top (feet below this fall in)", unit: "m" },
+});
+
 export const BEAM = defineTuning("obsBeam", "Obstacle: hanging beam (roll only)", {
   width: { default: 2.1, min: 0.5, max: 3, step: 0.05, label: "Collider width", unit: "m" },
   bottom: { default: 0.8, min: 0, max: 2, step: 0.01, label: "Collider bottom (roll clearance)", unit: "m" },
@@ -102,6 +108,20 @@ registerObstacleType({
   defaultLength: () => BEAM.length,
   collider(inst, out) {
     laneBox(inst, out, BEAM.width / 2, BEAM.bottom, BEAM.top);
+  },
+});
+
+/** A gap in the planks: only a jump clears it (rolling keeps the feet on the road). */
+registerObstacleType({
+  id: "hole",
+  label: "Buraco na ponte",
+  assetId: "obstacle.hole",
+  rules: { jumpable: true, rollable: false, solid: false },
+  poolSize: 12,
+  modelLength: 0,
+  defaultLength: () => HOLE.length,
+  collider(inst, out) {
+    laneBox(inst, out, HOLE.width / 2, -2, HOLE.top);
   },
 });
 

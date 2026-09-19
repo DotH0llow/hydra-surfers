@@ -54,6 +54,34 @@ registerMeshPlaceholder("barricade", ({ entry }) => {
   return g;
 });
 
+/**
+ * Hole in a broken bridge: a plank deck over one lane with the middle fallen through to dark water.
+ * The deck stays flat on the road (nothing to trip on); only the gap is the obstacle.
+ */
+registerMeshPlaceholder("hole", ({ entry }) => {
+  const g = new Group();
+  const plank = mat(entry.color ?? "#8a6238");
+  const dark = mat("#5b3f22");
+  const water = mat("#0f1c26", "#050a10");
+  const gap = 2.4;
+  const deck = 1.6;
+  // decking before and after the gap, planks across the lane
+  for (const side of [-1, 1]) {
+    const z0 = side * (gap / 2 + deck / 2);
+    box(g, 2.2, 0.08, deck, plank, 0, 0.04, z0);
+    for (let k = 0; k < 4; k++) box(g, 2.22, 0.02, 0.04, dark, 0, 0.09, z0 - deck / 2 + 0.2 + k * 0.4);
+    // splintered plank ends hanging over the edge
+    box(g, 0.34, 0.06, 0.5, plank, -0.6, 0.03, side * (gap / 2 - 0.15));
+    box(g, 0.28, 0.06, 0.34, plank, 0.55, 0.03, side * (gap / 2 - 0.1));
+  }
+  // the gap: dark water well below the deck line
+  box(g, 2.2, 0.02, gap, water, 0, 0.012, 0);
+  // two stringers still spanning the gap, too narrow to run on
+  box(g, 0.12, 0.1, gap + 0.4, dark, -1.04, 0.05, 0);
+  box(g, 0.12, 0.1, gap + 0.4, dark, 1.04, 0.05, 0);
+  return g;
+});
+
 /** Hanging beam: a trunk slung from a gallows frame. Open underneath, impossible to clear. */
 registerMeshPlaceholder("beam", ({ entry }) => {
   const g = new Group();

@@ -89,6 +89,16 @@
       "spec": "Trunk slung from a gallows frame over one lane: 2.3 m wide, trunk from 0.95 m to 3.25 m with open space underneath (roll under it; it cannot be jumped), 0.3 m deep. Origin bottom centre. <= 800 tris."
     },
     {
+      "id": "obstacle.hole",
+      "type": "gltf",
+      "src": "models/obstacles/hole.glb",
+      "placeholder": "hole",
+      "color": "#8a6238",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Broken bridge section over one lane: plank decking 2.2 m wide and 5.6 m long lying flat on the road (<= 0.1 m high), with a 2.4 m gap in the middle showing dark water below. Only the gap is the obstacle (jump it). Origin bottom centre of the gap. <= 800 tris."
+    },
+    {
       "id": "obstacle.cart.runaway",
       "type": "gltf",
       "src": "models/obstacles/cart_runaway.glb",

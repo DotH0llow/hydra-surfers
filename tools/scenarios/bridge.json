@@ -1,0 +1,15 @@
+{
+  "description": "Broken bridges only (tuning forces the pattern from the start) in god mode, to check the hole placeholder and the rows of gaps.",
+  "query": "",
+  "seed": 5,
+  "setup": [
+    ["setTuning", "spawnPatterns.bridgeMinDifficulty", 0],
+    ["setTuning", "spawnWeights.brokenBridge", 40],
+    ["setTuning", "spawn.safeStart", 20],
+    ["startRun", { "seed": 5, "skipIntro": true }],
+    ["cheat", "god", true]
+  ],
+  "timeline": [],
+  "seconds": 5,
+  "fps": 2
+}

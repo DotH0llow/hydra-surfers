@@ -5,7 +5,7 @@
 import { defineTuning } from "../../core/tuning";
 import type { Rng } from "../../core/rng";
 import { COINS } from "../collectibles/CoinSystem";
-import { GATE, LANTERN_OUTER, LANTERN_WARN, RAMP, RUNAWAY, WAGON } from "../obstacles/builtin";
+import { GATE, HOLE, LANTERN_OUTER, LANTERN_WARN, RAMP, RUNAWAY, WAGON } from "../obstacles/builtin";
 import type { ObstacleInstance } from "../obstacles/ObstacleSystem";
 import type { PickupKind } from "../powerups/PickupSystem";
 
@@ -50,6 +50,7 @@ export const SPAWN_WEIGHTS = defineTuning("spawnWeights", "Spawn pattern weights
   runawayCart: { default: 1.4, min: 0, max: 10, step: 0.1, label: "Runaway cart" },
   gatehouse: { default: 1.2, min: 0, max: 10, step: 0.1, label: "Gatehouse with obstacles" },
   wagonSlalom: { default: 1.4, min: 0, max: 10, step: 0.1, label: "Wagon slalom (late game)" },
+  brokenBridge: { default: 0.8, min: 0, max: 10, step: 0.1, label: "Broken bridge (holes to jump)" },
 });
 
 export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern details", {
@@ -68,6 +69,8 @@ export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern detai
   runawayCartMinDifficulty: { default: 0.2, min: 0, max: 1, step: 0.01, label: "Runaway cart min difficulty" },
   gatehouseMinDifficulty: { default: 0.05, min: 0, max: 1, step: 0.01, label: "Gatehouse min difficulty" },
   signalChance: { default: 0.35, min: 0, max: 1, step: 0.01, label: "Chance of a lantern post beside a wagon" },
+  bridgeMinDifficulty: { default: 0.15, min: 0, max: 1, step: 0.01, label: "Broken bridge min difficulty" },
+  bridgeRowSeconds: { default: 1.05, min: 0.6, max: 3, step: 0.05, label: "Broken bridge: time between rows of holes", unit: "s", help: "Enough to land and jump again" },
   slalomMinLate: { default: 0.05, min: 0, max: 1, step: 0.01, label: "Wagon slalom: min late-game pressure" },
   slalomGapSeconds: { default: 0.45, min: 0.2, max: 2, step: 0.05, label: "Wagon slalom: gap between gates", unit: "s", help: "Time to move one lane (tests/unit/fairness.test.ts)" },
 });
@@ -346,5 +349,38 @@ registerPattern({
       open = open !== 0 ? 0 : api.rng.chance(0.5) ? -1 : 1;
     }
     return at - gap - s;
+  },
+});
+
+/**
+ * A broken bridge: the first row of holes spans the road (everyone jumps), later rows leave one
+ * or two lanes whole, spaced so a runner can land and jump again.
+ */
+registerPattern({
+  id: "brokenBridge",
+  label: "Broken bridge",
+  get minDifficulty() {
+    return SPAWN_PATTERNS.bridgeMinDifficulty;
+  },
+  lateWeight: 1.2,
+  weight: () => SPAWN_WEIGHTS.brokenBridge,
+  place(api, s) {
+    const rows = api.rng.int(2, 4);
+    const spacing = Math.max(10, api.speed * SPAWN_PATTERNS.bridgeRowSeconds);
+    for (let r = 0; r < rows; r++) {
+      const at = s + r * spacing;
+      // row 0 breaks the whole road; later rows hold one hole at `pick`, or two leaving `pick` whole
+      const pick = api.rng.int(-1, 1);
+      const twoHoles = api.rng.chance(0.45);
+      for (let l = -1; l <= 1; l++) {
+        if (r === 0 || (twoHoles ? l !== pick : l === pick)) api.obstacle("hole", l, at);
+      }
+      // coins arc over a hole: the jump pays
+      if (r > 0 && api.rng.chance(SPAWN_PATTERNS.coinChance)) {
+        const lane = twoHoles ? otherLane(api.rng, pick) : pick;
+        api.coinArc(lane, at + HOLE.length / 2, SPAWN_PATTERNS.coinArcCount, SPAWN_PATTERNS.coinArcSpacing, SPAWN_PATTERNS.coinArcPeak);
+      }
+    }
+    return (rows - 1) * spacing + HOLE.length;
   },
 });
