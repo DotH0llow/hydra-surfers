@@ -20,9 +20,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (273 fields in 42 groups)
+## Registry (279 fields in 43 groups)
 
-[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Late game](#late) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
+[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Late game](#late) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Rain](#rain) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
 
 <a id="lanes"></a>
 ### Lanes (`lanes`)
@@ -307,6 +307,18 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `skill.comboCap` | Combo steps that still count | 40 | 1 | 200 | 1 |  |
 | `skill.perfectStreakGoal` | Perfect dodges in a row for the dagger bonus | 5 | 2 | 20 | 1 |  |
 | `skill.perfectStreakScore` | Dagger streak bonus | 250 | 0 | 2000 | 10 |  |
+
+<a id="rain"></a>
+### Rain (`rain`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `rain.streaks` | Streaks at full rain (restart the page) | 700 | 0 | 2000 | 50 |  |
+| `rain.fallSpeed` | Fall speed | 14 | 1 | 60 | 0.5 | m/s |
+| `rain.length` | Streak length at rest | 0.9 | 0.1 | 4 | 0.05 | m |
+| `rain.lengthPerSpeed` | Extra length per m/s of run speed | 0.035 | 0 | 0.2 | 0.005 | m |
+| `rain.opacity` | Opacity | 0.4 | 0 | 1 | 0.01 |  |
+| `rain.fadeSeconds` | Fade in/out | 1.5 | 0.05 | 10 | 0.05 | s |
 
 <a id="atmosphere"></a>
 ### Atmosphere & light (`atmosphere`)

@@ -34,6 +34,8 @@ export interface Mood {
   /** Colour the sky and fog lean toward, and how much (0..1). */
   tint: string;
   tintAmount: number;
+  /** Rain streaks, 0..1 (see Rain.ts); omitted = dry. */
+  rain?: number;
 }
 
 export interface RunEventDef {
@@ -51,7 +53,7 @@ export const RUN_EVENTS: readonly RunEventDef[] = [
   { id: "feira", name: "Dia de Feira!", weight: 1.2, coinMul: 2.2, gapMul: 0.85, patternWeights: { barricadeSingle: 1.6, barricadeDouble: 1.4, coinRun: 1.8 } },
   { id: "emboscada", name: "Emboscada!", weight: 1, gapMul: 0.72, patternWeights: { beamSingle: 1.6, barricadeMixed: 1.8, barricadeRow: 1.4 } },
   { id: "carrocas", name: "Carroças soltas!", weight: 0.9, patternWeights: { runawayCart: 4, wagonDouble: 0.6 } },
-  { id: "tempestade", name: "Tempestade", weight: 0.8, gapMul: 1.1, mood: { light: 0.55, fog: 0.5, tint: "#3d4a5c", tintAmount: 0.55 } },
+  { id: "tempestade", name: "Tempestade", weight: 0.8, gapMul: 1.1, mood: { light: 0.55, fog: 0.5, tint: "#3d4a5c", tintAmount: 0.55, rain: 1 } },
   { id: "neblina", name: "Neblina", weight: 0.8, mood: { light: 0.85, fog: 0.35, tint: "#c8cfd6", tintAmount: 0.6 } },
 ];
 
@@ -60,7 +62,7 @@ export const WEATHER: Record<string, Mood> = {
   sunset: { light: 0.85, fog: 0.9, tint: "#e8925a", tintAmount: 0.45 },
   fog: { light: 0.9, fog: 0.45, tint: "#c8cfd6", tintAmount: 0.55 },
   night: { light: 0.35, fog: 0.7, tint: "#1a2238", tintAmount: 0.8 },
-  rain: { light: 0.6, fog: 0.55, tint: "#4a5566", tintAmount: 0.5 },
+  rain: { light: 0.6, fog: 0.55, tint: "#4a5566", tintAmount: 0.5, rain: 0.6 },
 };
 
 const RANDOM_WEATHER = ["sunset", "fog", "night", "rain"] as const;

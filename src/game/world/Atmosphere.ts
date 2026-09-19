@@ -13,6 +13,7 @@ import type { RunContext, RunSystem } from "../types";
 import { BIOMES, type BiomeDef } from "./biomes";
 import type { BiomeSystem } from "./BiomeSystem";
 import type { EventDirector, Mood } from "./events";
+import { Rain } from "./Rain";
 
 export const ATMOS = defineTuning("atmosphere", "Atmosphere & light", {
   fogNearScale: { default: 1, min: 0.2, max: 3, step: 0.05, label: "Fog start x (region value)" },
@@ -34,6 +35,7 @@ export class Atmosphere implements RunSystem {
   private readonly fog = new Fog(new Color(BIOMES[0].fog), 60, 200);
   private readonly hemi = new HemisphereLight(0xdfefff, 0x5d5a52, 1.7);
   private readonly sun = new DirectionalLight(0xfff1dc, 2.2);
+  private readonly rain = new Rain();
   private biomes: BiomeSystem | undefined;
   private events: EventDirector | undefined;
 
@@ -42,7 +44,11 @@ export class Atmosphere implements RunSystem {
     this.events = ctx.getSystem<EventDirector>("events");
     ctx.scene.background = this.sky;
     ctx.scene.fog = this.fog;
-    ctx.scene.add(this.hemi, this.sun, this.sun.target);
+    ctx.scene.add(this.hemi, this.sun, this.sun.target, this.rain.mesh);
+  }
+
+  reset(): void {
+    this.rain.reset();
   }
 
   render(ctx: RunContext): void {
@@ -64,8 +70,12 @@ export class Atmosphere implements RunSystem {
     this.sun.intensity = mix(from.sunIntensity, to.sunIntensity, t) * ATMOS.sunScale;
 
     // weather for the whole run, then any event the runner is inside right now
-    this.applyMood(this.events?.weather);
-    this.applyMood(this.events?.at(ctx.renderDistance)?.mood);
+    const weather = this.events?.weather;
+    const event = this.events?.at(ctx.renderDistance)?.mood;
+    this.applyMood(weather);
+    this.applyMood(event);
+    const st = ctx.state;
+    this.rain.update(Math.max(weather?.rain ?? 0, event?.rain ?? 0), st.time, ctx.renderDistance, st.mode === "running" ? st.speed : 0);
 
     const el = (ATMOS.sunElevation * Math.PI) / 180;
     const az = (ATMOS.sunAzimuth * Math.PI) / 180;

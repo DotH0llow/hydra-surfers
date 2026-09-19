@@ -1,0 +1,13 @@
+{
+  "description": "A rainy run (seed 9 rolls rain weather) at speed, to check the rain streaks, their lean and their density.",
+  "query": "",
+  "seed": 9,
+  "setup": [
+    ["startRun", { "seed": 9, "skipIntro": true }],
+    ["cheat", "god", true],
+    ["cheat", "setSpeed", 22]
+  ],
+  "timeline": [],
+  "seconds": 4,
+  "fps": 1
+}
