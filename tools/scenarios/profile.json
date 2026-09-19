@@ -1,0 +1,9 @@
+{
+  "description": "The crest/profile screen on a fresh profile (name, title, house, crest editor, records).",
+  "query": "",
+  "seed": 1,
+  "setup": [["goto", "profile"]],
+  "timeline": [],
+  "seconds": 1,
+  "fps": 1
+}

@@ -436,3 +436,37 @@ export const PRICES = {
   characterRare: 9000,
   mountSkin: 2500,
 } as const;
+
+// ---------------------------------------------------------------------------- houses
+
+/**
+ * Houses: an optional team for the group. A house's weekly standing is the average of its
+ * `HOUSE_TOP_N` best players on the weekly challenge, with missing places counting as zero — so a
+ * bigger house cannot win on headcount, and a house of a few stars still has to fill its five.
+ * Each run carries the house it was run for; switching house only moves future runs.
+ */
+export interface HouseDef {
+  id: string;
+  name: string;
+  motto: string;
+  color: string;
+}
+
+export const HOUSES: HouseDef[] = [
+  { id: "leao", name: "Casa do Leão", motto: "Coragem antes de tudo.", color: "#c9a227" },
+  { id: "corvo", name: "Casa do Corvo", motto: "Quem vê primeiro, vence.", color: "#4a5170" },
+  { id: "cervo", name: "Casa do Cervo", motto: "Leve e incansável.", color: "#5b7a3a" },
+  { id: "serpente", name: "Casa da Serpente", motto: "Paciência também é veneno.", color: "#8d3b46" },
+];
+
+export const HOUSE_TOP_N = 5;
+
+export function houseById(id: string): HouseDef | undefined {
+  return HOUSES.find((h) => h.id === id);
+}
+
+/** A house's standing from its players' best scores: the mean of the top N, missing places as 0. */
+export function houseScore(bests: readonly number[]): number {
+  const top = [...bests].sort((a, b) => b - a).slice(0, HOUSE_TOP_N);
+  return Math.round(top.reduce((sum, v) => sum + v, 0) / HOUSE_TOP_N);
+}

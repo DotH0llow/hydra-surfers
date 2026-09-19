@@ -153,6 +153,28 @@ describe("worker /api", () => {
     expect(attemptLimit("daily")).toBe(DAILY_ATTEMPTS);
   });
 
+  it("ranks houses by the mean of their five best weekly players, ignoring headcount", async () => {
+    const week = weekKey(NOW);
+    const weekly = { board: "weekly", period: week, seed: seedFor("weekly", week) };
+    // the lion has six players (only the best five count), the raven one star
+    for (let i = 0; i < 6; i++) {
+      const { token } = await register(`Leao ${i}`);
+      await post("/api/runs", run({ ...weekly, score: 1000 + i * 100, house: "leao" }), token);
+    }
+    const star = await register("Estrela");
+    await post("/api/runs", run({ ...weekly, score: 4000, house: "corvo" }), star.token);
+    await post("/api/runs", run({ ...weekly, score: 3000, house: "corvo" }), star.token);
+    // an unknown house is stored as none
+    const other = await register("Sem Casa");
+    await post("/api/runs", run({ ...weekly, score: 9000, house: "dragao" }), other.token);
+
+    const body = (await (await call(`/api/houses?period=${week}`)).json()) as { standings: Array<{ house: string; value: number; players: number }> };
+    expect(body.standings.map((s) => s.house)).toEqual(["leao", "corvo", "cervo", "serpente"]);
+    expect(body.standings[0]).toEqual({ house: "leao", value: (1500 + 1400 + 1300 + 1200 + 1100) / 5, players: 6 });
+    expect(body.standings[1]).toEqual({ house: "corvo", value: 4000 / 5, players: 1 });
+    expect((await call("/api/houses?period=nope")).status).toBe(400);
+  });
+
   it("rejects implausible runs and stale periods", async () => {
     const { token } = await register("Fabi");
     expect((await post("/api/runs", run({ distance: 40000, duration: 60 }), token)).status).toBe(422);

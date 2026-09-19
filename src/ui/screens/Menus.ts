@@ -1,4 +1,7 @@
 /** Menu screens reached from the tavern: the market, the book of champions and the settings. */
+import { HOUSE_TOP_N, houseById } from "../../shared/content/season";
+import { weekKey } from "../../shared/calendar";
+import type { HouseStanding } from "../../online/LeaderboardService";
 import { KEY_PRICE, MAX_UPGRADE_LEVEL, MOUNT_PRICE, UPGRADE_IDS, buyKey, buyMount, buyUpgrade, readUpgrades, upgradeCost, type UpgradeId } from "../../meta/upgrades";
 import { availableModes } from "../../meta/modes";
 import { findTitle } from "../../meta/titles";
@@ -141,12 +144,38 @@ registerScreen("leaderboard", (host) => {
     setText(foot, b.provider === "mock" ? "Liga offline: os jogadores reais aparecem quando o servidor estiver ligado." : "");
   };
 
+  const renderHouses = (standings: HouseStanding[] | null) => {
+    list.textContent = "";
+    if (!standings) {
+      setText(status, "As casas aparecem quando o servidor estiver ligado.");
+      return;
+    }
+    setText(status, "");
+    const mine = host.store.get().social.faction;
+    standings.forEach((s, i) => {
+      const house = houseById(s.house);
+      if (!house) return;
+      const badge = h("span", { class: "lb-house", attrs: { style: `background:${house.color}` } });
+      list.append(
+        h(
+          "div",
+          { class: `lb-row${s.house === mine ? " me" : ""}` },
+          h("span", { class: "rank", text: `#${i + 1}` }),
+          badge,
+          h("span", { class: "name" }, h("b", { text: house.name }), h("small", { text: `${s.players} ${s.players === 1 ? "jogador" : "jogadores"}` })),
+          h("span", { class: "pts", text: formatInt(s.value) }),
+        ),
+      );
+    });
+    setText(foot, `Média dos ${HOUSE_TOP_N} melhores de cada casa no Desafio Semanal; lugares vazios contam zero.${mine ? "" : " Escolha sua casa no Brasão."}`);
+  };
+
   const load = () => {
     const t = ++token;
     const now = Date.now();
     const modes = availableModes(now);
     tabs.textContent = "";
-    for (const [id, label] of [["daily", "Diário"], ["weekly", "Semanal"], ["season", "Temporada"], ...modes.filter((m) => m.id === "event").map((m) => [m.board, m.name])]) {
+    for (const [id, label] of [["daily", "Diário"], ["weekly", "Semanal"], ["season", "Temporada"], ...modes.filter((m) => m.id === "event").map((m) => [m.board, m.name]), ["houses", "Casas"]]) {
       const b = button(host, `tab-${id}`, label, () => {
         boardId = id;
         if (id !== "season") metric = "score";
@@ -165,9 +194,16 @@ registerScreen("leaderboard", (host) => {
       b.classList.toggle("active", m === metric);
       metricTabs.append(b);
     }
-    const mode = modes.find((m) => m.board === boardId);
     list.textContent = "";
     setText(status, "Consultando o livro…");
+    setText(foot, "");
+    if (boardId === "houses") {
+      host.online.houses(weekKey(now)).then((s) => {
+        if (t === token) renderHouses(s);
+      });
+      return;
+    }
+    const mode = modes.find((m) => m.board === boardId);
     host.online
       .getBoard(boardId, mode?.period ?? "", metric)
       .then((b) => {

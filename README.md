@@ -24,6 +24,8 @@ Feito com **Vite + TypeScript + three.js** (sem engine), UI em DOM sobre o canva
 
 **Habilidade**
 - Combo que multiplica a pontuação; raspar perto de um obstáculo e esquivar no último instante (esquiva perfeita) dão pontos e combo.
+- Depois de uns 4 minutos o cerco se fecha: intervalos mais curtos, padrões mais difíceis e zigue-zagues de carroças.
+- Nenhuma estrada é impossível: um teste percorre milhares de estradas geradas (todos os desafios, com e sem Ampulheta) e prova que sempre há passagem.
 - Sequência sem colisão, velocidade máxima, maior combo: tudo vira recorde pessoal.
 
 **Por que voltar todo dia**
@@ -42,6 +44,7 @@ Feito com **Vite + TypeScript + three.js** (sem engine), UI em DOM sobre o canva
 - Livro dos Campeões: Diário, Semanal, Temporada e Torneio, e recordes de distância, moedas, combo e sequência limpa.
 - Linha de rival na taverna ("#4 no Diário · 230 pontos atrás de Marina") e movimento de posição no fim da corrida.
 - Missão do Reino: uma meta coletiva (ex.: 150.000 moedas somadas) com recompensa para todos.
+- **Casas** (Leão, Corvo, Cervo, Serpente): escolha a sua no Brasão. A casa da semana é a de melhor média entre seus 5 melhores no Desafio Semanal; ter mais gente não ganha sozinho.
 
 ## Desenvolver
 

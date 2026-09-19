@@ -29,6 +29,8 @@ Boards use the same ids as the run modes (`src/meta/modes.ts`):
 
 Any board can be ranked by `score`, `distance`, `coins`, `combo` or `clean` (longest stretch without contact); the UI offers the record metrics on the season board.
 
+**Houses.** A player may pick one of four houses (`HOUSES` in `src/shared/content/season.ts`) in the crest screen. Every run carries the house it was run for; `/api/houses?period=<week>` ranks the houses by the mean of their five best players on that week's challenge, with empty places counting as zero, so headcount does not win. Switching house only moves future runs.
+
 Seeded boards give a limited number of **ranked attempts** per period (daily 3, weekly 5, tournaments per their definition). The client spends the attempt when the run starts; the server also counts them and stores extra runs as practice (`ranked = 0`).
 
 ## Plausibility (proportional anti-cheat)
@@ -52,6 +54,7 @@ This keeps obviously fabricated numbers off the boards without an arms race. Run
 | `/api/runs` | POST run claim | token | `201 { accepted, ranked, rank, previousRank, best, above: { name, value } \| null }` |
 | `/api/boards/:board?period=&metric=&player=` | GET | | `{ board, period, metric, entries: [{ rank, playerId, name, crest, title, level, value }], me }` |
 | `/api/community` | GET | | `{ bounty: { id, value, goal } \| null }` (sum over the bounty window) |
+| `/api/houses?period=` | GET | | `{ period, standings: [{ house, value, players }] }`, best house first |
 
 Without a D1 binding every data route answers `503 {"error":"db_unavailable","fallback":"mock"}`.
 
@@ -65,6 +68,8 @@ Tests: `worker/index.test.ts` runs the real `schema.sql` and every query through
 4. `npx wrangler d1 execute hydra-surfers --remote --file=worker/schema.sql` (idempotent).
 5. Deploy (`npm run deploy` or push to `main`).
 6. Check `https://<your-worker>/api/health` shows `"db": true`.
+
+A database created before houses existed needs one migration: `npx wrangler d1 execute hydra-surfers --remote --file=worker/migrations/0002_houses.sql` (a database created from the current `schema.sql` already has the column; running the migration there fails harmlessly with "duplicate column").
 
 The schema changed from the first version (one `scores` table) to `players` + `runs`. The first version was never deployed with a database, so there is nothing to migrate.
 

@@ -19,12 +19,13 @@
  *   POST /api/runs                    (auth) run claim + extras        -> 201 { accepted, ranked, rank, previousRank, best, above }
  *   GET  /api/boards/:board?period=&metric=&player=                    -> { entries, me }
  *   GET  /api/community                                                -> { bounty: { id, value } | null }
+ *   GET  /api/houses?period=<week>                                     -> { period, standings: [{ house, value, players }] }
  *
  * Without a D1 binding every data route answers `503 {"error":"db_unavailable"}` and the client
  * falls back to its offline league. Schema: worker/schema.sql.
  */
 import { dayIndex, dayStart } from "../src/shared/calendar";
-import { DAILY_ATTEMPTS, SEASON, TOURNAMENTS, WEEKLY_ATTEMPTS, activeBounty, seasonStartDay } from "../src/shared/content/season";
+import { DAILY_ATTEMPTS, HOUSES, SEASON, TOURNAMENTS, WEEKLY_ATTEMPTS, activeBounty, houseById, houseScore, seasonStartDay } from "../src/shared/content/season";
 import { LIMITS, checkRun, nameKey, validName, type RunClaim } from "../src/shared/plausibility";
 
 export interface Env {
@@ -211,7 +212,7 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
   const clampInt = (v: unknown, max: number) => Math.max(0, Math.min(max, Math.floor(Number.isFinite(num(v)) ? num(v) : 0)));
   await db
     .prepare(
-      "INSERT INTO runs (player_id, season, board, period, seed, score, distance, coins, duration, max_combo, clean, contracts, cause, ranked, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
+      "INSERT INTO runs (player_id, season, board, period, seed, score, distance, coins, duration, max_combo, clean, contracts, cause, ranked, house, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
     )
     .bind(
       me.id,
@@ -228,6 +229,7 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
       clampInt(body.contracts, 50),
       typeof body.cause === "string" ? body.cause.slice(0, 24) : "",
       ranked,
+      typeof body.house === "string" && houseById(body.house) ? body.house : "",
       now,
     )
     .run();
@@ -287,6 +289,20 @@ async function community(db: D1Database): Promise<Response> {
   return json({ bounty: { id: b.id, value: Math.floor(row?.v ?? 0), goal: b.goal } });
 }
 
+/** Weekly house standings: each house's players' best ranked weekly score, top N averaged. */
+async function houses(url: URL, db: D1Database): Promise<Response> {
+  const period = url.searchParams.get("period") ?? "";
+  if (!/^\d{4}-W\d{2}$/.test(period)) return json({ error: "bad_period" }, 400);
+  const rows = await db
+    .prepare("SELECT house, player_id, MAX(score) AS v FROM runs WHERE board = 'weekly' AND period = ?1 AND ranked = 1 AND house != '' GROUP BY house, player_id")
+    .bind(period)
+    .all<{ house: string; player_id: string; v: number }>();
+  const bests = new Map<string, number[]>(HOUSES.map((h) => [h.id, []]));
+  for (const r of rows.results ?? []) bests.get(r.house)?.push(r.v);
+  const standings = HOUSES.map((h) => ({ house: h.id, value: houseScore(bests.get(h.id)!), players: bests.get(h.id)!.length })).sort((a, b) => b.value - a.value);
+  return json({ period, standings });
+}
+
 // ---------------------------------------------------------------------------- router
 
 export async function handleApi(request: Request, env: Env): Promise<Response> {
@@ -299,7 +315,7 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
       if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });
       return json({ ok: true, db: !!env.DB, version: env.APP_VERSION ?? API_VERSION, time: new Date().toISOString() });
     }
-    const known = path === "/api/players" || path === "/api/players/me" || path === "/api/runs" || path === "/api/community" || path.startsWith("/api/boards/");
+    const known = path === "/api/players" || path === "/api/players/me" || path === "/api/runs" || path === "/api/community" || path === "/api/houses" || path.startsWith("/api/boards/");
     if (!known) return json({ error: "not_found", path }, 404);
     const db = env.DB;
     if (!db) return dbUnavailable();
@@ -311,6 +327,10 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
     if (path === "/api/community") {
       if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });
       return await community(db);
+    }
+    if (path === "/api/houses") {
+      if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });
+      return await houses(url, db);
     }
     if (path.startsWith("/api/boards/")) {
       if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });

@@ -902,6 +902,13 @@ body {
   background: rgba(141, 59, 70, 0.85);
   color: #fff;
 }
+.lb-house {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 194, 90, 0.6);
+  flex: none;
+}
 .tv-welcome {
   width: 100%;
   display: flex;

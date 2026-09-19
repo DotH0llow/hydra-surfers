@@ -5,6 +5,7 @@
  * Every mutation goes through the pure meta functions inside `store.update`, the same way the shop
  * already did, so these screens hold no rules of their own.
  */
+import { HOUSES, HOUSE_TOP_N, houseById } from "../../shared/content/season";
 import { SEASON, activeBounty, seasonLevel } from "../../shared/content/season";
 import { dayIndex, dayKey } from "../../shared/calendar";
 import { ACHIEVEMENTS, achievementProgress, isUnlocked } from "../../meta/achievements";
@@ -234,6 +235,16 @@ registerScreen("profile", (host) => {
   });
   const titleSelect = h("select", { class: "interactive", attrs: { "data-id": "title-select", "aria-label": "Título" } });
   titleSelect.addEventListener("change", () => host.store.update((p) => (p.equipped.title = titleSelect.value)));
+  const houseSelect = h("select", { class: "interactive", attrs: { "data-id": "house-select", "aria-label": "Casa" } });
+  const houseNote = h("small", { class: "note" });
+  houseSelect.addEventListener("change", () => {
+    host.store.update((p) => (p.social.faction = houseSelect.value));
+    renderHouseNote();
+  });
+  const renderHouseNote = () => {
+    const house = houseById(host.store.get().social.faction);
+    setText(houseNote, house ? `"${house.motto}" Os ${HOUSE_TOP_N} melhores da casa no Desafio Semanal contam para ela.` : "Escolha uma casa para somar pontos por ela no Desafio Semanal.");
+  };
   const editor = h("div", { class: "crest-editor" });
   const records = h("div", { class: "records" });
   const achievements = h("div", { class: "achievements" });
@@ -271,6 +282,15 @@ registerScreen("profile", (host) => {
       if (p.equipped.title === t.id) o.setAttribute("selected", "");
       titleSelect.append(o);
     }
+
+    houseSelect.textContent = "";
+    houseSelect.append(h("option", { text: "Sem casa", attrs: { value: "" } }));
+    for (const house of HOUSES) {
+      const o = h("option", { text: house.name, attrs: { value: house.id } });
+      if (p.social.faction === house.id) o.setAttribute("selected", "");
+      houseSelect.append(o);
+    }
+    renderHouseNote();
 
     editor.textContent = "";
     for (const [kind, label] of PARTS) {
@@ -328,7 +348,7 @@ registerScreen("profile", (host) => {
     host,
     "profile",
     "Brasão",
-    h("div", { class: "profile-top" }, crestBox, h("div", { class: "profile-id" }, nameInput, nameNote, titleSelect)),
+    h("div", { class: "profile-top" }, crestBox, h("div", { class: "profile-id" }, nameInput, nameNote, titleSelect, houseSelect, houseNote)),
     editor,
     h("h2", { text: "Recordes" }),
     records,

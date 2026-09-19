@@ -67,6 +67,16 @@ export interface ScoreSubmission {
   contracts?: number;
   /** What ended the run (balance metrics). */
   cause?: string;
+  /** House the run is run for ('' = none). */
+  house?: string;
+}
+
+/** One house's weekly standing (see HOUSES in the season content). */
+export interface HouseStanding {
+  house: string;
+  /** Mean of the house's five best weekly scores. */
+  value: number;
+  players: number;
 }
 
 export interface SubmitResult {
@@ -109,4 +119,6 @@ export interface LeaderboardService {
   community(): Promise<CommunityState | null>;
   /** Restores an identity from a recovery code on a new device. */
   recover(code: string): Promise<boolean>;
+  /** Weekly house standings, or null offline. */
+  houses(period: string): Promise<HouseStanding[] | null>;
 }

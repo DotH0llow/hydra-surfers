@@ -421,6 +421,7 @@ export class App implements ScreenHost, DebugHost {
           contracts: report.contracts.completed.length,
           // balance metrics are opt-out (settings)
           cause: this.store.get().settings.analytics ? r.cause : "",
+          house: this.store.get().social.faction,
         })
         .then((res) => {
           // a fresh first place on today's board is the Campeão achievement's trigger

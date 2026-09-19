@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS runs (
   contracts   INTEGER NOT NULL DEFAULT 0,
   cause       TEXT    NOT NULL DEFAULT '',     -- what ended the run (balance metrics)
   ranked      INTEGER NOT NULL DEFAULT 1,      -- 0 = practice after the ranked attempts were spent
+  house       TEXT    NOT NULL DEFAULT '',     -- house the run was run for ('' = none)
   created_at  INTEGER NOT NULL
 );
 

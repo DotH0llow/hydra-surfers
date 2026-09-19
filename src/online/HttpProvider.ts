@@ -9,6 +9,7 @@
 import type {
   Board,
   CommunityState,
+  HouseStanding,
   Identity,
   LeaderboardService,
   Metric,
@@ -57,6 +58,7 @@ export class HttpProvider implements LeaderboardService {
         cleanDistance: sub.cleanDistance ?? 0,
         contracts: sub.contracts ?? 0,
         cause: sub.cause ?? "",
+        house: sub.house ?? "",
       });
       if (!res.ok) return local;
       const body = (await res.json()) as Omit<SubmitResult, "provider">;
@@ -126,6 +128,16 @@ export class HttpProvider implements LeaderboardService {
       if (!res.ok) return null;
       const body = (await res.json()) as { bounty: CommunityState | null };
       return body.bounty;
+    } catch {
+      return null;
+    }
+  }
+
+  async houses(period: string): Promise<HouseStanding[] | null> {
+    try {
+      const res = await this.fetchImpl(`${this.base}/api/houses?period=${encodeURIComponent(period)}`);
+      if (!res.ok) return null;
+      return ((await res.json()) as { standings: HouseStanding[] }).standings;
     } catch {
       return null;
     }
