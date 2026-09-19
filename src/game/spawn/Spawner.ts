@@ -5,7 +5,7 @@ import { COINS } from "../collectibles/CoinSystem";
 import type { ObstacleInstance } from "../obstacles/ObstacleSystem";
 import { PICKUPS, choosePickup, type PickupKind, type PickupSystem } from "../powerups/PickupSystem";
 import type { ResolvedRunOptions, RunContext, RunSystem } from "../types";
-import { SPEED, difficultyAt, speedAt, timeAtDistance } from "./difficulty";
+import { LATE, SPEED, difficultyAt, distanceAtTime, lateAt, speedAt, timeAtDistance } from "./difficulty";
 import { listPatterns, type SpawnApi } from "./patterns";
 import type { BiomeSystem } from "../world/BiomeSystem";
 import type { BiomeDef } from "../world/biomes";
@@ -36,6 +36,9 @@ export const SPAWN = defineTuning("spawn", "Spawner", {
   },
 });
 
+/** The late game is announced like a road event (toast and horn). */
+const evLate = { id: "late", name: "O cerco se fecha!" };
+
 export class Spawner implements RunSystem, SpawnApi {
   readonly id = "spawner";
   readonly order = 30;
@@ -43,6 +46,9 @@ export class Spawner implements RunSystem, SpawnApi {
   readonly rng = new Rng(1);
   difficulty = 0;
   speed = 0;
+  /** Late-game pressure (0..1) at the placement distance. */
+  late = 0;
+  private lateAnnounced = false;
   private nextS = 0;
   private procedural = false;
   private layoutSpeedMul = 1;
@@ -65,6 +71,8 @@ export class Spawner implements RunSystem, SpawnApi {
   reset(ctx: RunContext, opts: ResolvedRunOptions): void {
     this.rng.reseed(hash32(opts.seed ^ SPAWN_STREAM_SALT));
     this.difficulty = 0;
+    this.late = 0;
+    this.lateAnnounced = false;
     this.speed = speedAt(0);
     const sc = opts.scenario;
     const live = ctx.state.mode !== "idle";
@@ -81,6 +89,10 @@ export class Spawner implements RunSystem, SpawnApi {
   fixedUpdate(ctx: RunContext): void {
     const st = ctx.state;
     if (!this.procedural || (st.mode !== "running" && st.mode !== "intro")) return;
+    if (!this.lateAnnounced && st.distance >= distanceAtTime(LATE.startSeconds)) {
+      this.lateAnnounced = true;
+      ctx.bus.emit("event:start", evLate);
+    }
     const pats = listPatterns();
     if (this.weights.length < pats.length) this.weights = new Float64Array(pats.length * 2);
     let guard = 0;
@@ -91,6 +103,7 @@ export class Spawner implements RunSystem, SpawnApi {
       const nominalTime = timeAtDistance(this.nextS);
       this.difficulty = Math.min(1, difficultyAt(nominalTime) + ctx.rules.startDifficulty);
       this.speed = Math.max(speedAt(nominalTime), SPEED.start);
+      this.late = lateAt(nominalTime);
       // the region the pattern lands in decides what it is likely to be
       this.biome = this.biomes?.at(this.nextS);
       this.event = this.events?.at(this.nextS) ?? null;
@@ -98,7 +111,8 @@ export class Spawner implements RunSystem, SpawnApi {
       const eventWeights = this.event?.patternWeights;
       for (let i = 0; i < pats.length; i++) {
         const p = pats[i];
-        let w = this.difficulty >= p.minDifficulty ? p.weight() : 0;
+        let w = this.difficulty >= p.minDifficulty && this.late >= (p.minLate ?? 0) ? p.weight() : 0;
+        if (w > 0 && p.lateWeight !== undefined) w *= 1 + (p.lateWeight - 1) * this.late;
         if (w > 0 && biomeWeights) w *= biomeWeights[p.id] ?? 1;
         if (w > 0 && eventWeights) w *= eventWeights[p.id] ?? 1;
         this.weights[i] = w;
@@ -109,7 +123,8 @@ export class Spawner implements RunSystem, SpawnApi {
       // the floor uses the mode's speed, not the build's, so every player on a daily seed gets the
       // same road
       const floor = Math.max(SPAWN.minGap, this.speed * this.layoutSpeedMul * SPAWN.minGapSeconds);
-      const gap = Math.max(floor, this.speed * gapT * (1 + this.rng.range(-SPAWN.gapJitter, SPAWN.gapJitter)) * ctx.rules.obstacleGapMul * (this.event?.gapMul ?? 1));
+      const lateGap = 1 + (LATE.gapMul - 1) * this.late;
+      const gap = Math.max(floor, this.speed * gapT * (1 + this.rng.range(-SPAWN.gapJitter, SPAWN.gapJitter)) * ctx.rules.obstacleGapMul * lateGap * (this.event?.gapMul ?? 1));
       // pickups sit in the open gap after a pattern. All three draws happen whether or not the
       // pickup appears: a build with more pickups must not shift the rest of the road.
       if (idx >= 0) {

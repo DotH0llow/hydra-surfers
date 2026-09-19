@@ -20,9 +20,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (267 fields in 41 groups)
+## Registry (273 fields in 42 groups)
 
-[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
+[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Late game](#late) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
 
 <a id="lanes"></a>
 ### Lanes (`lanes`)
@@ -237,6 +237,15 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `difficulty.rampSeconds` | Time to full difficulty | 180 | 5 | 1200 | 5 | s |
 | `difficulty.exponent` | Difficulty curve exponent | 1 | 0.2 | 3 | 0.05 |  |
 
+<a id="late"></a>
+### Late game (`late`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `late.startSeconds` | Late-game pressure starts at (run time) | 240 | 0 | 1200 | 5 | s |
+| `late.rampSeconds` | Full late-game pressure after | 180 | 5 | 1200 | 5 | s |
+| `late.gapMul` | Gap between patterns at full pressure (x). The fairness floor (spawn.minGapSeconds) still applies | 0.85 | 0.3 | 1 | 0.01 |  |
+
 <a id="powerupFx"></a>
 ### Power-up effects (`powerupFx`)
 
@@ -405,6 +414,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `spawnWeights.wagonRamp` | Ramp onto a wagon (roof run) | 1.6 | 0 | 10 | 0.1 |  |
 | `spawnWeights.runawayCart` | Runaway cart | 1.4 | 0 | 10 | 0.1 |  |
 | `spawnWeights.gatehouse` | Gatehouse with obstacles | 1.2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.wagonSlalom` | Wagon slalom (late game) | 1.4 | 0 | 10 | 0.1 |  |
 
 <a id="spawnPatterns"></a>
 ### Spawn pattern details (`spawnPatterns`)
@@ -426,6 +436,8 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `spawnPatterns.runawayCartMinDifficulty` | Runaway cart min difficulty | 0.2 | 0 | 1 | 0.01 |  |
 | `spawnPatterns.gatehouseMinDifficulty` | Gatehouse min difficulty | 0.05 | 0 | 1 | 0.01 |  |
 | `spawnPatterns.signalChance` | Chance of a lantern post beside a wagon | 0.35 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.slalomMinLate` | Wagon slalom: min late-game pressure | 0.05 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.slalomGapSeconds` | Wagon slalom: gap between gates. Time to move one lane (tests/unit/fairness.test.ts) | 0.45 | 0.2 | 2 | 0.05 | s |
 
 <a id="spawn"></a>
 ### Spawner (`spawn`)

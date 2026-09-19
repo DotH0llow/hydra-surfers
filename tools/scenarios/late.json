@@ -1,0 +1,13 @@
+{
+  "description": "Warps a free run into the late game (tighter gaps, harder patterns, wagon slaloms) in god mode, to check how the late tier reads at top speed.",
+  "query": "",
+  "seed": 11,
+  "setup": [
+    ["startRun", { "seed": 11, "skipIntro": true }],
+    ["cheat", "god", true],
+    ["cheat", "jumpToTime", 330]
+  ],
+  "timeline": [],
+  "seconds": 12,
+  "fps": 1
+}

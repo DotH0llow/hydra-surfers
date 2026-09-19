@@ -28,6 +28,10 @@ export interface Pattern {
   label: string;
   /** Not picked below this difficulty. */
   minDifficulty: number;
+  /** Not picked below this late-game pressure (0..1, see LATE); omitted = any time. */
+  minLate?: number;
+  /** Weight multiplier at full late-game pressure (blended in); omitted = 1. */
+  lateWeight?: number;
   weight(): number;
   /** Place content starting at s; returns the length (m) it occupies. */
   place(api: SpawnApi, s: number): number;
@@ -45,6 +49,7 @@ export const SPAWN_WEIGHTS = defineTuning("spawnWeights", "Spawn pattern weights
   wagonRamp: { default: 1.6, min: 0, max: 10, step: 0.1, label: "Ramp onto a wagon (roof run)" },
   runawayCart: { default: 1.4, min: 0, max: 10, step: 0.1, label: "Runaway cart" },
   gatehouse: { default: 1.2, min: 0, max: 10, step: 0.1, label: "Gatehouse with obstacles" },
+  wagonSlalom: { default: 1.4, min: 0, max: 10, step: 0.1, label: "Wagon slalom (late game)" },
 });
 
 export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern details", {
@@ -63,6 +68,8 @@ export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern detai
   runawayCartMinDifficulty: { default: 0.2, min: 0, max: 1, step: 0.01, label: "Runaway cart min difficulty" },
   gatehouseMinDifficulty: { default: 0.05, min: 0, max: 1, step: 0.01, label: "Gatehouse min difficulty" },
   signalChance: { default: 0.35, min: 0, max: 1, step: 0.01, label: "Chance of a lantern post beside a wagon" },
+  slalomMinLate: { default: 0.05, min: 0, max: 1, step: 0.01, label: "Wagon slalom: min late-game pressure" },
+  slalomGapSeconds: { default: 0.45, min: 0.2, max: 2, step: 0.05, label: "Wagon slalom: gap between gates", unit: "s", help: "Time to move one lane (tests/unit/fairness.test.ts)" },
 });
 
 const patterns: Pattern[] = [];
@@ -101,6 +108,7 @@ registerPattern({
   id: "barricadeSingle",
   label: "Barricade in one lane",
   minDifficulty: 0,
+  lateWeight: 0.6,
   weight: () => SPAWN_WEIGHTS.barricadeSingle,
   place(api, s) {
     const lane = api.rng.int(-1, 1);
@@ -119,6 +127,7 @@ registerPattern({
   get minDifficulty() {
     return SPAWN_PATTERNS.barricadeDoubleMinDifficulty;
   },
+  lateWeight: 1.3,
   weight: () => SPAWN_WEIGHTS.barricadeDouble,
   place(api, s) {
     const open = api.rng.int(-1, 1);
@@ -134,6 +143,7 @@ registerPattern({
   get minDifficulty() {
     return SPAWN_PATTERNS.barricadeRowMinDifficulty;
   },
+  lateWeight: 1.6,
   weight: () => SPAWN_WEIGHTS.barricadeRow,
   place(api, s) {
     for (let l = -1; l <= 1; l++) api.obstacle("barricade", l, s);
@@ -148,6 +158,7 @@ registerPattern({
   id: "wagonSingle",
   label: "Wagon in one lane",
   minDifficulty: 0,
+  lateWeight: 0.7,
   weight: () => SPAWN_WEIGHTS.wagonSingle,
   place(api, s) {
     const lane = api.rng.int(-1, 1);
@@ -169,6 +180,7 @@ registerPattern({
   get minDifficulty() {
     return SPAWN_PATTERNS.wagonDoubleMinDifficulty;
   },
+  lateWeight: 1.5,
   weight: () => SPAWN_WEIGHTS.wagonDouble,
   place(api, s) {
     const open = api.rng.int(-1, 1);
@@ -189,6 +201,7 @@ registerPattern({
   id: "coinRun",
   label: "Coin line",
   minDifficulty: 0,
+  lateWeight: 0.5,
   weight: () => SPAWN_WEIGHTS.coinRun,
   place(api, s) {
     const lane = api.rng.int(-1, 1);
@@ -202,6 +215,7 @@ registerPattern({
   id: "beamSingle",
   label: "Hanging beam (roll under)",
   minDifficulty: 0,
+  lateWeight: 0.8,
   weight: () => SPAWN_WEIGHTS.beamSingle,
   place(api, s) {
     const lane = api.rng.int(-1, 1);
@@ -220,6 +234,7 @@ registerPattern({
   get minDifficulty() {
     return SPAWN_PATTERNS.barricadeMixedMinDifficulty;
   },
+  lateWeight: 1.6,
   weight: () => SPAWN_WEIGHTS.barricadeMixed,
   place(api, s) {
     const open = api.rng.int(-1, 1);
@@ -265,6 +280,7 @@ registerPattern({
   get minDifficulty() {
     return SPAWN_PATTERNS.runawayCartMinDifficulty;
   },
+  lateWeight: 1.4,
   weight: () => SPAWN_WEIGHTS.runawayCart,
   place(api, s) {
     const lane = api.rng.int(-1, 1);
@@ -290,6 +306,7 @@ registerPattern({
   get minDifficulty() {
     return SPAWN_PATTERNS.gatehouseMinDifficulty;
   },
+  lateWeight: 1.2,
   weight: () => SPAWN_WEIGHTS.gatehouse,
   place(api, s) {
     const len = GATE.length + api.rng.range(0, 15);
@@ -300,5 +317,34 @@ registerPattern({
     api.obstacle("beam", b, s + len * 0.7);
     if (api.rng.chance(SPAWN_PATTERNS.coinChance)) api.coinLine(otherLane(api.rng, b), s + 2, Math.floor((len - 4) / 2.5), 2.5);
     return len;
+  },
+});
+
+/**
+ * Late game: gates of two wagons whose open lane moves one step each time (never two), with a gap
+ * sized for one lane change. Reading it early is the whole skill.
+ */
+registerPattern({
+  id: "wagonSlalom",
+  label: "Wagon slalom (late game)",
+  minDifficulty: 1,
+  get minLate() {
+    return SPAWN_PATTERNS.slalomMinLate;
+  },
+  weight: () => SPAWN_WEIGHTS.wagonSlalom,
+  place(api, s) {
+    const gates = api.rng.int(3, 4);
+    const gap = Math.max(6, api.speed * SPAWN_PATTERNS.slalomGapSeconds);
+    const coins = api.rng.chance(SPAWN_PATTERNS.coinChance);
+    let open = api.rng.int(-1, 1);
+    let at = s;
+    for (let g = 0; g < gates; g++) {
+      for (let l = -1; l <= 1; l++) if (l !== open) placeWagon(api, l, at, 1);
+      if (coins) api.coinLine(open, at + 2, 4, 2.5);
+      at += WAGON.carLength + gap;
+      // one step, bouncing off the edges
+      open = open !== 0 ? 0 : api.rng.chance(0.5) ? -1 : 1;
+    }
+    return at - gap - s;
   },
 });

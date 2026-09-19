@@ -8,9 +8,10 @@
  * read and swipe, well above the 0.1 s the switch animation takes.
  *
  * It runs every weekly challenge (their speed, density and difficulty mutators) with the real
- * spawner, regions and road events, over the whole difficulty ramp.
+ * spawner, regions and road events, over the whole difficulty ramp and into the late game.
  */
 import { describe, expect, it } from "vitest";
+import { EventBus } from "../../src/core/events";
 import { Rng } from "../../src/core/rng";
 import { tuning } from "../../src/core/tuning";
 import { WAGON, RUNAWAY } from "../../src/game/obstacles/builtin";
@@ -29,7 +30,8 @@ import type { ResolvedRunOptions, RunContext } from "../../src/game/types";
 const LANE_CHANGE_SECONDS = 0.25;
 /** Seeds per mode; raise with FAIRNESS_SEEDS=200 after changing patterns or spawn tuning. */
 const SEEDS = Number(process.env.FAIRNESS_SEEDS ?? 24);
-const METRES = 6000;
+/** ~6.6 min on the nominal curve: the difficulty ramp, top speed and most of the late game. */
+const METRES = 8000;
 const STEP = 0.25;
 /** Runner body margin added around every blocked interval. */
 const BODY = 0.6;
@@ -64,6 +66,7 @@ function layout(seed: number, rules: RunRules, biomes?: string[], layoutSpeedMul
   const sp = new Spawner();
   const systems: Record<string, unknown> = { biomes: biomeSys, events };
   const ctx = {
+    bus: new EventBus(),
     rng: new Rng(seed),
     rules,
     state,

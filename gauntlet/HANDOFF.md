@@ -18,6 +18,8 @@ The game became a medieval runner for a private group of ~30-40 friends over a 3
 
 **Fairness (anti-frustration).** `tests/unit/fairness.test.ts` generates the real road (spawner + regions + events) for the free run and every weekly challenge, at normal speed and under the Hourglass, and proves every stretch is reachable with a 0.25 s human budget per lane change. It found and fixed: runaway carts ignoring the Hourglass (they met the runner up to ~13 m early), gaps too short to cross two lanes at top speed in dense modes (new `spawn.minGapSeconds`, planned on the mode's speed, not the build's), and pickup draws that let a build with more pickups shift the rest of a daily road (now asserted: every equipment item leaves the daily road identical). After touching patterns or spawn tuning run `FAIRNESS_SEEDS=200 npx vitest run tests/unit/fairness.test.ts`.
 
+**Late game.** After top speed (~4 min, `late.*` tuning) the pressure keeps building through the layout: gaps tighten toward `late.gapMul`, each pattern's `lateWeight` shifts the mix toward the harder ones, and a late-only wagon slalom appears (the open lane moves one step per gate). Announced with a toast and horn ("O cerco se fecha!"). The fairness test covers it (8 km). Capture: `npm run capture -- --scenario late --devtools`.
+
 **First visit.** The tavern asks for the name the group will see; a taken name is reported instead of silently getting digits, and with no server the name is kept and registered with the first run.
 
 ## Not done (deliberately left for a second stage)
@@ -27,7 +29,6 @@ The game became a medieval runner for a private group of ~30-40 friends over a 3
 3. **Special moments and set pieces** (dragon pass, closing gate, broken bridge, rooftop sequences). New patterns are covered by the fairness test as soon as they use wagons or carts.
 4. **Weather particles** (rain streaks). Weather is lighting and fog only.
 5. **Local analytics dashboard.** Run `cause` is sent to the server (opt-out in settings) so balance can be read with SQL on `runs`; there is no in-game dashboard.
-6. **Late-game difficulty by patterns** beyond the existing difficulty ramp (events add pressure, but there is no second-stage pattern tier yet).
 
 ## Operating the season
 

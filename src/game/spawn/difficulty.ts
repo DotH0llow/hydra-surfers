@@ -19,6 +19,17 @@ export const DIFFICULTY = defineTuning("difficulty", "Difficulty", {
   exponent: { default: 1, min: 0.2, max: 3, step: 0.05, label: "Difficulty curve exponent" },
 });
 
+/**
+ * Late game: once top speed is reached the ramp has nothing left to give, so pressure keeps
+ * building through the layout instead — tighter gaps and the harder patterns more often (each
+ * pattern's `lateWeight`), plus late-only patterns. Speed stays capped.
+ */
+export const LATE = defineTuning("late", "Late game", {
+  startSeconds: { default: 240, min: 0, max: 1200, step: 5, label: "Late-game pressure starts at (run time)", unit: "s" },
+  rampSeconds: { default: 180, min: 5, max: 1200, step: 5, label: "Full late-game pressure after", unit: "s" },
+  gapMul: { default: 0.85, min: 0.3, max: 1, step: 0.01, label: "Gap between patterns at full pressure (x)", help: "The fairness floor (spawn.minGapSeconds) still applies" },
+});
+
 export function speedAt(time: number): number {
   const span = Math.max(1e-6, SPEED.rampSeconds - SPEED.flatSeconds);
   const u = Math.min(1, Math.max(0, (time - SPEED.flatSeconds) / span));
@@ -29,6 +40,11 @@ export function speedAt(time: number): number {
 export function difficultyAt(time: number): number {
   const u = Math.min(1, Math.max(0, time / DIFFICULTY.rampSeconds));
   return Math.pow(u, DIFFICULTY.exponent);
+}
+
+/** 0..1: how far into the late-game ramp a run time is. */
+export function lateAt(time: number): number {
+  return Math.min(1, Math.max(0, (time - LATE.startSeconds) / Math.max(1e-6, LATE.rampSeconds)));
 }
 
 /**
