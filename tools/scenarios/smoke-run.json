@@ -1,0 +1,9 @@
+{
+  "description": "Procedural god-mode run with every system live, to check for runtime errors.",
+  "query": "",
+  "seed": 11,
+  "setup": [["cheat", "god", true], ["startRun", { "seed": 11, "skipIntro": true }]],
+  "timeline": [],
+  "seconds": 30,
+  "fps": 1
+}

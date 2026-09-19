@@ -15,6 +15,7 @@ export const HUD = defineTuning("hud", "HUD", {
   toastOutSeconds: { default: 0.24, min: 0, max: 1, step: 0.02, label: "Toast slide-out", unit: "s" },
   toastQueue: { default: 3, min: 1, max: 8, step: 1, label: "Queued toasts kept (extra are dropped)" },
   boardHintSeconds: { default: 4, min: 0, max: 15, step: 0.5, label: "Board button hint at run start", unit: "s" },
+  popWordSeconds: { default: 0.9, min: 0.2, max: 3, step: 0.05, label: "Near miss / perfect word on screen", unit: "s" },
 });
 
 /** DOM capacities (structural, not tuning): the HUD pre-builds this many segments / toast slots. */

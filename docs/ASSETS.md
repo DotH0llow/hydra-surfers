@@ -18,7 +18,7 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 - Units are metres. 1 world unit = 1 m. The runner is about 1.7 m tall and lanes are about 2.5 m apart.
 - Models face **-Z** (the run direction) unless the entry's `forward` says otherwise. `pivot` names where the origin must be: `feet-center`, `bottom-center` or `center`.
 - `animations` maps the engine's logical names to the clip names that must exist inside the glTF. Names are case-sensitive.
-- The manifest is split into parts so parallel work does not collide: `public/assets/manifest/core.json`, `public/assets/manifest/track.json`, `public/assets/manifest/ui.json`, `public/assets/manifest/audio.json`. Ids must be unique across parts.
+- The manifest is split into parts so parallel work does not collide: `public/assets/manifest/core.json`, `public/assets/manifest/track.json`, `public/assets/manifest/world.json`, `public/assets/manifest/ui.json`, `public/assets/manifest/audio.json`. Ids must be unique across parts.
 
 ### Formats by type
 
@@ -33,70 +33,136 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 
 ## Status
 
-50 assets in 4 parts. 0 have files and 50 still use procedural placeholders.
+72 assets in 5 parts. 0 have files and 72 still use procedural placeholders.
 
 ## core (`public/assets/manifest/core.json`)
 
-Characters, chaser and shared effects. Owned by lane D (additive for others).
+Playable archetypes, the royal guard and shared effects. The placeholder reads its silhouette (headgear, back item, cloak, bulk) from each entry's meta, so a new character needs no code.
 
 | id | type | file (under public/assets/) | status | pivot / facing | budget |
 |---|---|---|---|---|---|
-| `char.runner.default` | gltf | `models/characters/runner_default.glb` | placeholder (`capsule-runner`) | feet-center, faces -z | <= 6000 tris |
-| `char.runner.spark` | gltf | `models/characters/runner_spark.glb` | placeholder (`capsule-runner`) | feet-center, faces -z | <= 6000 tris |
-| `char.runner.nova` | gltf | `models/characters/runner_nova.glb` | placeholder (`capsule-runner`) | feet-center, faces -z | <= 6000 tris |
-| `char.runner.ember` | gltf | `models/characters/runner_ember.glb` | placeholder (`capsule-runner`) | feet-center, faces -z | <= 6000 tris |
-| `char.chaser.guard` | gltf | `models/characters/chaser_guard.glb` | placeholder (`capsule-chaser`) | feet-center, faces -z | <= 6000 tris |
+| `char.runner.default` | gltf | `models/characters/peasant.glb` | placeholder (`runner`) | feet-center, faces -z | <= 6000 tris |
+| `char.runner.knight` | gltf | `models/characters/knight.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.runner.archer` | gltf | `models/characters/archer.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.runner.rogue` | gltf | `models/characters/rogue.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.runner.mage` | gltf | `models/characters/mage.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.runner.bard` | gltf | `models/characters/bard.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.runner.barbarian` | gltf | `models/characters/barbarian.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.runner.alchemist` | gltf | `models/characters/alchemist.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.runner.monk` | gltf | `models/characters/monk.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.runner.mercenary` | gltf | `models/characters/mercenary.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.chaser.guard` | gltf | `models/characters/guard.glb` | placeholder (`guard`) | feet-center, faces -z | <= 6000 tris |
 | `fx.shadow.blob` | texture | `textures/fx/shadow_blob.png` | placeholder (`radial-shadow`) |  |  |
 
 ### `char.runner.default`
 
-- **File:** `public/assets/models/characters/runner_default.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/characters/peasant.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** feet-center, faces -z
 - **Scale applied by engine:** 1
 - **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
-- **Placeholder tint / palette hint:** `#ff7a1a`
-- **Placeholder:** `capsule-runner`
-- **Brief:** Playable runner. Height 1.7 m, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop, ~0.6 s stride), Jump, Roll, Stumble, Death, Idle (loop), LeanLeft, LeanRight.
+- **Placeholder tint / palette hint:** `#9a6b3c`
+- **Placeholder:** `runner`
+- **Brief:** Camponês, the starting runner. Height 1.7 m, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop, ~0.6 s stride), Jump, Roll, Stumble, Death, Idle (loop), LeanLeft, LeanRight.
 
-### `char.runner.spark`
+### `char.runner.knight`
 
-- **File:** `public/assets/models/characters/runner_spark.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/characters/knight.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** feet-center, faces -z
 - **Scale applied by engine:** 1
 - **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
-- **Placeholder tint / palette hint:** `#2fc4b2`
-- **Placeholder:** `capsule-runner`
-- **Brief:** Shop character "Spark". Same rig, size, orientation and clips as char.runner.default. <= 6k tris, 1 material, 512x512 texture.
+- **Placeholder tint / palette hint:** `#8c99a8`
+- **Placeholder:** `runner`
+- **Brief:** Cavaleiro: mail and tabard, helm, shield slung on the back, crimson cloak. Same rig, size, orientation and clips as char.runner.default.
 
-### `char.runner.nova`
+### `char.runner.archer`
 
-- **File:** `public/assets/models/characters/runner_nova.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/characters/archer.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** feet-center, faces -z
 - **Scale applied by engine:** 1
 - **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
-- **Placeholder tint / palette hint:** `#b57bff`
-- **Placeholder:** `capsule-runner`
-- **Brief:** Shop character "Nova". Same rig, size, orientation and clips as char.runner.default. <= 6k tris, 1 material, 512x512 texture.
+- **Placeholder tint / palette hint:** `#4f6b3a`
+- **Placeholder:** `runner`
+- **Brief:** Arqueira: hooded, quiver of arrows on the back. Same rig, size, orientation and clips as char.runner.default.
 
-### `char.runner.ember`
+### `char.runner.rogue`
 
-- **File:** `public/assets/models/characters/runner_ember.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/characters/rogue.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** feet-center, faces -z
 - **Scale applied by engine:** 1
 - **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
-- **Placeholder tint / palette hint:** `#e5484d`
-- **Placeholder:** `capsule-runner`
-- **Brief:** Shop character "Ember" (key purchase). Same rig, size, orientation and clips as char.runner.default. <= 6k tris, 1 material, 512x512 texture.
+- **Placeholder tint / palette hint:** `#3a3f4a`
+- **Placeholder:** `runner`
+- **Brief:** Ladino: dark hood and short cloak. Same rig, size, orientation and clips as char.runner.default.
+
+### `char.runner.mage`
+
+- **File:** `public/assets/models/characters/mage.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#4a3f7a`
+- **Placeholder:** `runner`
+- **Brief:** Mago: pointed hat and robes. Same rig, size, orientation and clips as char.runner.default.
+
+### `char.runner.bard`
+
+- **File:** `public/assets/models/characters/bard.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#b5603a`
+- **Placeholder:** `runner`
+- **Brief:** Bardo: feathered cap, lute across the back. Same rig, size, orientation and clips as char.runner.default.
+
+### `char.runner.barbarian`
+
+- **File:** `public/assets/models/characters/barbarian.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#8a5a3a`
+- **Placeholder:** `runner`
+- **Brief:** Bárbaro: bare arms, fur and leather, heavier build. Same rig, size, orientation and clips as char.runner.default.
+
+### `char.runner.alchemist`
+
+- **File:** `public/assets/models/characters/alchemist.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#2f7a6b`
+- **Placeholder:** `runner`
+- **Brief:** Alquimista: apron, circlet and a satchel of phials. Same rig, size, orientation and clips as char.runner.default.
+
+### `char.runner.monk`
+
+- **File:** `public/assets/models/characters/monk.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#b58a3a`
+- **Placeholder:** `runner`
+- **Brief:** Monge: plain habit, hood up. Same rig, size, orientation and clips as char.runner.default.
+
+### `char.runner.mercenary`
+
+- **File:** `public/assets/models/characters/mercenary.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#6b6b72`
+- **Placeholder:** `runner`
+- **Brief:** Mercenária: mismatched plate, battered shield. Same rig, size, orientation and clips as char.runner.default.
 
 ### `char.chaser.guard`
 
-- **File:** `public/assets/models/characters/chaser_guard.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/characters/guard.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** feet-center, faces -z
 - **Scale applied by engine:** 1
 - **Animation clips required:** run → `Run`, catch → `Catch`, idle → `Idle`
-- **Placeholder tint / palette hint:** `#3d5a80`
-- **Placeholder:** `capsule-chaser`
-- **Brief:** Yard warden who chases the runner. Height 1.85 m, stocky, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop), Catch, Idle.
+- **Placeholder tint / palette hint:** `#8d3b46`
+- **Placeholder:** `guard`
+- **Brief:** Guarda real who chases the runner. Height 1.85 m, stocky, helmed, tabard over mail, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop), Catch, Idle.
 
 ### `fx.shadow.blob`
 
@@ -107,120 +173,87 @@ Characters, chaser and shared effects. Owned by lane D (additive for others).
 
 ## track (`public/assets/manifest/track.json`)
 
-Track, environment, obstacles and collectibles. Owned by lane B (world pieces by lane A).
+Road, obstacles and collectibles.
 
 | id | type | file (under public/assets/) | status | pivot / facing | budget |
 |---|---|---|---|---|---|
-| `tex.track.ballast` | texture | `textures/track/ballast.png` | placeholder (`gravel`) |  |  |
-| `tex.ground.yard` | texture | `textures/track/yard_ground.png` | placeholder (`dirt`) |  |  |
-| `env.track.rail` | gltf | `models/track/rail.glb` | placeholder (`rail`) | bottom-center, faces -z | <= 100 tris |
-| `env.track.sleeper` | gltf | `models/track/sleeper.glb` | placeholder (`sleeper`) | bottom-center, faces -z | <= 60 tris |
-| `env.building.block` | gltf | `models/env/yard_block.glb` | placeholder (`building-block`) | bottom-center, faces -z | <= 200 tris |
-| `tex.env.wall` | texture | `textures/env/wall.png` | placeholder (`wall-panels`) |  |  |
-| `obstacle.barrier.low` | gltf | `models/obstacles/barrier_low.glb` | placeholder (`barrier-low`) | bottom-center, faces -z | <= 800 tris |
-| `tex.barrier.stripes` | texture | `textures/obstacles/barrier_stripes.png` | placeholder (`hazard-stripes`) |  |  |
-| `obstacle.train.car` | gltf | `models/obstacles/train_car.glb` | placeholder (`train-car`) | bottom-center, faces -z | <= 3000 tris |
-| `tex.train.side` | texture | `textures/obstacles/train_side.png` | placeholder (`train-side`) |  |  |
+| `tex.road.cobble` | texture | `textures/world/cobble.png` | placeholder (`cobble`) |  |  |
+| `tex.ground.field` | texture | `textures/world/field.png` | placeholder (`field`) |  |  |
+| `env.road.rut` | gltf | `models/world/rut.glb` | placeholder (`road-rut`) | bottom-center, faces -z | <= 60 tris |
+| `env.road.stone` | gltf | `models/world/kerb.glb` | placeholder (`road-stone`) | bottom-center, faces -z | <= 60 tris |
+| `obstacle.barricade` | gltf | `models/obstacles/barricade.glb` | placeholder (`barricade`) | bottom-center, faces -z | <= 900 tris |
+| `obstacle.wagon` | gltf | `models/obstacles/wagon.glb` | placeholder (`wagon`) | bottom-center, faces -z | <= 3000 tris |
 | `collect.coin` | gltf | `models/collectibles/coin.glb` | placeholder (`coin`) | center, faces -z | <= 300 tris |
-| `obstacle.barrier.high` | gltf | `models/obstacles/barrier_high.glb` | placeholder (`barrier-high`) | bottom-center, faces -z | <= 800 tris |
-| `obstacle.train.oncoming` | gltf | `models/obstacles/train_oncoming.glb` | placeholder (`train-oncoming`) | bottom-center, faces -z | <= 3000 tris |
-| `obstacle.train.ramp` | gltf | `models/obstacles/ramp.glb` | placeholder (`ramp`) | bottom-center, faces -z | <= 600 tris |
-| `struct.tunnel` | gltf | `models/track/tunnel.glb` | placeholder (`tunnel`) | bottom-center, faces -z | <= 2000 tris |
-| `struct.signal` | gltf | `models/track/signal.glb` | placeholder (`signal`) | bottom-center, faces -z | <= 400 tris |
-| `pickup.jetpack` | gltf | `models/pickups/jetpack.glb` | placeholder (`pickup-jetpack`) | center, faces -z | <= 800 tris |
-| `pickup.sneakers` | gltf | `models/pickups/sneakers.glb` | placeholder (`pickup-sneakers`) | center, faces -z | <= 800 tris |
-| `pickup.magnet` | gltf | `models/pickups/magnet.glb` | placeholder (`pickup-magnet`) | center, faces -z | <= 800 tris |
-| `pickup.multiplier` | gltf | `models/pickups/multiplier.glb` | placeholder (`pickup-multiplier`) | center, faces -z | <= 800 tris |
-| `pickup.key` | gltf | `models/pickups/key.glb` | placeholder (`pickup-key`) | center, faces -z | <= 600 tris |
-| `gear.hoverboard` | gltf | `models/pickups/hoverboard.glb` | placeholder (`hoverboard`) | bottom-center, faces -z | <= 1000 tris |
-| `gear.hoverboard.flame` | gltf | `models/pickups/hoverboard_flame.glb` | placeholder (`hoverboard`) | bottom-center, faces -z | <= 1000 tris |
-| `gear.hoverboard.frost` | gltf | `models/pickups/hoverboard_frost.glb` | placeholder (`hoverboard`) | bottom-center, faces -z | <= 1000 tris |
-| `gear.hoverboard.royal` | gltf | `models/pickups/hoverboard_royal.glb` | placeholder (`hoverboard`) | bottom-center, faces -z | <= 1000 tris |
+| `obstacle.beam` | gltf | `models/obstacles/beam.glb` | placeholder (`beam`) | bottom-center, faces -z | <= 800 tris |
+| `obstacle.cart.runaway` | gltf | `models/obstacles/cart_runaway.glb` | placeholder (`cart-runaway`) | bottom-center, faces -z | <= 3000 tris |
+| `obstacle.ramp` | gltf | `models/obstacles/ramp.glb` | placeholder (`ramp`) | bottom-center, faces -z | <= 600 tris |
+| `struct.gate` | gltf | `models/world/gatehouse.glb` | placeholder (`gate`) | bottom-center, faces -z | <= 2000 tris |
+| `struct.lantern` | gltf | `models/world/lantern.glb` | placeholder (`lantern`) | bottom-center, faces -z | <= 400 tris |
+| `pickup.griffin` | gltf | `models/pickups/griffin_wings.glb` | placeholder (`pickup-griffin`) | center, faces -z | <= 800 tris |
+| `pickup.boots` | gltf | `models/pickups/boots.glb` | placeholder (`pickup-boots`) | center, faces -z | <= 800 tris |
+| `pickup.amulet` | gltf | `models/pickups/amulet.glb` | placeholder (`pickup-amulet`) | center, faces -z | <= 800 tris |
+| `pickup.blessing` | gltf | `models/pickups/crown.glb` | placeholder (`pickup-blessing`) | center, faces -z | <= 800 tris |
+| `pickup.key` | gltf | `models/pickups/key.glb` | placeholder (`pickup-key`) | center, faces -z | <= 800 tris |
+| `mount.shield` | gltf | `models/mounts/shield.glb` | placeholder (`mount-shield`) | bottom-center, faces -z | <= 1000 tris |
+| `mount.barrel` | gltf | `models/mounts/barrel.glb` | placeholder (`mount-barrel`) | bottom-center, faces -z | <= 1000 tris |
+| `mount.carpet` | gltf | `models/mounts/carpet.glb` | placeholder (`mount-carpet`) | bottom-center, faces -z | <= 1000 tris |
+| `mount.minecart` | gltf | `models/mounts/minecart.glb` | placeholder (`mount-minecart`) | bottom-center, faces -z | <= 1200 tris |
+| `pickup.aegis` | gltf | `models/pickups/aegis.glb` | placeholder (`pickup-aegis`) | center, faces -z | <= 800 tris |
+| `pickup.hourglass` | gltf | `models/pickups/hourglass.glb` | placeholder (`pickup-hourglass`) | center, faces -z | <= 800 tris |
+| `mount.wolf` | gltf | `models/mounts/wolf.glb` | placeholder (`mount-wolf`) | bottom-center, faces -z | <= 1500 tris |
+| `mount.boar` | gltf | `models/mounts/boar.glb` | placeholder (`mount-boar`) | bottom-center, faces -z | <= 1500 tris |
+| `mount.ghosthorse` | gltf | `models/mounts/ghost_horse.glb` | placeholder (`mount-ghosthorse`) | bottom-center, faces -z | <= 1500 tris |
+| `mount.dragonling` | gltf | `models/mounts/dragonling.glb` | placeholder (`mount-dragonling`) | bottom-center, faces -z | <= 1800 tris |
 
-### `tex.track.ballast`
+### `tex.road.cobble`
 
-- **File:** `public/assets/textures/track/ballast.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
+- **File:** `public/assets/textures/world/cobble.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
 - **Tiling:** repeat 1 x 4
 - **Colour space:** sRGB
-- **Placeholder tint / palette hint:** `#8a8174`
-- **Placeholder:** `gravel`
-- **Brief:** Tileable crushed-stone ballast under one lane of track. 512x512 PNG/JPG, seamless both axes, viewed from a low grazing angle; tile covers 2.5 m x 2.5 m.
+- **Placeholder tint / palette hint:** `#9a8b73`
+- **Placeholder:** `cobble`
+- **Brief:** Tileable cobbled road surface. 512x512 PNG/JPG, seamless both axes, viewed at a grazing angle; one tile covers 2.5 m x 2.5 m.
 
-### `tex.ground.yard`
+### `tex.ground.field`
 
-- **File:** `public/assets/textures/track/yard_ground.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
+- **File:** `public/assets/textures/world/field.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
 - **Tiling:** repeat 12 x 40
 - **Colour space:** sRGB
 - **Placeholder tint / palette hint:** `#6f7a5a`
-- **Placeholder:** `dirt`
-- **Brief:** Tileable packed-earth / weedy concrete ground beside the tracks. 512x512, seamless, tile covers ~5 m.
+- **Placeholder:** `field`
+- **Brief:** Tileable grass and packed earth beside the road. 512x512, seamless, one tile covers about 5 m.
 
-### `env.track.rail`
+### `env.road.rut`
 
-- **File:** `public/assets/models/track/rail.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/world/rut.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Placeholder tint / palette hint:** `#b9bec6`
-- **Placeholder:** `rail`
-- **Brief:** One steel rail, 1 m long along -Z (tiled by the engine), 0.07 m wide, 0.12 m tall, origin at bottom centre. <= 100 tris.
+- **Placeholder tint / palette hint:** `#5a5347`
+- **Placeholder:** `road-rut`
+- **Brief:** One cart rut: a shallow groove 1 m long along -Z (tiled by the engine), 0.26 m wide, 0.04 m proud of the road. Origin at the bottom centre. <= 60 tris.
 
-### `env.track.sleeper`
+### `env.road.stone`
 
-- **File:** `public/assets/models/track/sleeper.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/world/kerb.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Placeholder tint / palette hint:** `#5b4636`
-- **Placeholder:** `sleeper`
-- **Brief:** One timber/concrete sleeper (tie) across a lane: 2.3 m wide (X), 0.24 m deep (Z), 0.12 m tall, origin at bottom centre. <= 60 tris, instanced.
+- **Placeholder tint / palette hint:** `#8d8579`
+- **Placeholder:** `road-stone`
+- **Brief:** One kerb stone along the verge: 0.45 m wide, 1.1 m along Z, 0.22 m tall, origin at the bottom centre. <= 60 tris, instanced.
 
-### `env.building.block`
+### `obstacle.barricade`
 
-- **File:** `public/assets/models/env/yard_block.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/obstacles/barricade.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Uses textures:** map = `tex.env.wall`
-- **Placeholder tint / palette hint:** `#9aa5b1`
-- **Placeholder:** `building-block`
-- **Brief:** Generic yard building/warehouse block, authored as a 1x1x1 m unit cube (scaled per instance), origin at bottom centre. <= 200 tris, uses tex.env.wall.
+- **Placeholder tint / palette hint:** `#a97c46`
+- **Placeholder:** `barricade`
+- **Brief:** Barricade across one lane: crates and barrels on a trestle, 2.2 m wide, load from 0.55 m to 1.05 m with an open gap beneath it, 0.3 m deep. Must read as jump-it-or-roll-through. Origin bottom centre. <= 900 tris.
 
-### `tex.env.wall`
+### `obstacle.wagon`
 
-- **File:** `public/assets/textures/env/wall.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
-- **Colour space:** sRGB
-- **Placeholder tint / palette hint:** `#9aa5b1`
-- **Placeholder:** `wall-panels`
-- **Brief:** Tileable corrugated/brick wall panels. 512x512, seamless horizontally.
-
-### `obstacle.barrier.low`
-
-- **File:** `public/assets/models/obstacles/barrier_low.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/obstacles/wagon.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Uses textures:** map = `tex.barrier.stripes`
-- **Placeholder tint / palette hint:** `#f2f2f2`
-- **Placeholder:** `barrier-low`
-- **Brief:** Low striped track barrier spanning one lane: 2.2 m wide, plank from 0.55 m to 1.05 m above ground, posts at both ends, 0.3 m deep. Must read as 'jump over or roll under'. Origin bottom centre. <= 800 tris.
-
-### `tex.barrier.stripes`
-
-- **File:** `public/assets/textures/obstacles/barrier_stripes.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
-- **Colour space:** sRGB
-- **Placeholder tint / palette hint:** `#e5484d`
-- **Placeholder:** `hazard-stripes`
-- **Brief:** Diagonal hazard stripes (two high-contrast colours), 256x64, tileable horizontally.
-
-### `obstacle.train.car`
-
-- **File:** `public/assets/models/obstacles/train_car.glb` (gltf: .glb, .gltf)
-- **Pivot / facing:** bottom-center, faces -z
-- **Uses textures:** map = `tex.train.side`
-- **Placeholder tint / palette hint:** `#2d6cdf`
-- **Placeholder:** `train-car`
-- **Brief:** One freight/commuter car occupying a full lane: 2.3 m wide, 3.6 m tall, 13 m long along Z, origin at bottom centre of its footprint, cab/windscreen end faces +Z (toward the approaching runner and camera; oncoming trains drive toward +Z). <= 3k tris, 1 material, 1024x512 texture.
-
-### `tex.train.side`
-
-- **File:** `public/assets/textures/obstacles/train_side.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
-- **Colour space:** sRGB
-- **Placeholder tint / palette hint:** `#2d6cdf`
-- **Placeholder:** `train-side`
-- **Brief:** Side livery of a train car with windows/doors. 1024x512, wraps once around the car.
+- **Placeholder tint / palette hint:** `#8a5a30`
+- **Placeholder:** `wagon`
+- **Brief:** Parked cargo wagon filling a lane: 2.3 m wide, 3.6 m to the plank roof (walkable), 13 m long along Z, origin at the bottom centre of its footprint. <= 3k tris, 1 material.
 
 ### `collect.coin`
 
@@ -230,118 +263,298 @@ Track, environment, obstacles and collectibles. Owned by lane B (world pieces by
 - **Placeholder:** `coin`
 - **Brief:** Collectible coin, 0.7 m diameter disc facing -Z, 0.08 m thick, origin at centre. <= 300 tris, rendered instanced (single mesh, single material).
 
-### `obstacle.barrier.high`
+### `obstacle.beam`
 
-- **File:** `public/assets/models/obstacles/barrier_high.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/obstacles/beam.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Uses textures:** map = `tex.barrier.stripes`
-- **Placeholder tint / palette hint:** `#ffc83d`
-- **Placeholder:** `barrier-high`
-- **Brief:** Tall barrier board on two posts spanning one lane: 2.3 m wide, board from 0.95 m to 3.25 m with an open gap underneath (roll under it; it cannot be jumped), 0.3 m deep. Origin bottom centre. <= 800 tris.
+- **Placeholder tint / palette hint:** `#9a6b3c`
+- **Placeholder:** `beam`
+- **Brief:** Trunk slung from a gallows frame over one lane: 2.3 m wide, trunk from 0.95 m to 3.25 m with open space underneath (roll under it; it cannot be jumped), 0.3 m deep. Origin bottom centre. <= 800 tris.
 
-### `obstacle.train.oncoming`
+### `obstacle.cart.runaway`
 
-- **File:** `public/assets/models/obstacles/train_oncoming.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/obstacles/cart_runaway.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Uses textures:** map = `tex.train.side`
-- **Placeholder tint / palette hint:** `#d94a3d`
-- **Placeholder:** `train-oncoming`
-- **Brief:** Commuter car driving toward the runner. Same footprint as obstacle.train.car (2.3 m wide, 3.6 m tall, 13 m long along Z, origin bottom centre). Put the windscreen and lit headlights in a child node named "cabFront" on the +Z end; the engine hides that node on trailing cars. <= 3k tris.
+- **Placeholder tint / palette hint:** `#7a3f34`
+- **Placeholder:** `cart-runaway`
+- **Brief:** Horse cart bolting toward the runner. Same footprint as obstacle.wagon (2.3 m wide, 3.6 m tall, 13 m along Z, origin bottom centre). Put the horses and shafts in a child node named "harness" at the +Z end; the engine hides that node on trailing carts. <= 3k tris.
 
-### `obstacle.train.ramp`
+### `obstacle.ramp`
 
 - **File:** `public/assets/models/obstacles/ramp.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Placeholder tint / palette hint:** `#a0764b`
+- **Placeholder tint / palette hint:** `#b08a4a`
 - **Placeholder:** `ramp`
-- **Brief:** Ramp up to a train roof: 2.2 m wide, 6.5 m long along Z, walking surface rising from 0 m at the +Z end to 3.6 m at the -Z end. Origin bottom centre of the footprint. <= 600 tris.
+- **Brief:** Hay and plank ramp up to a wagon roof: 2.2 m wide, 6.5 m long along Z, walking surface rising from 0 m at the +Z end to 3.6 m at the -Z end. Origin bottom centre of the footprint. <= 600 tris.
 
-### `struct.tunnel`
+### `struct.gate`
 
-- **File:** `public/assets/models/track/tunnel.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/world/gatehouse.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Placeholder tint / palette hint:** `#6d737d`
-- **Placeholder:** `tunnel`
-- **Brief:** Tunnel section over all three lanes: 30 m long along Z (scaled for other lengths), inner width 10 m, inner height 6 m above the ground plane (ground at y = -0.45), portal facade on the +Z end. Origin on the track centre line. <= 2k tris.
+- **Placeholder tint / palette hint:** `#8d8a80`
+- **Placeholder:** `gate`
+- **Brief:** Stone gatehouse passage over all three lanes: 30 m long along Z (scaled for other lengths), inner width 10 m, inner height 6 m above the ground plane (ground at y = -0.45), portal facade on the +Z end. Origin on the road centre line. <= 2k tris.
 
-### `struct.signal`
+### `struct.lantern`
 
-- **File:** `public/assets/models/track/signal.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/world/lantern.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Placeholder:** `signal`
-- **Brief:** Trackside light signal: 4.2 m post with a lamp head facing +Z. Child nodes "lampRed" and "lampGreen" (the engine shows one). Origin at the post foot. <= 400 tris.
+- **Placeholder tint / palette hint:** `#3b352e`
+- **Placeholder:** `lantern`
+- **Brief:** Roadside lantern post: 4 m post with a lantern housing facing +Z. Child nodes "lampWarn" (red) and "lampCalm" (amber); the engine shows one. Origin at the post foot. <= 400 tris.
 
-### `pickup.jetpack`
+### `pickup.griffin`
 
-- **File:** `public/assets/models/pickups/jetpack.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/pickups/griffin_wings.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** center, faces -z
-- **Placeholder tint / palette hint:** `#9aa5b1`
-- **Placeholder:** `pickup-jetpack`
-- **Brief:** Jetpack power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
+- **Placeholder tint / palette hint:** `#e8dcc0`
+- **Placeholder:** `pickup-griffin`
+- **Brief:** Griffin wings: the flight power-up. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
 
-### `pickup.sneakers`
+### `pickup.boots`
 
-- **File:** `public/assets/models/pickups/sneakers.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/pickups/boots.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** center, faces -z
-- **Placeholder tint / palette hint:** `#57e389`
-- **Placeholder:** `pickup-sneakers`
-- **Brief:** Super sneakers power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
+- **Placeholder tint / palette hint:** `#7a4a2a`
+- **Placeholder:** `pickup-boots`
+- **Brief:** Giant boots: the high-jump power-up. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
 
-### `pickup.magnet`
+### `pickup.amulet`
 
-- **File:** `public/assets/models/pickups/magnet.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/pickups/amulet.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** center, faces -z
 - **Placeholder tint / palette hint:** `#e5484d`
-- **Placeholder:** `pickup-magnet`
-- **Brief:** Coin magnet power-up pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
+- **Placeholder:** `pickup-amulet`
+- **Brief:** Magnetic amulet: pulls coins in. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
 
-### `pickup.multiplier`
+### `pickup.blessing`
 
-- **File:** `public/assets/models/pickups/multiplier.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/pickups/crown.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** center, faces -z
-- **Placeholder tint / palette hint:** `#b57bff`
-- **Placeholder:** `pickup-multiplier`
-- **Brief:** 2x score multiplier pickup, fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
+- **Placeholder tint / palette hint:** `#e8c25a`
+- **Placeholder:** `pickup-blessing`
+- **Brief:** Royal blessing: a crown that doubles score. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
 
 ### `pickup.key`
 
 - **File:** `public/assets/models/pickups/key.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** center, faces -z
-- **Placeholder tint / palette hint:** `#2fc4b2`
+- **Placeholder tint / palette hint:** `#d8c07a`
 - **Placeholder:** `pickup-key`
-- **Brief:** Key pickup (revive currency), fits a 1 m sphere, origin at centre, spins about Y. <= 600 tris.
+- **Brief:** Iron key: buys a second chance after a fall. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
 
-### `gear.hoverboard`
+### `mount.shield`
 
-- **File:** `public/assets/models/pickups/hoverboard.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/mounts/shield.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Placeholder tint / palette hint:** `#2fc4b2`
-- **Placeholder:** `hoverboard`
-- **Brief:** Hoverboard ridden under the runner's feet: 0.6 m wide, 1.5 m long along Z, 0.08 m thick, origin bottom centre. <= 1k tris.
+- **Placeholder tint / palette hint:** `#6b7a8f`
+- **Placeholder:** `mount-shield`
+- **Brief:** Runic shield ridden under the feet: 0.85 m across, 0.12 m thick, origin at the bottom centre. <= 1k tris.
 
-### `gear.hoverboard.flame`
+### `mount.barrel`
 
-- **File:** `public/assets/models/pickups/hoverboard_flame.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/mounts/barrel.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Placeholder tint / palette hint:** `#ff7a1a`
-- **Placeholder:** `hoverboard`
-- **Brief:** Shop hoverboard "Flame": same size and pivot as gear.hoverboard. <= 1k tris.
+- **Placeholder tint / palette hint:** `#8a5a30`
+- **Placeholder:** `mount-barrel`
+- **Brief:** Barrel on its side, ridden like a log: 1.3 m long, 0.64 m across, origin at the bottom centre. <= 1k tris.
 
-### `gear.hoverboard.frost`
+### `mount.carpet`
 
-- **File:** `public/assets/models/pickups/hoverboard_frost.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/mounts/carpet.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#8a3a5a`
+- **Placeholder:** `mount-carpet`
+- **Brief:** Woven flying carpet: 1.6 m long, 0.72 m wide, origin at the bottom centre. <= 1k tris.
+
+### `mount.minecart`
+
+- **File:** `public/assets/models/mounts/minecart.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#6b5236`
+- **Placeholder:** `mount-minecart`
+- **Brief:** Small mine cart: 1.3 m long, 0.7 m wide, 0.5 m tall, origin at the bottom centre. <= 1.2k tris.
+
+### `pickup.aegis`
+
+- **File:** `public/assets/models/pickups/aegis.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** center, faces -z
 - **Placeholder tint / palette hint:** `#7fd1ff`
-- **Placeholder:** `hoverboard`
-- **Brief:** Shop hoverboard "Frost": same size and pivot as gear.hoverboard. <= 1k tris.
+- **Placeholder:** `pickup-aegis`
+- **Brief:** Aegis: a warding shield that swallows the next collision. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
 
-### `gear.hoverboard.royal`
+### `pickup.hourglass`
 
-- **File:** `public/assets/models/pickups/hoverboard_royal.glb` (gltf: .glb, .gltf)
+- **File:** `public/assets/models/pickups/hourglass.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** center, faces -z
+- **Placeholder tint / palette hint:** `#c9a227`
+- **Placeholder:** `pickup-hourglass`
+- **Brief:** Hourglass: slows the road without slowing the score. Fits a 1 m sphere, origin at centre, spins about Y. <= 800 tris.
+
+### `mount.wolf`
+
+- **File:** `public/assets/models/mounts/wolf.glb` (gltf: .glb, .gltf)
 - **Pivot / facing:** bottom-center, faces -z
-- **Placeholder tint / palette hint:** `#b57bff`
-- **Placeholder:** `hoverboard`
-- **Brief:** Shop hoverboard "Royal" (key purchase): same size and pivot as gear.hoverboard. <= 1k tris.
+- **Placeholder tint / palette hint:** `#5a5f66`
+- **Placeholder:** `mount-wolf`
+- **Brief:** Wolf mount, ridden low: about 1.5 m long, 0.6 m wide, 0.8 m tall, origin at the ground between its feet. <= 1.5k tris.
+
+### `mount.boar`
+
+- **File:** `public/assets/models/mounts/boar.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#4a3a2f`
+- **Placeholder:** `mount-boar`
+- **Brief:** Boar mount: same footprint as mount.wolf, tusked and heavier. <= 1.5k tris.
+
+### `mount.ghosthorse`
+
+- **File:** `public/assets/models/mounts/ghost_horse.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#9fd8ff`
+- **Placeholder:** `mount-ghosthorse`
+- **Brief:** Spectral horse: same footprint as mount.wolf, translucent and self-lit. <= 1.5k tris.
+
+### `mount.dragonling`
+
+- **File:** `public/assets/models/mounts/dragonling.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#3f7a4a`
+- **Placeholder:** `mount-dragonling`
+- **Brief:** Very small dragon: same footprint as mount.wolf, with folded wings. <= 1.8k tris.
+
+## world (`public/assets/manifest/world.json`)
+
+Roadside scenery for the biomes. Instanced and tinted per region, so one model dresses several places.
+
+| id | type | file (under public/assets/) | status | pivot / facing | budget |
+|---|---|---|---|---|---|
+| `env.house` | gltf | `models/world/house.glb` | placeholder (`prop-house`) | bottom-center, faces -z | <= 900 tris |
+| `env.tree.pine` | gltf | `models/world/pine.glb` | placeholder (`prop-pine`) | bottom-center, faces -z | <= 400 tris |
+| `env.tree.dead` | gltf | `models/world/dead_tree.glb` | placeholder (`prop-dead-tree`) | bottom-center, faces -z | <= 350 tris |
+| `env.rock` | gltf | `models/world/rock.glb` | placeholder (`prop-rock`) | bottom-center, faces -z | <= 250 tris |
+| `env.wall.stone` | gltf | `models/world/wall.glb` | placeholder (`prop-wall`) | bottom-center, faces -z | <= 700 tris |
+| `env.tower` | gltf | `models/world/tower.glb` | placeholder (`prop-tower`) | bottom-center, faces -z | <= 900 tris |
+| `env.tombstone` | gltf | `models/world/tombstone.glb` | placeholder (`prop-tombstone`) | bottom-center, faces -z | <= 200 tris |
+| `env.torch` | gltf | `models/world/torch.glb` | placeholder (`prop-torch`) | bottom-center, faces -z | <= 250 tris |
+| `env.banner` | gltf | `models/world/banner.glb` | placeholder (`prop-banner`) | bottom-center, faces -z | <= 250 tris |
+| `env.tent` | gltf | `models/world/tent.glb` | placeholder (`prop-tent`) | bottom-center, faces -z | <= 350 tris |
+| `env.column` | gltf | `models/world/column.glb` | placeholder (`prop-column`) | bottom-center, faces -z | <= 500 tris |
+| `env.reed` | gltf | `models/world/reed.glb` | placeholder (`prop-reed`) | bottom-center, faces -z | <= 150 tris |
+| `env.minebeam` | gltf | `models/world/mine_support.glb` | placeholder (`prop-minebeam`) | bottom-center, faces -z | <= 200 tris |
+| `env.fence` | gltf | `models/world/fence.glb` | placeholder (`prop-fence`) | bottom-center, faces -z | <= 200 tris |
+
+### `env.house`
+
+- **File:** `public/assets/models/world/house.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#c9ab84`
+- **Placeholder:** `prop-house`
+- **Brief:** Village house: 5 m wide (X), 6 m deep (Z), 3.2 m walls, ridge at 4.8 m, origin at the ground centre. Model it in neutral greys with clear light/dark separation (walls bright, roof dark): the engine tints each instance with the region palette. <= 900 tris.
+
+### `env.tree.pine`
+
+- **File:** `public/assets/models/world/pine.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#3f6030`
+- **Placeholder:** `prop-pine`
+- **Brief:** Conifer about 6 m tall and 2.5 m across, origin at the trunk foot. Greyscale with foliage brighter than trunk; tinted per instance. <= 400 tris.
+
+### `env.tree.dead`
+
+- **File:** `public/assets/models/world/dead_tree.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#4a4038`
+- **Placeholder:** `prop-dead-tree`
+- **Brief:** Leafless tree about 4.5 m tall with three broken limbs, origin at the trunk foot. Greyscale, tinted per instance. <= 350 tris.
+
+### `env.rock`
+
+- **File:** `public/assets/models/world/rock.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#6f7268`
+- **Placeholder:** `prop-rock`
+- **Brief:** Faceted boulder cluster about 1.6 m across and 1.2 m tall, origin at the ground. Greyscale, tinted per instance. <= 250 tris.
+
+### `env.wall.stone`
+
+- **File:** `public/assets/models/world/wall.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#9b9a92`
+- **Placeholder:** `prop-wall`
+- **Brief:** Curtain-wall segment 8 m along Z, 1.2 m thick, 4.2 m tall plus crenellations to 5.2 m. Tiles end to end with no gap. Origin at the ground centre. <= 700 tris.
+
+### `env.tower`
+
+- **File:** `public/assets/models/world/tower.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#8f8e86`
+- **Placeholder:** `prop-tower`
+- **Brief:** Round tower, 3.6 m diameter, 8.5 m to the parapet, conical cap to about 12 m. Origin at the ground centre. <= 900 tris.
+
+### `env.tombstone`
+
+- **File:** `public/assets/models/world/tombstone.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#9a9a92`
+- **Placeholder:** `prop-tombstone`
+- **Brief:** Headstone about 0.9 m wide and 1.3 m tall, leaning slightly. Origin at the ground. <= 200 tris.
+
+### `env.torch`
+
+- **File:** `public/assets/models/world/torch.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#5a4632`
+- **Placeholder:** `prop-torch`
+- **Brief:** Torch post about 3 m tall. Put the flame in a separate mesh named "flame" with an emissive material: the engine renders it untinted so it stays warm in every region. <= 250 tris.
+
+### `env.banner`
+
+- **File:** `public/assets/models/world/banner.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#a8323a`
+- **Placeholder:** `prop-banner`
+- **Brief:** Banner pole about 4.4 m tall with hanging cloth 1.35 m wide. The cloth should be the brightest part (it carries the region colour), the pole dark. <= 250 tris.
+
+### `env.tent`
+
+- **File:** `public/assets/models/world/tent.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#b0553f`
+- **Placeholder:** `prop-tent`
+- **Brief:** Ridge tent about 4 m wide, 4 m deep, 2.7 m tall, origin at the ground centre. Greyscale canvas, tinted per instance. <= 350 tris.
+
+### `env.column`
+
+- **File:** `public/assets/models/world/column.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#b0aa9c`
+- **Placeholder:** `prop-column`
+- **Brief:** Broken stone column about 5 m tall on a square base, with one drum fallen beside it. Origin at the ground centre. <= 500 tris.
+
+### `env.reed`
+
+- **File:** `public/assets/models/world/reed.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#6b7a45`
+- **Placeholder:** `prop-reed`
+- **Brief:** Clump of marsh reeds about 1.9 m tall and 0.8 m across. Origin at the ground. <= 150 tris.
+
+### `env.minebeam`
+
+- **File:** `public/assets/models/world/mine_support.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#6b5236`
+- **Placeholder:** `prop-minebeam`
+- **Brief:** Mine support post about 4 m tall with a short lintel bracket, placed in pairs either side of the road. Origin at the ground. <= 200 tris.
+
+### `env.fence`
+
+- **File:** `public/assets/models/world/fence.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#8a6b47`
+- **Placeholder:** `prop-fence`
+- **Brief:** Paling fence section 2 m along Z and 1.1 m tall, tiling end to end. Origin at the ground centre. <= 200 tris.
 
 ## ui (`public/assets/manifest/ui.json`)
 

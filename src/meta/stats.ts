@@ -149,14 +149,14 @@ export function recordsBroken(p: Readonly<Profile>, summary: RunSummary): Record
   const s = summary.stats;
   const st = p.stats;
   const out: RecordBreak[] = [];
+  // a first value (previous 0) is not a broken record: it would list everything on run one
   const check = (id: string, label: string, value: number, previous: number, metres = false) => {
-    if (value > previous && value > 0) out.push({ id, label, value, previous, metres });
+    if (previous > 0 && value > previous) out.push({ id, label, value, previous, metres });
   };
   check("score", "Melhor pontuação", s.score, st.bestScore);
   check("distance", "Maior distância", Math.floor(s.distance), Math.floor(st.bestDistance), true);
   check("coins", "Mais moedas numa corrida", s.coins, st.bestCoinsRun);
   check("combo", "Maior combo", s.maxCombo, st.bestCombo);
   check("clean", "Maior sequência sem colisão", Math.floor(s.cleanDistance), Math.floor(st.bestCleanDistance), true);
-  check("speed", "Maior velocidade", Math.round(s.topSpeed), Math.round(st.bestSpeed));
   return out;
 }

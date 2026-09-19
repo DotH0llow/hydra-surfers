@@ -33,16 +33,19 @@ describe("meta/progression applyRun", () => {
     const p = defaultProfile();
     const r1 = applyRun(p, summary({ stats: { distance: 820, score: 1500, coins: 60 } }), at(0));
     expect(r1.coinsEarned).toBe(60);
-    // the first run beats every zero record (score, distance, coins)
-    expect(r1.records.map((r) => r.id)).toEqual(expect.arrayContaining(["score", "distance", "coins"]));
+    // a first-ever value is not reported as a broken record
+    expect(r1.records).toEqual([]);
     expect(p.stats).toMatchObject({ runs: 1, bestScore: 1500, totalCoins: 60 });
     expect(p.currencies.coins).toBeGreaterThanOrEqual(60);
 
     const r2 = applyRun(p, summary({ stats: { distance: 400, score: 900, coins: 20 } }), at(0));
     expect(r2.records).toEqual([]);
-    expect(p.stats.runs).toBe(2);
-    expect(p.stats.bestScore).toBe(1500);
-    expect(p.stats.totalDistance).toBeCloseTo(1220);
+    const r3 = applyRun(p, summary({ stats: { distance: 900, score: 2000, coins: 10 } }), at(0));
+    expect(r3.records.map((r) => r.id)).toEqual(["score", "distance"]);
+    expect(r3.records[0]).toMatchObject({ value: 2000, previous: 1500 });
+    expect(p.stats.runs).toBe(3);
+    expect(p.stats.bestScore).toBe(2000);
+    expect(p.stats.totalDistance).toBeCloseTo(2120);
   });
 
   it("banks coinValue-scaled coins while contracts still count coins collected", () => {

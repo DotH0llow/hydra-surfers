@@ -1,49 +1,44 @@
-# Hydra Surfers — handoff (2026-09-15, game complete, deploy pending)
+# Hydra Surfers — handoff (2026-09-19, medieval pass)
 
-Read this first when continuing. Contracts: `PLAN.md` (architecture, lane ownership §8b, pass rule §9) and `gauntlet/pieces.json` (every piece's dimension/criteria). This file is internal planning and may name the benchmark.
+Read this first when continuing. Contracts: `PLAN.md` (architecture, §10 for the medieval pass) and `docs/ONLINE.md` (API).
 
-The game was called Yard Dash until 2026-09-15; it is now **Hydra Surfers** (brand, Worker `hydra-surfers`, package, storage keys). The automated benchmark-name check (`tools/check-brand.mjs`) was removed at the owner's request.
+The game became a medieval runner for a private group of ~30-40 friends over a 30-day season. Everything below was built on the existing architecture (deterministic sim, tuning registry, event bus, asset manifest, registries); no system was rewritten except where the theme required it (environment, road, obstacle and character placeholders).
 
-## Where things are
+## Status by phase
 
-| thing | location |
-|---|---|
-| working clone (branch `main`) | `K:\hydra-surfers`, remote `origin` = GitHub, remote `scratch` = the original scratch repo |
-| original scratch repo | `C:\Users\Pichau\AppData\Roaming\Claude\scratch-workspaces\…\scratch-2026-09-13-093770` (stops at the lane merge commits) |
-| old lane worktrees | `K:/yard-dash-data/wt/lane-{a,b,c,d}`, all merged; safe to remove with `git worktree remove` from the scratch repo |
-| reference evidence (never commit/publish) | `K:\yard-dash-data\.reference` |
-| verification captures | `.captures/{roof-run,pickups,shop,settings}` (git-ignored; `npm run capture -- --scenario <name>`) |
-| historical build loop | `gauntlet/workflows/lanes.js` still tells agents to run `npm run check:brand`, which no longer exists; drop those lines before reusing it |
+**Phase 1 — medieval identity: done.** Eight regions (village, forest, castle, mines, cemetery, battlefield, ruins, swamp) with their own palette, fog, light, scenery and pattern weights, crossing with a blend. Cobbled road with kerbs and cart ruts. Obstacle kit re-dressed with identical colliders and spawn rules (barricade, hanging beam, cargo wagon, runaway cart, hay ramp, gatehouse, lantern post). Ten archetypes whose silhouette is manifest data; royal guard chaser; eight mounts; medieval power-ups plus Aegis and Hourglass. Tavern hub, all UI in pt-BR.
 
-## Status
+**Phase 2 — replayability: done.** Daily seed (3 ranked attempts), weekly challenge with data-driven mutators (5 attempts), tournaments, daily/weekly contracts with a 3-day catch-up window, achievements, titles, extended lifetime stats and records, rich results screen, rival line on the tavern and rank movement on results.
 
-Implemented and verified with unit tests, scripted `window.__game` runs and headless captures. The blind A/B critic loop against reference footage was not run.
+**Phase 3 — progression: done.** Account level + 30-level season track with rewards and catch-up bonus, XP daily cap, 15 equipment items where every item is a trade-off (tested invariant), builds applied through run rules, economy prices centralised, 7-day streak that only restarts.
 
-- **Run feel**: lane switch feel (lane A), jump 0.70 s, roll 0.47 s, constant 5 steps/s run cadence, speed holds 28 s then ramps linearly to 2× by 225 s (reference numbers).
-- **Track**: low/high barriers, parked and oncoming trains, ramps and walkable roofs, tunnels, signals; seeded patterns with fairness rules; gap pickups.
-- **Power-ups**: jetpack (11.5 s, sky coin trail), sneakers, magnet, 2x; keys; hoverboards absorb one crash.
-- **Flow**: home, HUD, pause with 3-2-1 resume, revive with keys, results with missions and rank, quit banks progress.
-- **Meta**: missions raise the permanent multiplier; shop with hoverboards, keys, 5-level upgrades, 4 characters and 4 hoverboards (coins or keys); leaderboard tabs (mock league until D1).
-- **Audio**: synthesized sfx for every event, looping run music with ducking, sfx/music volume, mute.
-- **Settings**: sound, volumes, reduced motion, controls, two-tap reset. Menus scroll on touch.
-- **Performance**: static placeholder meshes are merged per material at load (`src/assets/mergeStatic.ts`): a busy 180 s run went from 171 to ~61 draw calls (peak 80, target ≤ 120). Initial JS 52.9 kB app + 145.9 kB three gzip (budget 250).
-- **Devtools** (`?dev=1` in dev builds, stripped from production): cheats panel plus a tuning editor generated from the registry (search, per-field reset, persisted presets, copy/paste JSON); toggles: ` key, DEV button, 3-finger tap, corner long-press; cheats include no-clip, jump to time/distance, unlock all, give coins/keys/boards, power-ups, complete missions.
-- **Platform**: PWA manifest + icons, wake lock during runs, pause on hidden tab, portrait letterbox on desktop.
-- **Deploy**: ready but not connected. See `docs/DEPLOY.md` (Workers Builds import, or GitHub secrets). CI runs typecheck, tests, build, devstrip, asset check and a wrangler dry run on every push.
+**Phase 4 — social: mostly done.** Profiles (name, title, procedural crest), daily/weekly/season/tournament boards and record boards (distance, coins, combo, clean), rival lines, community bounty (sum over the bounty window), bearer-token identity with recovery code, proportional plausibility checks.
 
-Verified 2026-09-15: typecheck (app + worker), vitest 15 files / 95 tests, build, `check:devstrip`, `assets:check` (50 ids), `wrangler deploy --dry-run`; scripted roof run, every pickup, oncoming crash → revive, 180 s god-mode procedural run with every obstacle type and no errors.
+**Phase 5 — polish: partly done.** Near miss, perfect dodge, combo, clean streak (SkillSystem, tested). Run events (market day, ambush, runaway carts, storm, fog) and per-run weather as spawn/light modifiers. Speed FOV (off with reduced motion).
 
-## Remaining gaps
+## Not done (deliberately left for a second stage)
 
-1. All art and audio are procedural placeholders; `docs/ASSETS.md` lists every id with its spec (drop files at the listed paths, no code changes).
-2. Reference comparison pieces (A1–A7, B1–B5, C1–C3, Z1) are not critic-judged.
-3. Online is the mock league until D1 is bound and the client is built with `VITE_ONLINE_PROVIDER=http` (`docs/ONLINE.md`).
-4. Dev cheats not built: show hitboxes, lane grid, force a specific pattern.
-5. Perf at 4× CPU throttle not re-measured after the mesh merge (`npm run capture -- --scenario perf-run --perf`).
+1. **Ghosts.** Needs a trajectory recorder, storage per ranked run and a translucent runner. The determinism work (own RNG streams, nominal-distance spawning) is what makes it clean to add now.
+2. **Factions / houses.** Optional in the brief; would be a `faction` column and a weekly average-of-top-N query.
+3. **Special moments and set pieces** (dragon pass, closing gate, broken bridge, rooftop sequences) and a **layout validator** for impossible combinations. Patterns still guarantee a free lane per pattern with a 9 m minimum gap, as before.
+4. **Weather particles** (rain streaks). Weather is lighting and fog only.
+5. **New sounds** for near miss / perfect / combo / records; they reuse existing placeholder sfx cues where wired.
+6. **Local analytics dashboard.** Run `cause` is sent to the server (opt-out in settings) so balance can be read with SQL on `runs`; there is no in-game dashboard.
+7. **Late-game difficulty by patterns** beyond the existing difficulty ramp (events add pressure, but there is no second-stage pattern tier yet).
+
+## Operating the season
+
+- Edit `src/shared/content/season.ts` to set the season start date, rewards, weekly challenges, tournaments, bounties and prices. The day boundary is local midnight UTC-3 (`src/shared/calendar.ts`).
+- D1 must be bound for the group to see each other (`docs/ONLINE.md`). Balance data: `SELECT cause, COUNT(*), AVG(distance) FROM runs GROUP BY cause`.
+
+## Verified (2026-09-19)
+
+Typecheck (app + worker), vitest 20 files / 145 tests (Worker routes against real SQLite via node:sqlite), build within the 250 kB initial-JS budget, assets:check, devstrip, wrangler dry run. Captures of the region crossings (village → ruins → mines), a pickup run, the tavern and the results screen.
 
 ## Environment gotchas
 
 - **C: is almost full**; keep heavy data on K:.
 - Chrome via `playwright-core` `channel:'chrome'`; never download Playwright browsers.
-- The Claude preview pane screenshots time out when the app window is behind others; `tools/capture.mjs --port 5105` (own headless Chrome) is the reliable way to get frames.
+- `npm run capture -- --scenario <name>` is the reliable way to see frames (`tools/scenarios/`: `biomes`, `tavern`, `results`, `pickups`, …).
 - Git on this machine converts LF → CRLF in the working copy (warnings only).
+- `gauntlet/workflows/lanes.js` still references the removed `check:brand`; drop those lines before reusing it.

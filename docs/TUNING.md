@@ -20,9 +20,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (245 fields in 37 groups)
+## Registry (266 fields in 41 groups)
 
-[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: low barrier](#obsBarrierLow) · [Obstacle: high barrier (roll only)](#obsBarrierHigh) · [Obstacle: train](#obsTrain) · [Obstacle: oncoming train](#obsOncoming) · [Obstacle: ramp](#obsRamp) · [Structure: tunnel](#obsTunnel) · [Structure: light signal](#obsSignal) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Power-up effects](#powerupFx) · [Atmosphere & light](#atmosphere) · [Track](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
+[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
 
 <a id="lanes"></a>
 ### Lanes (`lanes`)
@@ -88,44 +88,44 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `surface.stepUp` | Step-up onto a roof (bridges car gaps) | 0.4 | 0 | 2 | 0.01 | m |
 | `surface.halfWidth` | Roof half-width under the runner's centre | 1 | 0.1 | 2 | 0.01 | m |
 
-<a id="obsBarrierLow"></a>
-### Obstacle: low barrier (`obsBarrierLow`)
+<a id="obsBarricade"></a>
+### Obstacle: barricade (`obsBarricade`)
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `obsBarrierLow.width` | Collider width | 2.1 | 0.5 | 3 | 0.05 | m |
-| `obsBarrierLow.bottom` | Collider bottom (roll clearance) | 0.55 | 0 | 2 | 0.01 | m |
-| `obsBarrierLow.height` | Collider height | 0.5 | 0.1 | 3 | 0.01 | m |
-| `obsBarrierLow.length` | Collider depth | 0.3 | 0.05 | 3 | 0.01 | m |
+| `obsBarricade.width` | Collider width | 2.1 | 0.5 | 3 | 0.05 | m |
+| `obsBarricade.bottom` | Collider bottom (roll clearance) | 0.55 | 0 | 2 | 0.01 | m |
+| `obsBarricade.height` | Collider height | 0.5 | 0.1 | 3 | 0.01 | m |
+| `obsBarricade.length` | Collider depth | 0.3 | 0.05 | 3 | 0.01 | m |
 
-<a id="obsBarrierHigh"></a>
-### Obstacle: high barrier (roll only) (`obsBarrierHigh`)
-
-| path | label | default | min | max | step | unit |
-|---|---|---|---|---|---|---|
-| `obsBarrierHigh.width` | Collider width | 2.1 | 0.5 | 3 | 0.05 | m |
-| `obsBarrierHigh.bottom` | Collider bottom (roll clearance) | 0.8 | 0 | 2 | 0.01 | m |
-| `obsBarrierHigh.top` | Collider top | 3.3 | 1 | 6 | 0.05 | m |
-| `obsBarrierHigh.length` | Collider depth | 0.3 | 0.05 | 3 | 0.01 | m |
-
-<a id="obsTrain"></a>
-### Obstacle: train (`obsTrain`)
+<a id="obsBeam"></a>
+### Obstacle: hanging beam (roll only) (`obsBeam`)
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `obsTrain.width` | Collider width | 2.2 | 0.5 | 3 | 0.05 | m |
-| `obsTrain.height` | Collider height (= roof walking height) | 3.6 | 1 | 6 | 0.05 | m |
-| `obsTrain.carLength` | Car length | 13 | 4 | 30 | 0.5 | m |
-| `obsTrain.carGap` | Gap between cars | 0.8 | 0 | 5 | 0.05 | m |
+| `obsBeam.width` | Collider width | 2.1 | 0.5 | 3 | 0.05 | m |
+| `obsBeam.bottom` | Collider bottom (roll clearance) | 0.8 | 0 | 2 | 0.01 | m |
+| `obsBeam.top` | Collider top | 3.3 | 1 | 6 | 0.05 | m |
+| `obsBeam.length` | Collider depth | 0.3 | 0.05 | 3 | 0.01 | m |
 
-<a id="obsOncoming"></a>
-### Obstacle: oncoming train (`obsOncoming`)
+<a id="obsWagon"></a>
+### Obstacle: cargo wagon (`obsWagon`)
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `obsOncoming.speed` | Speed toward the runner | 9 | 0 | 30 | 0.5 | m/s |
-| `obsOncoming.spawnAhead` | Starts moving this far ahead of the runner | 120 | 20 | 400 | 5 | m |
-| `obsOncoming.maxCars` | Max cars | 3 | 1 | 6 | 1 |  |
+| `obsWagon.width` | Collider width | 2.2 | 0.5 | 3 | 0.05 | m |
+| `obsWagon.height` | Collider height (= roof walking height) | 3.6 | 1 | 6 | 0.05 | m |
+| `obsWagon.carLength` | Wagon length | 13 | 4 | 30 | 0.5 | m |
+| `obsWagon.carGap` | Gap between wagons | 0.8 | 0 | 5 | 0.05 | m |
+
+<a id="obsRunaway"></a>
+### Obstacle: runaway cart (`obsRunaway`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `obsRunaway.speed` | Speed toward the runner | 9 | 0 | 30 | 0.5 | m/s |
+| `obsRunaway.spawnAhead` | Starts moving this far ahead of the runner | 120 | 20 | 400 | 5 | m |
+| `obsRunaway.maxCars` | Max carts in a bolt | 3 | 1 | 6 | 1 |  |
 
 <a id="obsRamp"></a>
 ### Obstacle: ramp (`obsRamp`)
@@ -134,19 +134,19 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 |---|---|---|---|---|---|---|
 | `obsRamp.length` | Ramp length (ground to roof) | 6.5 | 2 | 20 | 0.1 | m |
 
-<a id="obsTunnel"></a>
-### Structure: tunnel (`obsTunnel`)
+<a id="obsGate"></a>
+### Structure: gatehouse (`obsGate`)
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `obsTunnel.length` | Default tunnel length | 30 | 4 | 200 | 1 | m |
+| `obsGate.length` | Default passage length | 30 | 4 | 200 | 1 | m |
 
-<a id="obsSignal"></a>
-### Structure: light signal (`obsSignal`)
+<a id="obsLantern"></a>
+### Structure: lantern post (`obsLantern`)
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `obsSignal.edgeOffset` | Outer-edge signal offset beyond the outer lane half-spacing | 0.55 | 0 | 3 | 0.05 | m |
+| `obsLantern.edgeOffset` | Outer lantern offset beyond the outer lane half-spacing | 0.55 | 0 | 3 | 0.05 | m |
 
 <a id="powerups"></a>
 ### Power-ups (`powerups`)
@@ -156,7 +156,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `powerups.jetpackSeconds` | Jetpack duration | 11.5 | 1 | 30 | 0.5 | s |
 | `powerups.sneakersSeconds` | Super sneakers duration | 10 | 1 | 30 | 0.5 | s |
 | `powerups.magnetSeconds` | Coin magnet duration | 10 | 1 | 30 | 0.5 | s |
-| `powerups.multiplierSeconds` | 2x multiplier duration | 10 | 1 | 30 | 0.5 | s |
+| `powerups.multiplierSeconds` | Royal blessing duration | 10 | 1 | 30 | 0.5 | s |
+| `powerups.aegisSeconds` | Aegis duration (or until it takes a hit) | 18 | 1 | 60 | 0.5 | s |
+| `powerups.hourglassSeconds` | Hourglass duration | 7 | 1 | 30 | 0.5 | s |
 
 <a id="curve"></a>
 ### Curved world (`curve`)
@@ -184,7 +186,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `pickups.jetpackWeight` | Weight: jetpack | 0.8 | 0 | 10 | 0.1 |  |
 | `pickups.sneakersWeight` | Weight: super sneakers | 1 | 0 | 10 | 0.1 |  |
 | `pickups.magnetWeight` | Weight: coin magnet | 1.4 | 0 | 10 | 0.1 |  |
-| `pickups.multiplierWeight` | Weight: 2x multiplier | 1.1 | 0 | 10 | 0.1 |  |
+| `pickups.multiplierWeight` | Weight: royal blessing (2x) | 1.1 | 0 | 10 | 0.1 |  |
+| `pickups.aegisWeight` | Weight: aegis (absorbs one hit) | 0.9 | 0 | 10 | 0.1 |  |
+| `pickups.hourglassWeight` | Weight: hourglass (slows the road) | 0.7 | 0 | 10 | 0.1 |  |
 | `pickups.keyWeight` | Weight: key | 0.3 | 0 | 10 | 0.05 |  |
 | `pickups.jetpackMinDifficulty` | Jetpack not offered below this difficulty | 0.04 | 0 | 1 | 0.01 |  |
 | `pickups.height` | Hover height | 1 | 0 | 3 | 0.05 | m |
@@ -239,44 +243,91 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
 | `powerupFx.upgradeSecondsPerLevel` | Extra seconds per upgrade level | 2.5 | 0 | 10 | 0.5 | s |
-| `powerupFx.jetpackHeight` | Jetpack: flight height | 8 | 4 | 20 | 0.5 | m |
-| `powerupFx.jetpackCoinLead` | Jetpack: first sky coin ahead | 24 | 0 | 100 | 1 | m |
-| `powerupFx.jetpackCoinSpacing` | Jetpack: sky coin spacing | 2.6 | 0.5 | 10 | 0.1 | m |
-| `powerupFx.jetpackLaneRun` | Jetpack: sky trail changes lane every | 34 | 5 | 200 | 1 | m |
-| `powerupFx.jetpackEndGap` | Jetpack: no sky coins in the last | 18 | 0 | 100 | 1 | m |
-| `powerupFx.landingGraceSeconds` | Jetpack: no collisions after it ends | 1.2 | 0 | 5 | 0.05 | s |
-| `powerupFx.sneakersHeightScale` | Sneakers: jump height × | 2.6 | 1 | 5 | 0.05 |  |
-| `powerupFx.sneakersTimeScale` | Sneakers: airtime × | 1.3 | 0.5 | 3 | 0.05 |  |
+| `powerupFx.jetpackHeight` | Griffin: flight height | 8 | 4 | 20 | 0.5 | m |
+| `powerupFx.jetpackCoinLead` | Griffin: first sky coin ahead | 24 | 0 | 100 | 1 | m |
+| `powerupFx.jetpackCoinSpacing` | Griffin: sky coin spacing | 2.6 | 0.5 | 10 | 0.1 | m |
+| `powerupFx.jetpackLaneRun` | Griffin: sky trail changes lane every | 34 | 5 | 200 | 1 | m |
+| `powerupFx.jetpackEndGap` | Griffin: no sky coins in the last | 18 | 0 | 100 | 1 | m |
+| `powerupFx.landingGraceSeconds` | Griffin: no collisions after it ends | 1.2 | 0 | 5 | 0.05 | s |
+| `powerupFx.sneakersHeightScale` | Boots: jump height x | 2.6 | 1 | 5 | 0.05 |  |
+| `powerupFx.sneakersTimeScale` | Boots: airtime x | 1.3 | 0.5 | 3 | 0.05 |  |
+| `powerupFx.hourglassSpeedScale` | Hourglass: road speed x | 0.72 | 0.3 | 1 | 0.01 |  |
+
+<a id="build"></a>
+### Equipment effects (`build`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `build.shatterScore` | Score for smashing an obstacle | 60 | 0 | 500 | 5 |  |
+| `build.shatterGraceSeconds` | No collisions just after an absorbed hit | 0.35 | 0 | 2 | 0.05 | s |
+
+<a id="biome"></a>
+### Biomes (`biome`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `biome.segmentMetres` | Length of one region | 850 | 150 | 4000 | 25 | m |
+| `biome.transitionMetres` | Crossing between regions | 70 | 0 | 400 | 5 | m |
+
+<a id="events"></a>
+### Run events & weather (`events`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `events.firstAt` | No event before | 350 | 0 | 3000 | 25 | m |
+| `events.slotMetres` | One event roll every | 480 | 100 | 3000 | 20 | m |
+| `events.chance` | Chance a slot holds an event | 0.35 | 0 | 1 | 0.01 |  |
+| `events.length` | Event length | 220 | 40 | 1000 | 10 | m |
+| `events.weatherChance` | Chance a run has non-clear weather | 0.35 | 0 | 1 | 0.01 |  |
+
+<a id="skill"></a>
+### Skill, near miss & combo (`skill`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `skill.threatSeconds` | An obstacle counts as a threat this far ahead | 0.75 | 0.1 | 3 | 0.05 | s |
+| `skill.nearLateral` | Near miss: sideways clearance under | 0.5 | 0.05 | 2 | 0.01 | m |
+| `skill.nearVertical` | Near miss: clearance when jumping over | 0.3 | 0.05 | 2 | 0.01 | m |
+| `skill.perfectSeconds` | Perfect dodge: acted this long before impact | 0.3 | 0.05 | 1 | 0.01 | s |
+| `skill.dodgeScore` | Score for clearing a threat | 5 | 0 | 200 | 1 |  |
+| `skill.nearScore` | Score for a near miss | 25 | 0 | 500 | 1 |  |
+| `skill.perfectScore` | Score for a perfect dodge | 60 | 0 | 1000 | 5 |  |
+| `skill.comboWindow` | Combo drops after | 2.6 | 0.5 | 10 | 0.1 | s |
+| `skill.comboPerCoins` | Coins per combo step | 8 | 1 | 40 | 1 |  |
+| `skill.comboStepBonus` | Score bonus per combo step | 0.02 | 0 | 0.2 | 0.005 |  |
+| `skill.comboCap` | Combo steps that still count | 40 | 1 | 200 | 1 |  |
+| `skill.perfectStreakGoal` | Perfect dodges in a row for the dagger bonus | 5 | 2 | 20 | 1 |  |
+| `skill.perfectStreakScore` | Dagger streak bonus | 250 | 0 | 2000 | 10 |  |
 
 <a id="atmosphere"></a>
 ### Atmosphere & light (`atmosphere`)
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `atmosphere.fogNear` | Fog start | 55 | 0 | 400 | 1 | m |
-| `atmosphere.fogFar` | Fog end | 200 | 20 | 800 | 1 | m |
+| `atmosphere.fogNearScale` | Fog start x (region value) | 1 | 0.2 | 3 | 0.05 |  |
+| `atmosphere.fogFarScale` | Fog end x (region value) | 1 | 0.2 | 3 | 0.05 |  |
 | `atmosphere.drawDistance` | Camera far plane | 260 | 40 | 1000 | 10 | m |
-| `atmosphere.hemiIntensity` | Sky light intensity | 1.7 | 0 | 5 | 0.05 |  |
-| `atmosphere.sunIntensity` | Sun intensity | 2.2 | 0 | 6 | 0.05 |  |
+| `atmosphere.hemiScale` | Sky light x (region value) | 1 | 0 | 3 | 0.05 |  |
+| `atmosphere.sunScale` | Sun x (region value) | 1 | 0 | 3 | 0.05 |  |
 | `atmosphere.sunElevation` | Sun elevation | 55 | 5 | 90 | 1 | ° |
 | `atmosphere.sunAzimuth` | Sun azimuth | -30 | -180 | 180 | 1 | ° |
 
 <a id="track"></a>
-### Track (`track`)
+### Road (`track`)
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `track.sleeperSpacing` | Sleeper spacing | 0.9 | 0.4 | 3 | 0.05 | m |
-| `track.railGauge` | Rail gauge (at 2.5 m lanes) | 1.45 | 0.6 | 2.3 | 0.01 | m |
-| `track.railPieceLength` | Rail piece length (bend resolution) | 2 | 0.5 | 8 | 0.5 | m |
-| `track.ballastTile` | Ballast texture tile | 2.5 | 0.5 | 10 | 0.1 | m |
-| `track.groundTile` | Ground texture tile | 5 | 1 | 20 | 0.5 | m |
-| `track.ballastMargin` | Ballast beyond outer lanes | 0.9 | 0 | 4 | 0.05 | m |
-| `track.ballastY` | Ballast surface height | -0.12 | -1 | 0 | 0.01 | m |
-| `track.groundY` | Ground height | -0.45 | -3 | 0 | 0.01 | m |
-| `track.groundWidth` | Ground width | 160 | 20 | 600 | 10 | m |
-| `track.ahead` | Track length ahead | 250 | 60 | 800 | 10 | m |
-| `track.behind` | Track length behind | 24 | 0 | 80 | 1 | m |
+| `track.stoneSpacing` | Kerb stone spacing | 1.8 | 0.4 | 6 | 0.05 | m |
+| `track.rutGauge` | Cart rut gauge (at 2.5 m lanes) | 1.45 | 0.6 | 2.3 | 0.01 | m |
+| `track.rutPieceLength` | Rut piece length (bend resolution) | 2 | 0.5 | 8 | 0.5 | m |
+| `track.roadTile` | Cobble texture tile | 2.5 | 0.5 | 10 | 0.1 | m |
+| `track.groundTile` | Field texture tile | 5 | 1 | 20 | 0.5 | m |
+| `track.roadMargin` | Road beyond the outer lanes | 0.9 | 0 | 4 | 0.05 | m |
+| `track.roadY` | Road surface height | -0.12 | -1 | 0 | 0.01 | m |
+| `track.groundY` | Field height | -0.45 | -3 | 0 | 0.01 | m |
+| `track.groundWidth` | Field width | 160 | 20 | 600 | 10 | m |
+| `track.ahead` | Road length ahead | 250 | 60 | 800 | 10 | m |
+| `track.behind` | Road length behind | 24 | 0 | 80 | 1 | m |
 
 <a id="env"></a>
 ### Environment (`env`)
@@ -284,16 +335,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
 | `env.chunkLength` | Chunk length | 40 | 10 | 200 | 1 | m |
-| `env.sideMargin` | Gap between track and buildings | 2.6 | 0 | 20 | 0.1 | m |
-| `env.minWidth` | Building width min | 5 | 1 | 40 | 0.5 | m |
-| `env.maxWidth` | Building width max | 12 | 1 | 60 | 0.5 | m |
-| `env.minHeight` | Building height min | 3.5 | 1 | 60 | 0.5 | m |
-| `env.maxHeight` | Building height max | 15 | 1 | 80 | 0.5 | m |
-| `env.minLength` | Building length min | 8 | 2 | 60 | 0.5 | m |
-| `env.maxLength` | Building length max | 22 | 2 | 100 | 0.5 | m |
-| `env.gapChance` | Gap chance | 0.22 | 0 | 1 | 0.01 |  |
-| `env.poleSpacing` | Pole spacing | 20 | 4 | 100 | 1 | m |
-| `env.poleHeight` | Pole height | 6.5 | 1 | 20 | 0.1 | m |
+| `env.density` | Scenery density. Scales every layer; lower it on weak devices | 1 | 0 | 1.5 | 0.05 |  |
 
 <a id="anim"></a>
 ### Runner animation (`anim`)
@@ -338,6 +380,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `camera.shakeAmplitude` | Crash shake amplitude | 0.22 | 0 | 2 | 0.01 | m |
 | `camera.shakeDecay` | Crash shake decay | 6 | 0.5 | 30 | 0.5 | 1/s |
 | `camera.shakeFrequency` | Crash shake frequency | 18 | 1 | 60 | 0.5 | Hz |
+| `camera.speedFov` | Extra FOV at top speed (0 with reduced motion) | 5 | 0 | 20 | 0.5 | ° |
 
 <a id="obstacles"></a>
 ### Obstacles (`obstacles`)
@@ -351,38 +394,38 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `spawnWeights.barrierSingle` | Barrier (1 lane) | 3 | 0 | 10 | 0.1 |  |
-| `spawnWeights.barrierDouble` | Barriers (2 lanes) | 2 | 0 | 10 | 0.1 |  |
-| `spawnWeights.barrierRow` | Barriers (all lanes) | 1 | 0 | 10 | 0.1 |  |
-| `spawnWeights.trainSingle` | Train (1 lane) | 3 | 0 | 10 | 0.1 |  |
-| `spawnWeights.trainDouble` | Trains (2 lanes) | 2 | 0 | 10 | 0.1 |  |
-| `spawnWeights.coinsOnly` | Coin line only | 1.2 | 0 | 10 | 0.1 |  |
-| `spawnWeights.barrierHigh` | High barrier (roll under) | 2.2 | 0 | 10 | 0.1 |  |
-| `spawnWeights.barrierMixed` | Low + high barriers | 1.5 | 0 | 10 | 0.1 |  |
-| `spawnWeights.trainRamp` | Ramp onto a train (roof run) | 1.6 | 0 | 10 | 0.1 |  |
-| `spawnWeights.trainOncoming` | Oncoming train | 1.4 | 0 | 10 | 0.1 |  |
-| `spawnWeights.tunnel` | Tunnel with barriers | 1.2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.barricadeSingle` | Barricade (1 lane) | 3 | 0 | 10 | 0.1 |  |
+| `spawnWeights.barricadeDouble` | Barricades (2 lanes) | 2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.barricadeRow` | Barricades (all lanes) | 1 | 0 | 10 | 0.1 |  |
+| `spawnWeights.wagonSingle` | Wagon (1 lane) | 3 | 0 | 10 | 0.1 |  |
+| `spawnWeights.wagonDouble` | Wagons (2 lanes) | 2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.coinRun` | Coin line only | 1.2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.beamSingle` | Hanging beam (roll under) | 2.2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.barricadeMixed` | Barricades + beams | 1.5 | 0 | 10 | 0.1 |  |
+| `spawnWeights.wagonRamp` | Ramp onto a wagon (roof run) | 1.6 | 0 | 10 | 0.1 |  |
+| `spawnWeights.runawayCart` | Runaway cart | 1.4 | 0 | 10 | 0.1 |  |
+| `spawnWeights.gatehouse` | Gatehouse with obstacles | 1.2 | 0 | 10 | 0.1 |  |
 
 <a id="spawnPatterns"></a>
 ### Spawn pattern details (`spawnPatterns`)
 
 | path | label | default | min | max | step | unit |
 |---|---|---|---|---|---|---|
-| `spawnPatterns.barrierDoubleMinDifficulty` | Barriers (2 lanes) min difficulty | 0.1 | 0 | 1 | 0.01 |  |
-| `spawnPatterns.barrierRowMinDifficulty` | Barriers (all) min difficulty | 0.3 | 0 | 1 | 0.01 |  |
-| `spawnPatterns.trainDoubleMinDifficulty` | Trains (2 lanes) min difficulty | 0.15 | 0 | 1 | 0.01 |  |
-| `spawnPatterns.maxCars` | Max cars per train | 3 | 1 | 6 | 1 |  |
+| `spawnPatterns.barricadeDoubleMinDifficulty` | Barricades (2 lanes) min difficulty | 0.1 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.barricadeRowMinDifficulty` | Barricades (all) min difficulty | 0.3 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.wagonDoubleMinDifficulty` | Wagons (2 lanes) min difficulty | 0.15 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.maxCars` | Max wagons in a row | 3 | 1 | 6 | 1 |  |
 | `spawnPatterns.coinArcCount` | Coins in an arc | 5 | 2 | 12 | 1 |  |
 | `spawnPatterns.coinArcSpacing` | Arc coin spacing | 1.7 | 0.5 | 5 | 0.1 | m |
 | `spawnPatterns.coinArcPeak` | Arc peak above coin height | 1.3 | 0 | 4 | 0.05 | m |
 | `spawnPatterns.coinLineMin` | Coin line min count | 6 | 1 | 30 | 1 |  |
 | `spawnPatterns.coinLineMax` | Coin line max count | 12 | 1 | 40 | 1 |  |
 | `spawnPatterns.coinChance` | Chance a pattern carries coins | 0.75 | 0 | 1 | 0.01 |  |
-| `spawnPatterns.barrierMixedMinDifficulty` | Low + high barriers min difficulty | 0.12 | 0 | 1 | 0.01 |  |
-| `spawnPatterns.trainRampMinDifficulty` | Ramp onto a train min difficulty | 0.03 | 0 | 1 | 0.01 |  |
-| `spawnPatterns.trainOncomingMinDifficulty` | Oncoming train min difficulty | 0.2 | 0 | 1 | 0.01 |  |
-| `spawnPatterns.tunnelMinDifficulty` | Tunnel min difficulty | 0.05 | 0 | 1 | 0.01 |  |
-| `spawnPatterns.signalChance` | Chance of a trackside signal next to a train | 0.35 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.barricadeMixedMinDifficulty` | Barricades + beams min difficulty | 0.12 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.wagonRampMinDifficulty` | Ramp onto a wagon min difficulty | 0.03 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.runawayCartMinDifficulty` | Runaway cart min difficulty | 0.2 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.gatehouseMinDifficulty` | Gatehouse min difficulty | 0.05 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.signalChance` | Chance of a lantern post beside a wagon | 0.35 | 0 | 1 | 0.01 |  |
 
 <a id="spawn"></a>
 ### Spawner (`spawn`)
@@ -431,6 +474,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `score.pointsPerMeter` | Points per metre | 1 | 0 | 20 | 0.1 |  |
 | `score.coinPoints` | Points per coin | 0 | 0 | 100 | 1 |  |
 | `score.baseMultiplier` | Base score multiplier | 1 | 1 | 30 | 1 |  |
+| `score.highSpeedFraction` | High-speed bonus starts at this fraction of top speed | 0.9 | 0.5 | 1 | 0.01 |  |
 
 <a id="run"></a>
 ### Run flow (`run`)
@@ -473,6 +517,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `hud.toastOutSeconds` | Toast slide-out | 0.24 | 0 | 1 | 0.02 | s |
 | `hud.toastQueue` | Queued toasts kept (extra are dropped) | 3 | 1 | 8 | 1 |  |
 | `hud.boardHintSeconds` | Board button hint at run start | 4 | 0 | 15 | 0.5 | s |
+| `hud.popWordSeconds` | Near miss / perfect word on screen | 0.9 | 0.2 | 3 | 0.05 | s |
 
 <a id="display"></a>
 ### Display (`display`)
@@ -518,11 +563,11 @@ Deterministic layouts for `window.__game.startRun({ scenario })`, captures and t
 |---|---|
 | `default` | Normal seeded procedural run. |
 | `flat-straight` | Empty straight track: no obstacles, no coins. Framing/speed reference. |
-| `barrier-ahead` | One low barrier in the centre lane at 36 m; nothing else. |
-| `train-ahead` | Two-car train in the centre lane from 60 m, coin line in the left lane alongside. |
-| `train-side` | Three-car train in the left lane from 24 m (to ~65 m). Swipe left while alongside = stumble + bounce; twice quickly = caught. |
+| `barrier-ahead` | One barricade in the centre lane at 36 m; nothing else. |
+| `wagon-ahead` | Two wagons in the centre lane from 60 m, coin line in the left lane alongside. |
+| `wagon-side` | Three wagons in the left lane from 24 m (to ~65 m). Swipe left while alongside = stumble + bounce; twice quickly = caught. |
 | `coin-line` | Ten coins in the centre lane from 16 m, 2 m apart. |
-| `obstacle-kit` | Barrier centre at 40 m, train left from 70 m, barrier arc with coins right at 110 m. |
-| `roof-run` | Ramp in the centre lane at 30 m onto a three-car train (roof run), high barrier left at 60 m. |
-| `oncoming` | Two-car oncoming train in the centre lane starting 150 m ahead; coins in the right lane. |
+| `obstacle-kit` | Barricade centre at 40 m, wagon left from 70 m, barricade arc with coins right at 110 m. |
+| `roof-run` | Ramp in the centre lane at 30 m onto three wagons (roof run), hanging beam left at 60 m. |
+| `oncoming` | Two runaway carts in the centre lane starting 150 m ahead; coins in the right lane. |
 | `pickups` | One of each pickup in the centre lane from 25 m (magnet, 2x, sneakers, key, jetpack) with coin lines on both sides. |

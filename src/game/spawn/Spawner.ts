@@ -9,6 +9,7 @@ import { SPEED, difficultyAt, speedAt, timeAtDistance } from "./difficulty";
 import { listPatterns, type SpawnApi } from "./patterns";
 import type { BiomeSystem } from "../world/BiomeSystem";
 import type { BiomeDef } from "../world/biomes";
+import type { EventDirector, RunEventDef } from "../world/events";
 
 /**
  * Salt for the spawner's private RNG stream. The track must be a pure function of the seed, so it
@@ -40,11 +41,15 @@ export class Spawner implements RunSystem, SpawnApi {
   private biomes: BiomeSystem | undefined;
   /** Region the pattern currently being placed belongs to (drives weights and coin density). */
   private biome: BiomeDef | undefined;
+  private events: EventDirector | undefined;
+  /** Run event covering the pattern being placed (market day, ambush …), if any. */
+  private event: RunEventDef | null = null;
 
   init(ctx: RunContext): void {
     this.ctx = ctx;
     // optional: lean test harnesses build a context without the system registry
     this.biomes = ctx.getSystem?.<BiomeSystem>("biomes");
+    this.events = ctx.getSystem?.<EventDirector>("events");
   }
 
   reset(ctx: RunContext, opts: ResolvedRunOptions): void {
@@ -77,16 +82,20 @@ export class Spawner implements RunSystem, SpawnApi {
       this.speed = Math.max(speedAt(nominalTime), SPEED.start);
       // the region the pattern lands in decides what it is likely to be
       this.biome = this.biomes?.at(this.nextS);
+      this.event = this.events?.at(this.nextS) ?? null;
       const biomeWeights = this.biome?.patternWeights;
+      const eventWeights = this.event?.patternWeights;
       for (let i = 0; i < pats.length; i++) {
         const p = pats[i];
-        const base = this.difficulty >= p.minDifficulty ? p.weight() : 0;
-        this.weights[i] = base > 0 && biomeWeights ? base * (biomeWeights[p.id] ?? 1) : base;
+        let w = this.difficulty >= p.minDifficulty ? p.weight() : 0;
+        if (w > 0 && biomeWeights) w *= biomeWeights[p.id] ?? 1;
+        if (w > 0 && eventWeights) w *= eventWeights[p.id] ?? 1;
+        this.weights[i] = w;
       }
       const idx = this.rng.weighted(this.weights, pats.length);
       const used = idx >= 0 ? pats[idx].place(this, this.nextS) : 10;
       const gapT = SPAWN.gapSecondsStart + (SPAWN.gapSecondsEnd - SPAWN.gapSecondsStart) * this.difficulty;
-      const gap = Math.max(SPAWN.minGap, this.speed * gapT * (1 + this.rng.range(-SPAWN.gapJitter, SPAWN.gapJitter)) * ctx.rules.obstacleGapMul);
+      const gap = Math.max(SPAWN.minGap, this.speed * gapT * (1 + this.rng.range(-SPAWN.gapJitter, SPAWN.gapJitter)) * ctx.rules.obstacleGapMul * (this.event?.gapMul ?? 1));
       // pickups sit in the open gap after a pattern
       if (idx >= 0 && this.rng.chance(PICKUPS.chance * ctx.rules.pickupChanceMul)) {
         this.pickup(choosePickup(this.rng, this.difficulty), this.rng.int(-1, 1), this.nextS + used + gap * 0.5);
@@ -117,7 +126,7 @@ export class Spawner implements RunSystem, SpawnApi {
   coinLine(lane: number, s: number, count: number, spacing = COINS.spacing, y = COINS.height): void {
     // coinDensityMul stretches every line, so a market-fair mutator needs no pattern of its own,
     // and each region leans richer or leaner on top of it
-    const n = Math.max(1, Math.round(count * this.ctx.rules.coinDensityMul * (this.biome?.coinMul ?? 1)));
+    const n = Math.max(1, Math.round(count * this.ctx.rules.coinDensityMul * (this.biome?.coinMul ?? 1) * (this.event?.coinMul ?? 1)));
     for (let i = 0; i < n; i++) this.ctx.coins.spawn(lane, s + i * spacing, y);
   }
 

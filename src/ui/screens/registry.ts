@@ -10,8 +10,9 @@ import type { HoverboardSystem } from "../../game/hoverboard/Hoverboard";
 import type { PowerupSystem } from "../../game/powerups/PowerupSystem";
 import type { RunState, StartRunOptions } from "../../game/types";
 import type { Action } from "../../input/actions";
-import type { LeaderboardService, SubmitResult } from "../../online/LeaderboardService";
+import type { CommunityState, LeaderboardService, SubmitResult } from "../../online/LeaderboardService";
 import type { RunReport } from "../../meta/progression";
+import type { RunStats } from "../../meta/stats";
 import type { RunMode } from "../../meta/modes";
 import type brandJson from "../../brand/brand.json";
 
@@ -25,6 +26,8 @@ export interface ResultView extends RunResult {
   missions?: { completed: string[]; setAdvanced: boolean; multiplierBonus: number } | null;
   /** Everything the run earned (see meta/progression.ts). */
   report?: RunReport;
+  /** The run's statistics (combo, near misses …). */
+  stats?: RunStats;
   modeName?: string;
   board?: string;
   /** False for practice runs after the ranked attempts of a seeded board are spent. */
@@ -43,6 +46,21 @@ export interface ScreenHost {
   readonly online: LeaderboardService;
   /** Mode of the current or last run. */
   readonly currentMode: RunMode;
+  /** False for a practice run after a seeded board's ranked attempts are spent. */
+  readonly ranked: boolean;
+  /** Display name everyone else sees. */
+  readonly playerName: string;
+  renamePlayer(name: string): Promise<{ ok: boolean; error?: "invalid" | "taken" | "offline" }>;
+  /** One line about the nearest rival ("#4 no Diário · 230 pontos atrás de Marina"), or null. */
+  rivalLine(): Promise<string | null>;
+  /** Nearest power-up ahead when the build reveals them, else null. */
+  upcomingPickup(): { lane: number; dist: number } | null;
+  /** Community bounty progress, or null offline. */
+  communityProgress(): Promise<CommunityState | null>;
+  /** The recovery code once the player is registered online, else null. */
+  recoveryCode(): string | null;
+  /** Restores an account from a recovery code. */
+  recover(code: string): Promise<boolean>;
   readonly powerups: PowerupSystem | undefined;
   readonly hoverboard: HoverboardSystem | undefined;
   /** Seconds left of the resume countdown after un-pausing (0 = none). */

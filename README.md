@@ -1,71 +1,78 @@
 # Hydra Surfers
 
-An original, mobile-first three-lane endless runner for the browser. Swipe between lanes, jump barriers, roll under boards, run along train roofs, grab power-ups and outrun the yard warden.
+Um runner 3D de três pistas, medieval, feito para um grupo fechado de ~30–40 amigos jogar durante uma temporada de 30 dias. Você foge da guarda real pela estrada do reino — vilas, florestas, muralhas, minas, cemitérios, campos de batalha, ruínas e pântanos — e compete com o grupo na mesma estrada, todo dia.
 
-Built with **Vite + TypeScript + three.js** (no game engine), a DOM UI overlay, and deployed as a **Cloudflare Worker with static assets** plus a small `/api` Worker for the leaderboard.
+Feito com **Vite + TypeScript + three.js** (sem engine), UI em DOM sobre o canvas, publicado como **Cloudflare Worker com assets estáticos** mais uma pequena API em `/api` sobre **D1**.
 
-## Play
+## Jogar
 
-| | Touch | Keyboard |
+| | Toque | Teclado |
 |---|---|---|
-| Switch lane | swipe left / right | ← → or A D |
-| Jump | swipe up | ↑, W or Space |
-| Roll / fast fall | swipe down | ↓, S or Shift |
-| Hoverboard | double-tap or the board button | E |
-| Pause | pause button | Esc or P |
+| Trocar de pista | deslizar para os lados | ← → ou A D |
+| Saltar | deslizar para cima | ↑, W ou Espaço |
+| Rolar / cair rápido | deslizar para baixo | ↓, S ou Shift |
+| Montaria | tocar duas vezes | E |
+| Pausa | botão de pausa | Esc ou P |
 
-What is in the game:
+## O que existe
 
-- **Obstacles**: low barriers (jump or roll), high barriers (roll only), parked trains, oncoming trains, ramps up to train roofs, tunnels, trackside signals.
-- **Power-ups**: jetpack (fly over everything along a sky coin trail), super sneakers (jump onto roofs), coin magnet, 2x score. Keys appear now and then.
-- **Hoverboards** absorb one crash. **Keys** buy a revive after a crash (1, 2, then 4 keys).
-- **Missions**: three at a time; finish a set to raise your permanent score multiplier.
-- **Shop**: hoverboards, keys, power-up duration upgrades, and unlockable characters and hoverboards (coins or keys).
-- **Music**: a looping in-run track that ducks while paused or crashed, with its own volume setting.
-- **Ranks**: global, weekly and friends boards. Offline mock league by default, real D1 database optional.
-- Installable as a PWA (portrait, standalone). The screen stays awake during a run, and the game pauses when the tab is hidden.
+**A estrada**
+- Oito regiões que se sucedem na mesma corrida, cada uma com paleta, neblina, luz, cenário e padrões de obstáculo próprios. A ordem é uma função da seed: a mesma seed atravessa as mesmas regiões no mesmo metro.
+- Obstáculos: barricadas (salte ou role por baixo), vigas suspensas (só rolando), carroças de carga (desvie ou corra pelo teto), carroças desgovernadas vindo na sua direção, rampas de feno, portais da muralha.
+- Eventos curtos na estrada (feira, emboscada, carroças soltas, tempestade, neblina) e clima por corrida (entardecer, neblina, noite, chuva). Eles só mudam densidade, moedas e luz.
+- Poderes: Asas do Grifo (voo), Botas do Gigante, Amuleto Magnético, Bênção do Rei (2x), Égide (absorve um impacto), Ampulheta (desacelera a estrada sem tirar pontos).
 
-## Develop
+**Habilidade**
+- Combo que multiplica a pontuação; raspar perto de um obstáculo e esquivar no último instante (esquiva perfeita) dão pontos e combo.
+- Sequência sem colisão, velocidade máxima, maior combo: tudo vira recorde pessoal.
 
-Requires Node 22 (see `.nvmrc`).
+**Por que voltar todo dia**
+- **Corrida do Dia**: a mesma seed para todo o grupo, 3 tentativas válidas, placar próprio. O dia vira à meia-noite de Brasília.
+- **Desafio semanal**: mutators diferentes a cada semana (uma só vida, galope, feira do rei, noite dos mortos…), 5 tentativas.
+- **Torneios** de 48–72 h durante a temporada.
+- **Contratos**: 3 diários e 4 semanais, os mesmos para todos. Os diários ficam abertos por três dias, então perder um dia não custa nada.
+- **Sequência diária** de 7 dias; quebrar só reinicia o ciclo.
+- **Temporada** de 30 níveis com recompensas cosméticas, equipamentos, títulos e peças de brasão, com bônus de XP para quem ficou para trás.
+- **Conquistas** e **títulos** que aparecem ao lado do nome no placar; **brasão** montado por você.
+
+**Builds**
+- Uma arma, uma armadura e uma relíquia. Todo item dá algo e cobra algo (ex.: Moeda do Rei: +18% moedas, −5% pontos). Nas corridas ranqueadas o multiplicador da guilda e as melhorias da loja são desligados; a build continua valendo.
+
+**O grupo**
+- Livro dos Campeões: Diário, Semanal, Temporada e Torneio, e recordes de distância, moedas, combo e sequência limpa.
+- Linha de rival na taverna ("#4 no Diário · 230 pontos atrás de Marina") e movimento de posição no fim da corrida.
+- Missão do Reino: uma meta coletiva (ex.: 150.000 moedas somadas) com recompensa para todos.
+
+## Desenvolver
+
+Requer Node 22 (ver `.nvmrc`).
 
 ```sh
 npm ci
-npm run dev          # http://localhost:5100 (devtools on: press ` for cheats and the live tuning editor)
-npm test             # unit tests (vitest)
+npm run dev          # http://localhost:5100 (ferramentas de dev: tecla `)
+npm test             # testes unitários (vitest), incluindo a API contra SQLite real
 npm run typecheck
-npm run build        # production build in dist/
-npm run preview      # serve dist/ on :5100
+npm run build        # build de produção em dist/
 ```
 
-Useful URL flags: `?debug=1` exposes `window.__game` (scripted input, manual clock, state dumps), `?scenario=roof-run` starts runs from a hand-built layout, `?seed=123` fixes the track, `?mute=1`.
+Parâmetros úteis na URL: `?debug=1` expõe `window.__game`, `?scenario=roof-run` começa num layout fixo, `?seed=123` fixa a estrada, `?mute=1`.
 
-Tooling: `npm run capture -- --scenario jump --out .captures/jump` records frame strips with the local Chrome; `npm run assets:check` validates the asset manifest; `npm run docs:tuning` regenerates `docs/TUNING.md`; `npm run icons` re-renders the PWA icons.
+## Publicar
 
-## Deploy to Cloudflare
+Veja [docs/DEPLOY.md](docs/DEPLOY.md) e [docs/ONLINE.md](docs/ONLINE.md). Resumo: crie o banco D1, cole o id em `wrangler.jsonc`, aplique `worker/schema.sql` e faça o deploy. Sem banco o jogo funciona com uma liga offline.
 
-The repository is ready for Cloudflare Workers. Pick **one** of these:
-
-1. **Cloudflare dashboard, Git integration (simplest).** In Workers & Pages, choose **Create → Import a repository**, select this repository, and set:
-   - Build command: `npm run build`
-   - Deploy command: `npx wrangler deploy`
-   - Root directory: `/`
-
-   Every push to `main` then builds and deploys. Leave the GitHub Actions secrets unset.
-2. **GitHub Actions.** Add the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets. `.github/workflows/deploy.yml` then deploys on every push to `main` and uploads a preview version for each pull request. Without the secrets the workflow only runs the checks.
-3. **From your machine.** Run `npx wrangler login`, then `npm run deploy`.
-
-The Worker name is `hydra-surfers` (`wrangler.jsonc`), served at `https://hydra-surfers.<your-subdomain>.workers.dev`. Custom domains, the optional D1 leaderboard database and all environment variables are covered in [docs/DEPLOY.md](docs/DEPLOY.md) and [docs/ONLINE.md](docs/ONLINE.md).
-
-## Project layout
+## Onde está cada coisa
 
 ```
-src/            game code: core (loop, events, tuning, store), game systems, input, ui, meta, online, dev
-worker/         Cloudflare Worker for /api (leaderboard on D1, 503 fallback without a database)
-public/assets/  asset manifest; drop real models/textures/audio at the listed paths to replace placeholders
-tools/          capture, asset and docs tooling
-docs/           ASSETS, TUNING, DEVTOOLS, ONLINE, DEPLOY
-gauntlet/       internal planning and review records
+src/game/        simulação determinística: corrida, jogador, obstáculos, spawner, regiões, eventos, habilidade, regras da corrida
+src/meta/        progressão: contratos, conquistas, títulos, equipamentos, catálogo, modos, pipeline de fim de corrida
+src/shared/      calendário, conteúdo da temporada e regras de plausibilidade (usados também pelo Worker)
+src/online/      serviço de placar (http com fallback offline)
+src/ui/          telas (taverna, contratos, arsenal, brasão, temporada, campeões, resultados)
+worker/          API em Cloudflare Workers + D1 (schema.sql)
+docs/            ASSETS, TUNING, DEVTOOLS, ONLINE, DEPLOY
 ```
 
-All art and sound are procedural placeholders defined by `public/assets/manifest/*.json`. Swapping in real assets needs no code changes: see [docs/ASSETS.md](docs/ASSETS.md). Every gameplay number is live-tunable (see [docs/TUNING.md](docs/TUNING.md) and the in-game editor in dev builds).
+A temporada inteira (datas, trilha de recompensas, desafios semanais, torneios, metas coletivas, preços) é editada em um só arquivo: [`src/shared/content/season.ts`](src/shared/content/season.ts).
+
+Toda a arte e o som são placeholders procedurais definidos em `public/assets/manifest/*.json`; trocar por arquivos reais não exige código (ver [docs/ASSETS.md](docs/ASSETS.md)). Todo número de gameplay é ajustável ao vivo (ver [docs/TUNING.md](docs/TUNING.md)).

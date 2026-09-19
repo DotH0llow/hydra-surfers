@@ -292,9 +292,9 @@ export const TOURNAMENTS: TournamentDef[] = [
     attempts: 5,
   },
   {
-    id: "cacada-do-dragao",
-    name: "Caçada do Dragão",
-    description: "O dragão sobrevoa a estrada muito mais vezes do que deveria.",
+    id: "caos-no-reino",
+    name: "Caos no Reino",
+    description: "Feiras, emboscadas, carroças soltas e tempestades sem parar.",
     startDayOffset: 9,
     hours: 48,
     effects: [

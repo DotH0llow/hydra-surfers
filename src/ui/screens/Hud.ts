@@ -56,6 +56,15 @@ registerScreen("run", (host: ScreenHost) => {
 
   const countdown = h("div", { class: "countdown" });
   countdown.hidden = true;
+  // skill feedback: the combo counter and a short word for near misses / perfect dodges
+  const combo = h("div", { class: "combo" });
+  combo.hidden = true;
+  const popup = h("div", { class: "skill-pop" });
+  popup.hidden = true;
+  const practice = h("div", { class: "practice-tag", text: "Treino" });
+  practice.hidden = true;
+  const reveal = h("div", { class: "reveal" });
+  reveal.hidden = true;
   const toast = h("div", { class: "toast" });
   toast.hidden = true;
 
@@ -66,6 +75,10 @@ registerScreen("run", (host: ScreenHost) => {
     h("div", { class: "right" }, h("div", { class: "score-row" }, mult, score), coins),
     timers,
     countdown,
+    combo,
+    popup,
+    practice,
+    reveal,
     toast,
   );
 
@@ -77,7 +90,31 @@ registerScreen("run", (host: ScreenHost) => {
     queue.length = 0;
     toast.hidden = true;
     toastT = 0;
+    combo.hidden = true;
+    popup.hidden = true;
+    popT2 = 0;
+    practice.hidden = host.ranked;
   });
+  host.bus.on("combo:change", ({ combo: n }) => {
+    combo.hidden = n < 2;
+    if (n >= 2) setText(combo, `Combo ${n}`);
+    combo.classList.toggle("hot", n >= 20);
+  });
+  const pop = (text: string, cls: string) => {
+    setText(popup, text);
+    popup.className = `skill-pop ${cls}`;
+    popup.hidden = false;
+    void popup.offsetWidth;
+    popup.classList.add("in");
+    popT2 = HUD.popWordSeconds;
+  };
+  host.bus.on("skill:nearMiss", ({ score: pts }) => pop(`Raspou! +${pts}`, "near"));
+  host.bus.on("skill:perfect", ({ score: pts, streak }) => pop(streak >= 3 ? `Perfeito x${streak}! +${pts}` : `Perfeito! +${pts}`, "perfect"));
+  host.bus.on("build:absorb", ({ kind }) => {
+    const words: Record<string, string> = { smash: "Destruído!", aegis: "Égide!", shield: "Armadura!", luck: "Sorte!", stumble: "Cota de malha!" };
+    pop(words[kind] ?? "", "absorb");
+  });
+  let popT2 = 0;
 
   let lastScore = -1;
   let lastCoins = -1;
@@ -131,6 +168,9 @@ registerScreen("run", (host: ScreenHost) => {
       pollT -= dt;
       if (pollT <= 0) {
         pollT = 0.1;
+        const up = host.upcomingPickup();
+        reveal.hidden = !up;
+        if (up) setText(reveal, `✦ poder à ${["esquerda", "frente", "direita"][up.lane + 1]} · ${Math.round(up.dist)} m`);
         const snap = host.powerups?.snapshot() ?? [];
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
@@ -148,6 +188,11 @@ registerScreen("run", (host: ScreenHost) => {
       const c = host.resumeCountdown;
       countdown.hidden = c <= 0;
       if (c > 0) setText(countdown, String(Math.ceil(c)));
+
+      if (popT2 > 0) {
+        popT2 -= dt;
+        if (popT2 <= 0) popup.hidden = true;
+      }
 
       if (toastT > 0) {
         toastT -= dt;

@@ -18,6 +18,7 @@ import "./powerups/PickupSystem";
 import "./powerups/effects";
 import "./build/BuildSystem";
 import "./world/BiomeSystem";
+import "./world/events";
 import "./skill/SkillSystem";
 import { Atmosphere } from "./world/Atmosphere";
 import { Track } from "./world/Track";

@@ -1,96 +1,184 @@
-import { describe, expect, it } from "vitest";
-import worker, { handleApi, validateScore, weekKey, type Env } from "./index";
+/**
+ * Worker routes against a real SQLite database: a small D1 adapter over node:sqlite runs
+ * worker/schema.sql and every query the Worker issues, so SQL mistakes fail here, not in prod.
+ */
+import { beforeEach, describe, expect, it } from "vitest";
+import worker, { attemptLimit, handleApi, type Env } from "./index";
+import { dayKey, seedFor, weekKey } from "../src/shared/calendar";
+import { DAILY_ATTEMPTS } from "../src/shared/content/season";
 
-const call = (path: string, init?: RequestInit, env: Env = {}) => handleApi(new Request(`https://yard.test${path}`, init), env);
-
-/** Minimal in-memory D1 stand-in: records statements, returns canned rows. */
-function fakeDb(rows: Array<Record<string, unknown>> = []) {
-  const log: Array<{ sql: string; binds: unknown[]; op: string }> = [];
-  const stmt = (sql: string) => {
-    let binds: unknown[] = [];
-    const s = {
-      bind: (...b: unknown[]) => {
-        binds = b;
-        return s;
-      },
-      all: async () => (log.push({ sql, binds, op: "all" }), { results: rows }),
-      first: async () => (log.push({ sql, binds, op: "first" }), sql.includes("COUNT") ? { n: 2 } : { score: 500 }),
-      run: async () => (log.push({ sql, binds, op: "run" }), { success: true }),
-    };
-    return s;
-  };
-  return { db: { prepare: stmt } as unknown as D1Database, log };
+interface SqliteStatement {
+  all(params?: Record<string, unknown>): unknown[];
+  get(params?: Record<string, unknown>): unknown;
+  run(params?: Record<string, unknown>): { changes: number; lastInsertRowid: number };
+}
+interface SqliteDb {
+  exec(sql: string): void;
+  prepare(sql: string): SqliteStatement;
 }
 
+// Loaded dynamically so the Worker's type program never needs Node's types.
+const SQLITE = "node:sqlite";
+const FS = "node:fs";
+const { DatabaseSync } = (await import(/* @vite-ignore */ SQLITE)) as { DatabaseSync: new (path: string) => SqliteDb };
+const { readFileSync } = (await import(/* @vite-ignore */ FS)) as { readFileSync(path: URL, enc: string): string };
+const SCHEMA = readFileSync(new URL("./schema.sql", (import.meta as unknown as { url: string }).url), "utf8");
+
+/** D1 binds `?1, ?2 …` positionally; node:sqlite takes numbered params as an object. */
+function d1(db: SqliteDb): D1Database {
+  const prepare = (sql: string) => {
+    let params: Record<string, unknown> = {};
+    const stmt = {
+      bind(...args: unknown[]) {
+        params = {};
+        args.forEach((v, i) => (params[String(i + 1)] = v));
+        return stmt;
+      },
+      async all() {
+        return { results: db.prepare(sql).all(params), success: true };
+      },
+      async first() {
+        return (db.prepare(sql).get(params) as unknown) ?? null;
+      },
+      async run() {
+        const r = db.prepare(sql).run(params);
+        return { success: true, meta: { changes: r.changes, last_row_id: Number(r.lastInsertRowid) } };
+      },
+    };
+    return stmt;
+  };
+  return { prepare } as unknown as D1Database;
+}
+
+let env: Env;
+const NOW = Date.now();
+const today = dayKey(NOW);
+
+beforeEach(() => {
+  const db = new DatabaseSync(":memory:");
+  db.exec(SCHEMA);
+  env = { DB: d1(db) };
+});
+
+const call = (path: string, init?: RequestInit, e: Env = env) => handleApi(new Request(`https://hydra.test${path}`, init), e);
+const post = (path: string, body: unknown, token?: string, method = "POST") =>
+  call(path, { method, headers: { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(body) });
+
+async function register(name: string): Promise<{ playerId: string; token: string }> {
+  const res = await post("/api/players", { name });
+  expect(res.status).toBe(201);
+  return (await res.json()) as { playerId: string; token: string };
+}
+
+const run = (over: Record<string, unknown> = {}) => ({
+  board: "season",
+  period: "",
+  seed: 42,
+  score: 5000,
+  distance: 1200,
+  coins: 150,
+  duration: 90,
+  maxCombo: 12,
+  cleanDistance: 400,
+  ...over,
+});
+
 describe("worker /api", () => {
-  it("health reports db binding", async () => {
-    const res = await call("/api/health");
-    expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ ok: true, db: false });
-    const { db } = fakeDb();
-    expect(await (await call("/api/health", undefined, { DB: db })).json()).toMatchObject({ db: true });
+  it("health reports the db binding; data routes answer 503 without one", async () => {
+    expect(await (await call("/api/health", undefined, {})).json()).toMatchObject({ ok: true, db: false });
+    const res = await call("/api/boards/season", undefined, {});
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ error: "db_unavailable", fallback: "mock" });
   });
 
-  it("returns 503 JSON for leaderboard and scores without a D1 binding", async () => {
-    for (const [path, init] of [
-      ["/api/leaderboard?scope=global", undefined],
-      ["/api/scores", { method: "POST", body: JSON.stringify({ playerId: "abcdef", name: "A", score: 1 }) }],
-    ] as const) {
-      const res = await call(path, init);
-      expect(res.status).toBe(503);
-      expect(res.headers.get("content-type")).toContain("application/json");
-      expect(await res.json()).toMatchObject({ error: "db_unavailable", fallback: "mock" });
+  it("registers unique names (case and accents folded) and rejects bad ones", async () => {
+    const a = await register("Ana");
+    expect(a.token).toMatch(/^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/);
+    expect((await post("/api/players", { name: "ANA" })).status).toBe(409);
+    expect((await post("/api/players", { name: "Âna" })).status).toBe(409);
+    expect((await post("/api/players", { name: "x" })).status).toBe(422);
+    expect((await post("/api/players", { name: "<script>" })).status).toBe(422);
+  });
+
+  it("requires the bearer token for writes and restores the account from it", async () => {
+    expect((await post("/api/runs", run())).status).toBe(401);
+    expect((await post("/api/runs", run(), "WRONG-TOKEN-XXXXX")).status).toBe(401);
+    const { playerId, token } = await register("Bruno");
+    const me = await call("/api/players/me", { headers: { authorization: `Bearer ${token.toLowerCase()}` } });
+    expect(await me.json()).toMatchObject({ playerId, name: "Bruno" });
+  });
+
+  it("ranks runs on the season board by best score, with me and the player above", async () => {
+    const a = await register("Arthur");
+    const b = await register("Marina");
+    await post("/api/runs", run({ score: 9000 }), a.token);
+    const res = await post("/api/runs", run({ score: 4000 }), b.token);
+    expect(res.status).toBe(201);
+    expect(await res.json()).toMatchObject({ accepted: true, ranked: true, rank: 2, previousRank: null, best: 4000, above: { name: "Arthur", value: 9000 } });
+    const better = (await (await post("/api/runs", run({ score: 9500 }), b.token)).json()) as { rank: number; previousRank: number };
+    expect(better).toMatchObject({ rank: 1, previousRank: 2 });
+
+    const board = (await (await call(`/api/boards/season?player=${a.playerId}`)).json()) as { entries: Array<{ name: string; value: number }>; me: { rank: number } };
+    expect(board.entries.map((e) => [e.name, e.value])).toEqual([
+      ["Marina", 9500],
+      ["Arthur", 9000],
+    ]);
+    expect(board.me).toEqual({ rank: 2, value: 9000 });
+  });
+
+  it("ranks record boards by other metrics", async () => {
+    const a = await register("Caio");
+    const b = await register("Duda");
+    await post("/api/runs", run({ distance: 3000, duration: 200, score: 1000 }), a.token);
+    await post("/api/runs", run({ distance: 1500, score: 8000 }), b.token);
+    const byDistance = (await (await call("/api/boards/season?metric=distance")).json()) as { entries: Array<{ name: string }> };
+    expect(byDistance.entries[0].name).toBe("Caio");
+    expect((await call("/api/boards/season?metric=bogus")).status).toBe(400);
+  });
+
+  it("only accepts the daily seed on the daily board, and caps ranked attempts", async () => {
+    const { token } = await register("Enzo");
+    const daily = { board: "daily", period: today, seed: seedFor("daily", today) };
+    const wrongSeed = await post("/api/runs", run({ ...daily, seed: 7 }), token);
+    expect(wrongSeed.status).toBe(422);
+    expect(((await wrongSeed.json()) as { errors: string[] }).errors.join()).toContain("seed");
+
+    for (let i = 0; i < DAILY_ATTEMPTS; i++) {
+      expect(((await (await post("/api/runs", run({ ...daily, score: 100 + i }), token)).json()) as { ranked: boolean }).ranked).toBe(true);
     }
+    const extra = (await (await post("/api/runs", run({ ...daily, score: 99999 }), token)).json()) as { ranked: boolean; best: number };
+    expect(extra.ranked).toBe(false);
+    // the practice run did not change the ranked best
+    expect(extra.best).toBe(100 + DAILY_ATTEMPTS - 1);
+    expect(attemptLimit("daily")).toBe(DAILY_ATTEMPTS);
+  });
+
+  it("rejects implausible runs and stale periods", async () => {
+    const { token } = await register("Fabi");
+    expect((await post("/api/runs", run({ distance: 40000, duration: 60 }), token)).status).toBe(422);
+    expect((await post("/api/runs", run({ score: 999_999_999 }), token)).status).toBe(422);
+    expect((await post("/api/runs", run({ board: "daily", period: "2020-01-01", seed: seedFor("daily", "2020-01-01") }), token)).status).toBe(422);
+    const week = weekKey(NOW);
+    expect((await post("/api/runs", run({ board: "weekly", period: week, seed: seedFor("weekly", week) }), token)).status).toBe(201);
+  });
+
+  it("renames, refusing a name that belongs to someone else", async () => {
+    await register("Gabi");
+    const { token } = await register("Heitor");
+    expect((await post("/api/players/me", { name: "gabi" }, token, "PUT")).status).toBe(409);
+    const ok = await post("/api/players/me", { name: "Heitor II", crest: "2.5.0.3", title: "title.campeao", level: 7 }, token, "PUT");
+    expect(await ok.json()).toMatchObject({ name: "Heitor II", crest: "2.5.0.3", title: "title.campeao", level: 7 });
   });
 
   it("rejects wrong methods and unknown routes with JSON", async () => {
-    expect((await call("/api/scores")).status).toBe(405);
-    expect((await call("/api/leaderboard", { method: "POST" })).status).toBe(405);
-    const nf = await call("/api/nope");
-    expect(nf.status).toBe(404);
-    expect(await nf.json()).toMatchObject({ error: "not_found" });
-  });
-
-  it("validates score submissions", () => {
-    expect(validateScore({ playerId: "player_01", name: "Ana", score: 1234.9, coins: 5, distance: 88.5, seed: 7 })).toEqual({
-      ok: true,
-      value: { playerId: "player_01", name: "Ana", score: 1234, coins: 5, distance: 88.5, seed: 7 },
-    });
-    const bad = validateScore({ playerId: "x", name: "", score: -1 });
-    expect(bad.ok).toBe(false);
-    if (!bad.ok) expect(bad.errors.length).toBe(3);
-    expect(validateScore([]).ok).toBe(false);
-    expect(validateScore({ playerId: "abcdef", name: "Name With Spaces", score: 1 }).ok).toBe(true);
-  });
-
-  it("serves leaderboard and inserts scores when D1 is bound", async () => {
-    const { db, log } = fakeDb([{ playerId: "p1", name: "A", score: 900, distance: 10, at: 1 }]);
-    const lb = await call("/api/leaderboard?scope=weekly&limit=5&player=p1", undefined, { DB: db });
-    expect(lb.status).toBe(200);
-    const body = (await lb.json()) as { entries: Array<{ rank: number }>; me: { rank: number }; week: string };
-    expect(body.entries[0].rank).toBe(1);
-    expect(body.me).toEqual({ rank: 3, score: 500 });
-    expect(body.week).toMatch(/^\d{4}-W\d{2}$/);
-    expect((await call("/api/leaderboard?scope=bogus", undefined, { DB: db })).status).toBe(400);
-
-    const post = await call("/api/scores", { method: "POST", body: JSON.stringify({ playerId: "p1_abc", name: "A", score: 42 }) }, { DB: db });
-    expect(post.status).toBe(201);
-    expect(await post.json()).toEqual({ ok: true, rank: 3 });
-    expect(log.some((l) => l.op === "run" && l.sql.startsWith("INSERT INTO scores"))).toBe(true);
-    expect((await call("/api/scores", { method: "POST", body: "{nope" }, { DB: db })).status).toBe(400);
+    expect((await call("/api/runs")).status).toBe(405);
+    expect((await call("/api/nope")).status).toBe(404);
+    expect((await call("/api/boards/hack'--")).status).toBe(400);
   });
 
   it("default export routes non-API paths to the assets binding", async () => {
-    const env: Env = { ASSETS: { fetch: async () => new Response("asset") } as unknown as Fetcher };
-    const res = await worker.fetch(new Request("https://yard.test/index.html"), env);
-    expect(await res.text()).toBe("asset");
-    const api = await worker.fetch(new Request("https://yard.test/api/health"), env);
-    expect(api.status).toBe(200);
-  });
-
-  it("computes ISO week keys", () => {
-    expect(weekKey(Date.UTC(2026, 0, 1))).toBe("2026-W01"); // Thu
-    expect(weekKey(Date.UTC(2027, 0, 1))).toBe("2026-W53"); // Fri belongs to last week of 2026
-    expect(weekKey(Date.UTC(2026, 8, 13))).toBe("2026-W37");
+    const e: Env = { ASSETS: { fetch: async () => new Response("asset") } as unknown as Fetcher };
+    expect(await (await worker.fetch(new Request("https://hydra.test/index.html"), e)).text()).toBe("asset");
+    expect((await worker.fetch(new Request("https://hydra.test/api/health"), e)).status).toBe(200);
   });
 });

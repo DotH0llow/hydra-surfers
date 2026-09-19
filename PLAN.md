@@ -1,5 +1,7 @@
 # Hydra Surfers — build plan & architecture contract
 
+> **Medieval pass (2026-09).** The game is now a medieval runner for a private group of ~30-40 players over a 30-day season. The contracts below still hold; §10 adds the pieces that pass introduced.
+
 Game name **Hydra Surfers** (formerly the working title Yard Dash; all branding lives in `src/brand/brand.json`).
 An original 3-lane endless runner whose *mechanics* are held to the bar of the current shipped
 Subway Surfers mobile game. No art, audio, logos, characters or the title of that game are used or shipped.
@@ -136,3 +138,13 @@ Shared files (`src/core/*`, `src/main.ts`, `src/game/Run.ts`) change **additivel
 - A separate **critic** with fresh context judges A vs B on the piece's dimension only (placeholder art quality is out of scope; composition, proportions, timing, motion, readability, flow, responsiveness are in scope), picks a winner, names the single biggest gap of the loser, and says whether the margin is `clear` or `narrow`.
 - **Pass rule (close calls count):** a compare piece passes when ours wins **or** loses only narrowly — every measured timing within ±2 frames at 30 fps or ±15 %, sizes/positions within ±10 % of the screen dimension, and no evidence item clearly worse. At most 3 rounds per piece per wave; a piece that still fails is parked with its gap recorded and revisited later. Verdicts are stored in `gauntlet/verdicts/<piece>/r<N>.json`; one-line events append to `gauntlet/progress.jsonl`.
 - Engineering pieces with no Subway Surfers counterpart (cheats, editor, asset pipeline, deploy, perf) are judged against their written acceptance criteria. They pass when every criterion passes **or** the only failures are minor (cosmetic, docs wording, or a measured value within 10 % of its target); minor gaps are recorded as follow-ups.
+
+## 10. Medieval pass: rules, modes, meta
+
+- **Run rules** (`src/game/rules.ts`). One flat record of ~35 numeric modifiers per run, resolved before the run from `Effect[]` lists (mode mutators, then the equipped build) and read-only during it. Every rule has exactly one owner system; a rule nobody reads must not exist. Rules never mutate the tuning registry: tuning is the designer's baseline, rules are the run's deviation.
+- **Determinism is a product feature.** The track, the region order and run events are pure functions of (seed, distance), each on its own RNG stream (`Spawner`, `BiomeSystem`, `EventDirector`), and the spawner reads difficulty and speed on the *nominal* curve at the placement distance (`timeAtDistance`). Two players on the same daily seed meet the same road even if their builds change their speed or their power-ups consume gameplay randomness.
+- **Shared code** (`src/shared/`): calendar (days and weeks flip at local midnight, UTC-3), season content, plausibility checks. No DOM; imported by the client and by `worker/`.
+- **Content is data.** Season track, weekly challenges, tournaments, bounties, streak, XP and prices live in `src/shared/content/season.ts`; regions in `src/game/world/biomes.ts`; run events in `src/game/world/events.ts`; items in `src/meta/equipment.ts`; contracts, achievements and titles in `src/meta/`.
+- **One pipeline per finished run**: `applyRun()` in `src/meta/progression.ts` returns the report the results screen renders.
+- **Seeded competitive modes are normalised**: the permanent guild multiplier and shop upgrades are switched off through rules; equipment still applies.
+- **Online**: identity = unique name + bearer token (also the recovery code); one `runs` table, boards are GROUP BY queries (see docs/ONLINE.md).

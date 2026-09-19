@@ -9,6 +9,7 @@ import { Vector3 } from "three";
 import { defineTuning } from "../../core/tuning";
 import { easeHermite, easeHermiteVel, switchTimeScale } from "../player/switchMotion";
 import { laneX } from "../world/coords";
+import { SPEED } from "../spawn/difficulty";
 import type { ResolvedRunOptions, RunContext, RunSystem } from "../types";
 
 export const CAMERA = defineTuning("camera", "Run camera", {
@@ -31,6 +32,7 @@ export const CAMERA = defineTuning("camera", "Run camera", {
   shakeAmplitude: { default: 0.22, min: 0, max: 2, step: 0.01, label: "Crash shake amplitude", unit: "m" },
   shakeDecay: { default: 6, min: 0.5, max: 30, step: 0.5, label: "Crash shake decay", unit: "1/s" },
   shakeFrequency: { default: 18, min: 1, max: 60, step: 0.5, label: "Crash shake frequency", unit: "Hz" },
+  speedFov: { default: 5, min: 0, max: 20, step: 0.5, label: "Extra FOV at top speed (0 with reduced motion)", unit: "°" },
 });
 
 export const DESIGN_ASPECT = 9 / 16;
@@ -163,7 +165,10 @@ export class RunCamera implements RunSystem {
     this.lx = hlx + (rlx - hlx) * b;
     this.ly = hly + (rly - hly) * b;
     this.lz = hlz + (rlz - hlz) * b;
-    this.fov = CAMERA.homeFov + (CAMERA.fov - CAMERA.homeFov) * b;
+    // widen slightly as the road speeds up: a cheap, strong sense of speed (off with reduced motion)
+    const span = Math.max(1e-6, SPEED.max - SPEED.start);
+    const fast = Math.min(1, Math.max(0, (ctx.state.speed - SPEED.start) / span));
+    this.fov = CAMERA.homeFov + (CAMERA.fov - CAMERA.homeFov) * b + CAMERA.speedFov * fast * b;
     if (this.shakeT >= 0) {
       const t = this.shakeT;
       const a = CAMERA.shakeAmplitude * Math.exp(-CAMERA.shakeDecay * t);

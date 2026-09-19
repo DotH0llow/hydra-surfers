@@ -1,16 +1,19 @@
 /**
- * Provider selection: `VITE_ONLINE_PROVIDER=mock` (default) or `http` (the Worker in worker/).
- * The http provider falls back to the mock league whenever the API answers 503 (no D1 bound) or
- * is unreachable, so the leaderboard UI always has data.
+ * Provider selection: `VITE_ONLINE_PROVIDER=http` (default, the Worker in worker/) or `mock` (offline only).
+ * The http provider falls back to the offline league whenever the API answers 503 (no D1 bound) or
+ * is unreachable, so the UI always has data.
+ *
+ * The identity (player id, display name and, once registered, the server token) lives in its own
+ * storage key, separate from the profile, so resetting progress never loses the account.
  */
 import type { StorageLike } from "../core/store";
-import type { LeaderboardService } from "./LeaderboardService";
-import { HttpProvider, type Identity } from "./HttpProvider";
+import type { Identity, LeaderboardService } from "./LeaderboardService";
+import { HttpProvider } from "./HttpProvider";
 import { MockProvider } from "./MockProvider";
 
 export * from "./LeaderboardService";
 export { MockProvider } from "./MockProvider";
-export { HttpProvider, type Identity } from "./HttpProvider";
+export { HttpProvider } from "./HttpProvider";
 
 const ID_KEY = "hydra-surfers.player";
 
@@ -28,17 +31,22 @@ export function getIdentity(storage: StorageLike | null): Identity {
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID().replace(/-/g, "").slice(0, 16)
       : Math.floor(Math.random() * 2 ** 48).toString(36);
-  const id: Identity = { playerId: `p_${rand}`, playerName: `Runner${rand.slice(0, 4).toUpperCase()}` };
+  const id: Identity = { playerId: `local_${rand}`, playerName: `Viajante ${rand.slice(0, 4).toUpperCase()}` };
+  saveIdentity(storage, id);
+  return id;
+}
+
+export function saveIdentity(storage: StorageLike | null, id: Identity): void {
   try {
     storage?.setItem(ID_KEY, JSON.stringify(id));
   } catch {
     /* ignore */
   }
-  return id;
 }
 
-export function createLeaderboardService(storage: StorageLike | null, provider = import.meta.env.VITE_ONLINE_PROVIDER ?? "mock"): LeaderboardService {
+export function createLeaderboardService(storage: StorageLike | null, provider = import.meta.env.VITE_ONLINE_PROVIDER ?? "http"): LeaderboardService {
   const identity = getIdentity(storage);
-  const mock = new MockProvider({ ...identity, storage, seed: 1 });
-  return provider === "http" ? new HttpProvider(identity, mock) : mock;
+  const save = (id: Identity) => saveIdentity(storage, id);
+  const mock = new MockProvider({ identity, storage, seed: 1, onIdentity: (id) => save({ ...getIdentity(storage), playerName: id.playerName }) });
+  return provider === "http" ? new HttpProvider(identity, mock, save) : mock;
 }

@@ -4,7 +4,7 @@ Hydra Surfers ships as **one Cloudflare Worker with static assets**:
 
 - `dist/` (the Vite build) is uploaded as the Worker's static assets. Unknown non-API paths serve `index.html` (`not_found_handling: "single-page-application"`).
 - `/api/*` runs the Worker in `worker/index.ts` first (`assets.run_worker_first: ["/api/*"]`). Every other request is served straight from the asset store without invoking the Worker.
-- An optional D1 database (binding `DB`) stores leaderboard scores. Without it, `/api/leaderboard` and `/api/scores` answer `503 {"error":"db_unavailable","fallback":"mock"}` and the game uses its local mock league (see [ONLINE.md](ONLINE.md)).
+- A D1 database (binding `DB`) stores players and runs. It is what makes the group see each other: without it every data route answers `503 {"error":"db_unavailable","fallback":"mock"}` and each player only sees the offline league (see [ONLINE.md](ONLINE.md)).
 
 Configuration lives in `wrangler.jsonc`. `wrangler` is a devDependency, so every command below uses the pinned version. Node 22 is pinned in `.nvmrc` (read by GitHub Actions and Cloudflare Workers Builds).
 
@@ -80,9 +80,9 @@ The domain's zone must be on the same Cloudflare account.
   "routes": [{ "pattern": "play.example.com", "custom_domain": true }]
   ```
 
-## D1 (optional leaderboard database)
+## D1 (players and boards)
 
-Short version (full steps and client settings in [ONLINE.md](ONLINE.md)):
+Short version (full steps in [ONLINE.md](ONLINE.md)):
 
 ```sh
 npx wrangler d1 create hydra-surfers                                     # prints database_id
@@ -90,13 +90,13 @@ npx wrangler d1 create hydra-surfers                                     # print
 npx wrangler d1 execute hydra-surfers --remote --file=worker/schema.sql  # idempotent
 ```
 
-Then build the client with `VITE_ONLINE_PROVIDER=http` so the game talks to `/api`. In GitHub Actions, add it as an `env:` on the Build step. In Workers Builds, add it under **Settings → Variables and secrets → Build variables**.
+The client talks to `/api` by default (`VITE_ONLINE_PROVIDER=http`) and falls back to the offline league on any error, so no build variable is needed.
 
 ## Environment variables
 
 | name | where | effect |
 |---|---|---|
-| `VITE_ONLINE_PROVIDER` | build time | `mock` (default) or `http` (use the Worker API, falling back to mock on 503 or network error) |
+| `VITE_ONLINE_PROVIDER` | build time | `http` (default: the Worker API, falling back to the offline league on 503 or network error) or `mock` (offline only) |
 | `VITE_DEVTOOLS` | build time | `1` includes the dev panel chunk (reachable with `?dev=1`). Leave unset for production. |
 | `VITE_SOURCEMAP` | build time | `1` emits source maps (they are never uploaded as public assets, see `public/.assetsignore`) |
 | `APP_VERSION` | `wrangler.jsonc` `vars` | shown by `/api/health` |
@@ -107,4 +107,4 @@ Then build the client with `VITE_ONLINE_PROVIDER=http` so the game talks to `/ap
 - **Deploy step fails with authentication error 10000:** the token lacks Workers Scripts:Edit, or `CLOUDFLARE_ACCOUNT_ID` does not match the token's account.
 - **Workers Builds says the Worker name does not match:** the dashboard project name and `name` in `wrangler.jsonc` must be identical.
 - **Blank page after deploy:** `dist/` was empty or stale. Both CI paths build before deploying; when deploying by hand, run `npm run deploy`.
-- **Leaderboard always shows mock players:** expected until D1 is bound *and* the client is built with `VITE_ONLINE_PROVIDER=http`. `/api/health` shows `"db": true` once the binding works.
+- **Boards show the offline league ("Liga offline"):** D1 is not bound or the schema was not applied. `/api/health` shows `"db": true` once the binding works; then apply `worker/schema.sql`.

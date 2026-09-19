@@ -28,5 +28,12 @@ export function setText(el: HTMLElement, value: string): void {
 }
 
 export function formatInt(n: number): string {
-  return Math.floor(n).toLocaleString("en-US");
+  return Math.floor(n).toLocaleString("pt-BR");
+}
+
+/** "reinicia em 5h 12m" / "reinicia em 2d 4h" for a countdown in ms. */
+export function untilText(ms: number): string {
+  const hours = Math.max(0, Math.floor(ms / 3_600_000));
+  const days = Math.floor(hours / 24);
+  return days >= 1 ? `reinicia em ${days}d ${hours % 24}h` : `reinicia em ${hours}h ${Math.max(0, Math.floor((ms % 3_600_000) / 60_000))}m`;
 }

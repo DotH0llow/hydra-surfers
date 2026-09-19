@@ -22,9 +22,13 @@ import { activeMissions, applyRunMissions, liveProgress, multiplierBonus, type A
 import { applyRun, attemptsUsed, recordBoardAttempt, recordBoardResult, type RunReport } from "./meta/progression";
 import { emptyRunStats, type RunStat, type RunStats, type RunSummary } from "./meta/stats";
 import { SLOTS, buildEffects, equippedItem } from "./meta/equipment";
-import { modeById, seedForMode, type RunMode, type RunModeId } from "./meta/modes";
+import { dailyMode, modeById, seedForMode, type RunMode, type RunModeId } from "./meta/modes";
+import { accountLevel, recordDailyWin } from "./meta/progression";
+import { formatInt } from "./ui/dom";
+import type { CommunityState } from "./online";
 import { resolveRules } from "./game/rules";
 import type { SkillSystem } from "./game/skill/SkillSystem";
+import type { PickupSystem } from "./game/powerups/PickupSystem";
 import { MAX_REVIVES, reviveCost as keysForRevive, syncUpgrades } from "./meta/upgrades";
 import { createLeaderboardService, type LeaderboardService, type SubmitResult } from "./online";
 import { DEFAULT_SCENARIO, getScenario, listScenarios } from "./game/spawn/scenarios";
@@ -129,6 +133,67 @@ export class App implements ScreenHost, DebugHost {
 
   get reviveOfferSeconds(): number {
     return FLOW.reviveOfferSeconds;
+  }
+
+  // ------------------------------------------------------------------ identity & social
+
+  get playerName(): string {
+    return this.online.identity().playerName;
+  }
+
+  renamePlayer(name: string): Promise<{ ok: boolean; error?: "invalid" | "taken" | "offline" }> {
+    return this.online.rename(name);
+  }
+
+  recoveryCode(): string | null {
+    return this.online.identity().token ?? null;
+  }
+
+  recover(code: string): Promise<boolean> {
+    return this.online.recover(code);
+  }
+
+  /** Nearest power-up ahead, when the build reveals them (the mage's eye). */
+  upcomingPickup(): { lane: number; dist: number } | null {
+    if (!this.run.ctx.rules.revealPickups || !this.run.active) return null;
+    const pickups = this.run.ctx.getSystem<PickupSystem>("pickups");
+    if (!pickups) return null;
+    const d = this.run.state.distance;
+    let best: { lane: number; dist: number } | null = null;
+    for (const it of pickups.items) {
+      if (!it.active || it.kind === "key") continue;
+      const ahead = it.s - d;
+      if (ahead > 0 && ahead < 180 && (!best || ahead < best.dist)) best = { lane: it.lane, dist: ahead };
+    }
+    return best;
+  }
+
+  communityProgress(): Promise<CommunityState | null> {
+    return this.online.community();
+  }
+
+  /**
+   * One line about the nearest rival: today's daily board if the player has run it, otherwise
+   * the season. In a group of ~40 people this line does more for "one more run" than any reward.
+   */
+  async rivalLine(): Promise<string | null> {
+    try {
+      const daily = dailyMode(Date.now());
+      let board = await this.online.getBoard("daily", daily.period);
+      let where = "na Corrida do Dia";
+      if (!board.me) {
+        board = await this.online.getBoard("season");
+        where = "na temporada";
+      }
+      const me = board.me;
+      if (!me) return null;
+      if (me.rank === 1) return `Você lidera ${where}. Todos estão atrás de você.`;
+      const above = board.entries.find((e) => e.rank === me.rank - 1);
+      if (!above) return `Você é #${me.rank} ${where}.`;
+      return `#${me.rank} ${where} · ${formatInt(above.score - me.score)} pontos atrás de ${above.name}`;
+    } catch {
+      return null;
+    }
   }
 
   init(): void {
@@ -322,6 +387,7 @@ export class App implements ScreenHost, DebugHost {
       best: this.store.get().stats.bestScore,
       missions: report.missions,
       report,
+      stats: summary.stats,
       modeName: mode.name,
       board: mode.board,
       ranked: this.ranked,
@@ -340,7 +406,17 @@ export class App implements ScreenHost, DebugHost {
           duration: r.time,
           maxCombo: summary.stats.maxCombo,
           cleanDistance: summary.stats.cleanDistance,
-          cause: r.cause,
+          contracts: report.contracts.completed.length,
+          // balance metrics are opt-out (settings)
+          cause: this.store.get().settings.analytics ? r.cause : "",
+        })
+        .then((res) => {
+          // a fresh first place on today's board is the Campeão achievement's trigger
+          if (res.ranked && mode.board === "daily" && res.rank === 1 && res.previousRank !== 1) this.store.update(recordDailyWin);
+          const p = this.store.get();
+          const c = p.equipped.crest;
+          void this.online.updateProfile({ crest: `${c.bg}.${c.symbol}.${c.frame}.${c.color}`, title: p.equipped.title, level: accountLevel(p.progress.xp) });
+          return res;
         })
         .catch((err) => {
           console.warn("[online] score submit failed", err);
@@ -380,6 +456,7 @@ export class App implements ScreenHost, DebugHost {
     });
     bus.on("run:crash", () => this.bumpStat("crashes"));
     bus.on("run:stumble", () => this.bumpStat("stumbles"));
+    bus.on("event:start", ({ name }) => this.toast(name, "event"));
     bus.on("biome:enter", ({ id, name, index }) => {
       if (!this.run.active) return;
       if (!this.runBiomes.includes(id)) this.runBiomes.push(id);
@@ -456,9 +533,10 @@ export class App implements ScreenHost, DebugHost {
     this.run.ctx.getSystem<HoverboardView>("hoverboardView")?.setBoard(equippedId(p, "mount"));
     const reduced = !!p.settings.reducedMotion;
     document.documentElement.classList.toggle("reduced-motion", reduced);
-    const shake = "camera.shakeAmplitude";
-    if (reduced && tuning.get(shake) !== 0) tuning.set(shake, 0);
-    else if (!reduced && tuning.get(shake) === 0) tuning.reset(shake);
+    for (const path of ["camera.shakeAmplitude", "camera.speedFov"]) {
+      if (reduced && tuning.get(path) !== 0) tuning.set(path, 0);
+      else if (!reduced && tuning.get(path) === 0) tuning.reset(path);
+    }
   }
 
   private requestWakeLock(): void {

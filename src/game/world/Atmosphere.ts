@@ -12,6 +12,7 @@ import { defineTuning } from "../../core/tuning";
 import type { RunContext, RunSystem } from "../types";
 import { BIOMES, type BiomeDef } from "./biomes";
 import type { BiomeSystem } from "./BiomeSystem";
+import type { EventDirector, Mood } from "./events";
 
 export const ATMOS = defineTuning("atmosphere", "Atmosphere & light", {
   fogNearScale: { default: 1, min: 0.2, max: 3, step: 0.05, label: "Fog start x (region value)" },
@@ -34,9 +35,11 @@ export class Atmosphere implements RunSystem {
   private readonly hemi = new HemisphereLight(0xdfefff, 0x5d5a52, 1.7);
   private readonly sun = new DirectionalLight(0xfff1dc, 2.2);
   private biomes: BiomeSystem | undefined;
+  private events: EventDirector | undefined;
 
   init(ctx: RunContext): void {
     this.biomes = ctx.getSystem<BiomeSystem>("biomes");
+    this.events = ctx.getSystem<EventDirector>("events");
     ctx.scene.background = this.sky;
     ctx.scene.fog = this.fog;
     ctx.scene.add(this.hemi, this.sun, this.sun.target);
@@ -60,6 +63,10 @@ export class Atmosphere implements RunSystem {
     this.sun.color.copy(tmpA);
     this.sun.intensity = mix(from.sunIntensity, to.sunIntensity, t) * ATMOS.sunScale;
 
+    // weather for the whole run, then any event the runner is inside right now
+    this.applyMood(this.events?.weather);
+    this.applyMood(this.events?.at(ctx.renderDistance)?.mood);
+
     const el = (ATMOS.sunElevation * Math.PI) / 180;
     const az = (ATMOS.sunAzimuth * Math.PI) / 180;
     this.sun.position.set(Math.sin(az) * Math.cos(el) * 50, Math.sin(el) * 50, Math.cos(az) * Math.cos(el) * 50);
@@ -69,6 +76,20 @@ export class Atmosphere implements RunSystem {
       cam.far = ATMOS.drawDistance;
       cam.updateProjectionMatrix();
     }
+  }
+
+  /** Leans sky and fog toward the mood's tint, dims the light and pulls the fog in. */
+  private applyMood(mood: Mood | null | undefined): void {
+    if (!mood) return;
+    if (mood.tintAmount > 0) {
+      tmpB.set(mood.tint);
+      this.sky.lerp(tmpB, mood.tintAmount);
+      this.fog.color.lerp(tmpB, mood.tintAmount);
+    }
+    this.hemi.intensity *= mood.light;
+    this.sun.intensity *= mood.light;
+    this.fog.near *= mood.fog;
+    this.fog.far = Math.max(this.fog.near + 1, this.fog.far * mood.fog);
   }
 }
 

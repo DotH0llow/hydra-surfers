@@ -1,0 +1,9 @@
+{
+  "description": "A Corrida do Dia run that ends straight away, to show the results screen.",
+  "query": "",
+  "seed": 1,
+  "setup": [["startRun", { "mode": "daily", "skipIntro": true }], ["step", 240, 60], ["cheat", "crash"]],
+  "timeline": [],
+  "seconds": 3,
+  "fps": 1
+}
