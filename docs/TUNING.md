@@ -20,9 +20,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (279 fields in 43 groups)
+## Registry (281 fields in 44 groups)
 
-[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Late game](#late) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Rain](#rain) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
+[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Late game](#late) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Runner animation](#anim) · [Ghost](#ghost) · [Rain](#rain) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
 
 <a id="lanes"></a>
 ### Lanes (`lanes`)
@@ -308,6 +308,33 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `skill.perfectStreakGoal` | Perfect dodges in a row for the dagger bonus | 5 | 2 | 20 | 1 |  |
 | `skill.perfectStreakScore` | Dagger streak bonus | 250 | 0 | 2000 | 10 |  |
 
+<a id="anim"></a>
+### Runner animation (`anim`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `anim.legSwing` | Leg swing | 0.95 | 0 | 2 | 0.01 | rad |
+| `anim.armSwing` | Arm swing | 0.85 | 0 | 2 | 0.01 | rad |
+| `anim.bob` | Run bob | 0.07 | 0 | 0.4 | 0.005 | m |
+| `anim.forwardLean` | Run forward lean | 0.2 | -0.5 | 0.8 | 0.01 | rad |
+| `anim.switchLean` | Lane-switch lean | 0.5 | 0 | 1.2 | 0.01 | rad |
+| `anim.switchLeanPivot` | Lane-switch lean pivot height. tilt pivot above the feet; > 0 swings the legs out behind the lean | 0.75 | 0 | 1.7 | 0.01 | m |
+| `anim.switchYaw` | Lane-switch yaw | 0.22 | 0 | 1 | 0.01 | rad |
+| `anim.jumpTuck` | Jump knee tuck | 1.2 | 0 | 2.5 | 0.01 | rad |
+| `anim.rollTurns` | Roll ball turns | 1.6 | 0 | 5 | 0.1 |  |
+| `anim.landSquash` | Landing squash | 0.14 | 0 | 0.5 | 0.01 |  |
+| `anim.crashTilt` | Crash fall-back tilt | 1.3 | 0 | 2 | 0.01 | rad |
+| `anim.shadowOpacity` | Blob shadow opacity | 0.45 | 0 | 1 | 0.01 |  |
+| `anim.shadowSize` | Blob shadow size | 1.1 | 0.2 | 3 | 0.05 | m |
+
+<a id="ghost"></a>
+### Ghost (`ghost`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `ghost.opacity` | Opacity | 0.38 | 0 | 1 | 0.01 |  |
+| `ghost.fadeSeconds` | Fade out after the ghost's run ended | 1.5 | 0 | 10 | 0.1 | s |
+
 <a id="rain"></a>
 ### Rain (`rain`)
 
@@ -357,25 +384,6 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 |---|---|---|---|---|---|---|
 | `env.chunkLength` | Chunk length | 40 | 10 | 200 | 1 | m |
 | `env.density` | Scenery density. Scales every layer; lower it on weak devices | 1 | 0 | 1.5 | 0.05 |  |
-
-<a id="anim"></a>
-### Runner animation (`anim`)
-
-| path | label | default | min | max | step | unit |
-|---|---|---|---|---|---|---|
-| `anim.legSwing` | Leg swing | 0.95 | 0 | 2 | 0.01 | rad |
-| `anim.armSwing` | Arm swing | 0.85 | 0 | 2 | 0.01 | rad |
-| `anim.bob` | Run bob | 0.07 | 0 | 0.4 | 0.005 | m |
-| `anim.forwardLean` | Run forward lean | 0.2 | -0.5 | 0.8 | 0.01 | rad |
-| `anim.switchLean` | Lane-switch lean | 0.5 | 0 | 1.2 | 0.01 | rad |
-| `anim.switchLeanPivot` | Lane-switch lean pivot height. tilt pivot above the feet; > 0 swings the legs out behind the lean | 0.75 | 0 | 1.7 | 0.01 | m |
-| `anim.switchYaw` | Lane-switch yaw | 0.22 | 0 | 1 | 0.01 | rad |
-| `anim.jumpTuck` | Jump knee tuck | 1.2 | 0 | 2.5 | 0.01 | rad |
-| `anim.rollTurns` | Roll ball turns | 1.6 | 0 | 5 | 0.1 |  |
-| `anim.landSquash` | Landing squash | 0.14 | 0 | 0.5 | 0.01 |  |
-| `anim.crashTilt` | Crash fall-back tilt | 1.3 | 0 | 2 | 0.01 | rad |
-| `anim.shadowOpacity` | Blob shadow opacity | 0.45 | 0 | 1 | 0.01 |  |
-| `anim.shadowSize` | Blob shadow size | 1.1 | 0.2 | 3 | 0.05 | m |
 
 <a id="camera"></a>
 ### Run camera (`camera`)

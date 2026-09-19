@@ -69,6 +69,17 @@ export interface ScoreSubmission {
   cause?: string;
   /** House the run is run for ('' = none). */
   house?: string;
+  /** Ghost track of this run (src/shared/ghost.ts); sent with a new daily best only. */
+  ghost?: string;
+}
+
+/** Someone's ghost to race against. */
+export interface GhostData {
+  playerId: string;
+  name: string;
+  score: number;
+  /** Encoded track (src/shared/ghost.ts). */
+  data: string;
 }
 
 /** One house's weekly standing (see HOUSES in the season content). */
@@ -121,4 +132,6 @@ export interface LeaderboardService {
   recover(code: string): Promise<boolean>;
   /** Weekly house standings, or null offline. */
   houses(period: string): Promise<HouseStanding[] | null>;
+  /** The ghost to race on a seeded board: the player just above you (see worker), or null. */
+  getGhost(board: string, period: string): Promise<GhostData | null>;
 }

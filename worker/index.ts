@@ -20,6 +20,7 @@
  *   GET  /api/boards/:board?period=&metric=&player=                    -> { entries, me }
  *   GET  /api/community                                                -> { bounty: { id, value } | null }
  *   GET  /api/houses?period=<week>                                     -> { period, standings: [{ house, value, players }] }
+ *   GET  /api/ghosts/daily?period=&player=                             -> { playerId, name, score, data } | 404
  *
  * Without a D1 binding every data route answers `503 {"error":"db_unavailable"}` and the client
  * falls back to its offline league. Schema: worker/schema.sql.
@@ -27,6 +28,7 @@
 import { dayIndex, dayStart } from "../src/shared/calendar";
 import { DAILY_ATTEMPTS, HOUSES, SEASON, TOURNAMENTS, WEEKLY_ATTEMPTS, activeBounty, houseById, houseScore, seasonStartDay } from "../src/shared/content/season";
 import { LIMITS, checkRun, nameKey, validName, type RunClaim } from "../src/shared/plausibility";
+import { GHOST_MAX_CHARS, decodeGhost, ghostMatchesRun } from "../src/shared/ghost";
 
 export interface Env {
   /** D1 binding (see wrangler.jsonc + docs/ONLINE.md). */
@@ -104,9 +106,15 @@ async function authPlayer(request: Request, db: D1Database): Promise<PlayerRow |
   return db.prepare("SELECT id, name, crest, title, level FROM players WHERE token_hash = ?1").bind(await sha256(token)).first<PlayerRow>();
 }
 
-async function readJson(request: Request): Promise<Record<string, unknown> | null> {
+/** Bodies are small JSON objects; a run may carry a ghost track. */
+const MAX_BODY = 8 * 1024;
+const MAX_RUN_BODY = GHOST_MAX_CHARS + 8 * 1024;
+
+async function readJson(request: Request, maxChars = MAX_BODY): Promise<Record<string, unknown> | null> {
   try {
-    const body = await request.json();
+    const text = await request.text();
+    if (text.length > maxChars) return null;
+    const body = JSON.parse(text) as unknown;
     return typeof body === "object" && body !== null && !Array.isArray(body) ? (body as Record<string, unknown>) : null;
   } catch {
     return null;
@@ -191,7 +199,7 @@ function boardFilter(board: string, period: string): { where: string; binds: unk
 }
 
 async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promise<Response> {
-  const body = await readJson(request);
+  const body = await readJson(request, MAX_RUN_BODY);
   if (!body) return json({ error: "bad_json" }, 400);
   const board = typeof body.board === "string" ? body.board : "season";
   const period = typeof body.period === "string" ? body.period : "";
@@ -235,6 +243,21 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
     .run();
   const after = await standing(db, board, period, "score", me.id);
 
+  // a ranked daily run may carry its ghost; it is kept while it is the player's best of the day
+  let ghostStored = false;
+  if (board === "daily" && ranked && typeof body.ghost === "string") {
+    const track = decodeGhost(body.ghost);
+    if (track && ghostMatchesRun(track, claim.duration, claim.distance)) {
+      const res = await db
+        .prepare(
+          "INSERT INTO ghosts (player_id, board, period, score, data, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6) ON CONFLICT (player_id, board, period) DO UPDATE SET score = excluded.score, data = excluded.data, created_at = excluded.created_at WHERE excluded.score > ghosts.score",
+        )
+        .bind(me.id, board, period, claim.score, body.ghost, now)
+        .run();
+      ghostStored = (res.meta?.changes ?? 0) > 0;
+    }
+  }
+
   // who is right above now: the rival line of the results screen
   let above: { name: string; value: number } | null = null;
   if (after.rank !== null && after.rank > 1) {
@@ -246,7 +269,7 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
       .bind(...binds, after.best)
       .first<{ name: string; value: number }>();
   }
-  return json({ accepted: true, ranked: ranked === 1, rank: after.rank, previousRank: before.rank, best: after.best, above }, 201);
+  return json({ accepted: true, ranked: ranked === 1, rank: after.rank, previousRank: before.rank, best: after.best, above, ghostStored }, 201);
 }
 
 // ---------------------------------------------------------------------------- boards
@@ -289,6 +312,28 @@ async function community(db: D1Database): Promise<Response> {
   return json({ bounty: { id: b.id, value: Math.floor(row?.v ?? 0), goal: b.goal } });
 }
 
+/**
+ * The ghost to race on a board: the player just above your best (the next target), your own best
+ * when you lead, or — before your first run — the lowest ghost on the board, the most beatable.
+ */
+async function ghost(url: URL, boardId: string, db: D1Database): Promise<Response> {
+  if (boardId !== "daily") return json({ error: "bad_board" }, 400);
+  const period = url.searchParams.get("period") ?? "";
+  const player = url.searchParams.get("player") ?? "";
+  const cols = "g.player_id AS playerId, p.name AS name, g.score AS score, g.data AS data";
+  const from = "FROM ghosts g JOIN players p ON p.id = g.player_id WHERE g.board = ?1 AND g.period = ?2";
+  type Row = { playerId: string; name: string; score: number; data: string };
+  const mine = await db.prepare("SELECT MAX(score) AS v FROM runs WHERE board = ?1 AND period = ?2 AND ranked = 1 AND player_id = ?3").bind(boardId, period, player).first<{ v: number | null }>();
+  let row: Row | null;
+  if (mine?.v != null) {
+    row = await db.prepare(`SELECT ${cols} ${from} AND g.score > ?3 AND g.player_id != ?4 ORDER BY g.score ASC LIMIT 1`).bind(boardId, period, mine.v, player).first<Row>();
+    row ??= await db.prepare(`SELECT ${cols} ${from} AND g.player_id = ?3`).bind(boardId, period, player).first<Row>();
+  } else {
+    row = await db.prepare(`SELECT ${cols} ${from} ORDER BY g.score ASC LIMIT 1`).bind(boardId, period).first<Row>();
+  }
+  return row ? json(row) : json({ error: "no_ghost" }, 404);
+}
+
 /** Weekly house standings: each house's players' best ranked weekly score, top N averaged. */
 async function houses(url: URL, db: D1Database): Promise<Response> {
   const period = url.searchParams.get("period") ?? "";
@@ -315,7 +360,7 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
       if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });
       return json({ ok: true, db: !!env.DB, version: env.APP_VERSION ?? API_VERSION, time: new Date().toISOString() });
     }
-    const known = path === "/api/players" || path === "/api/players/me" || path === "/api/runs" || path === "/api/community" || path === "/api/houses" || path.startsWith("/api/boards/");
+    const known = path === "/api/players" || path === "/api/players/me" || path === "/api/runs" || path === "/api/community" || path === "/api/houses" || path.startsWith("/api/boards/") || path.startsWith("/api/ghosts/");
     if (!known) return json({ error: "not_found", path }, 404);
     const db = env.DB;
     if (!db) return dbUnavailable();
@@ -331,6 +376,10 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
     if (path === "/api/houses") {
       if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });
       return await houses(url, db);
+    }
+    if (path.startsWith("/api/ghosts/")) {
+      if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });
+      return await ghost(url, decodeURIComponent(path.slice("/api/ghosts/".length)), db);
     }
     if (path.startsWith("/api/boards/")) {
       if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });

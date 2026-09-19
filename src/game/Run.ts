@@ -20,6 +20,7 @@ import "./build/BuildSystem";
 import "./world/BiomeSystem";
 import "./world/events";
 import "./skill/SkillSystem";
+import "./ghost/Ghost";
 import { Atmosphere } from "./world/Atmosphere";
 import { Track } from "./world/Track";
 import { Environment } from "./world/Environment";

@@ -65,6 +65,9 @@ registerScreen("run", (host: ScreenHost) => {
   practice.hidden = true;
   const reveal = h("div", { class: "reveal" });
   reveal.hidden = true;
+  const ghost = h("div", { class: "ghost-chip" });
+  ghost.hidden = true;
+  let ghostText = "";
   const toast = h("div", { class: "toast" });
   toast.hidden = true;
 
@@ -79,6 +82,7 @@ registerScreen("run", (host: ScreenHost) => {
     popup,
     practice,
     reveal,
+    ghost,
     toast,
   );
 
@@ -168,6 +172,13 @@ registerScreen("run", (host: ScreenHost) => {
       pollT -= dt;
       if (pollT <= 0) {
         pollT = 0.1;
+        const g = host.ghostLead();
+        const text = g ? `${g.name} · ${Math.abs(Math.round(g.lead))} m ${g.lead >= 0 ? "à frente" : "atrás"}` : "";
+        if (text !== ghostText) {
+          ghostText = text;
+          setText(ghost, text);
+          ghost.hidden = !text;
+        }
         const up = host.upcomingPickup();
         reveal.hidden = !up;
         if (up) setText(reveal, `✦ poder à ${["esquerda", "frente", "direita"][up.lane + 1]} · ${Math.round(up.dist)} m`);

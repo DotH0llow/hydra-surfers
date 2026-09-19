@@ -9,6 +9,7 @@
 import type {
   Board,
   CommunityState,
+  GhostData,
   HouseStanding,
   Identity,
   LeaderboardService,
@@ -59,6 +60,7 @@ export class HttpProvider implements LeaderboardService {
         contracts: sub.contracts ?? 0,
         cause: sub.cause ?? "",
         house: sub.house ?? "",
+        ...(sub.ghost ? { ghost: sub.ghost } : {}),
       });
       if (!res.ok) return local;
       const body = (await res.json()) as Omit<SubmitResult, "provider">;
@@ -138,6 +140,17 @@ export class HttpProvider implements LeaderboardService {
       const res = await this.fetchImpl(`${this.base}/api/houses?period=${encodeURIComponent(period)}`);
       if (!res.ok) return null;
       return ((await res.json()) as { standings: HouseStanding[] }).standings;
+    } catch {
+      return null;
+    }
+  }
+
+  async getGhost(board: string, period: string): Promise<GhostData | null> {
+    try {
+      const q = new URLSearchParams({ period, player: this.me.playerId });
+      const res = await this.fetchImpl(`${this.base}/api/ghosts/${encodeURIComponent(board)}?${q}`);
+      if (!res.ok) return null;
+      return (await res.json()) as GhostData;
     } catch {
       return null;
     }

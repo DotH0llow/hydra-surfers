@@ -55,6 +55,8 @@ export interface ScreenHost {
   renamePlayer(name: string): Promise<{ ok: boolean; error?: "invalid" | "taken" | "offline" }>;
   /** One line about the nearest rival ("#4 no Diário · 230 pontos atrás de Marina"), or null. */
   rivalLine(): Promise<string | null>;
+  /** The ghost being raced (daily run): whose it is and how far ahead (m, negative = behind). */
+  ghostLead(): { name: string; lead: number } | null;
   /** Nearest power-up ahead when the build reveals them, else null. */
   upcomingPickup(): { lane: number; dist: number } | null;
   /** Community bounty progress, or null offline. */

@@ -7,7 +7,7 @@ import { Rng, hash32 } from "../core/rng";
 import type { StorageLike } from "../core/store";
 import { hashString } from "../shared/hash";
 import { validName } from "../shared/plausibility";
-import type { Board, CommunityState, HouseStanding, Identity, LeaderboardEntry, LeaderboardService, Metric, PublicProfile, ScoreSubmission, SubmitResult } from "./LeaderboardService";
+import type { Board, CommunityState, GhostData, HouseStanding, Identity, LeaderboardEntry, LeaderboardService, Metric, PublicProfile, ScoreSubmission, SubmitResult } from "./LeaderboardService";
 
 export interface MockProviderOptions {
   /** League seed (same seed → same fake players). */
@@ -120,6 +120,10 @@ export class MockProvider implements LeaderboardService {
   }
 
   async houses(_period: string): Promise<HouseStanding[] | null> {
+    return null;
+  }
+
+  async getGhost(_board: string, _period: string): Promise<GhostData | null> {
     return null;
   }
 

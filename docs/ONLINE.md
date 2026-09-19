@@ -31,6 +31,8 @@ Any board can be ranked by `score`, `distance`, `coins`, `combo` or `clean` (lon
 
 **Houses.** A player may pick one of four houses (`HOUSES` in `src/shared/content/season.ts`) in the crest screen. Every run carries the house it was run for; `/api/houses?period=<week>` ranks the houses by the mean of their five best players on that week's challenge, with empty places counting as zero, so headcount does not win. Switching house only moves future runs.
 
+**Ghosts.** A ranked daily run that beats the player's best of the day carries its ghost track (`src/shared/ghost.ts`: 10 samples a second, 4 bytes each, ~7 KB for 3 minutes). The Worker keeps one ghost per player and day (only while it is their best) after checking that the track fits the run's time and distance. `GET /api/ghosts/daily` answers the ghost of the player just above you, your own when you lead, or the lowest ghost before your first run. The client races it as a translucent runner with a HUD line ("Marina · 23 m à frente"); players can turn it off in the settings.
+
 Seeded boards give a limited number of **ranked attempts** per period (daily 3, weekly 5, tournaments per their definition). The client spends the attempt when the run starts; the server also counts them and stores extra runs as practice (`ranked = 0`).
 
 ## Plausibility (proportional anti-cheat)
@@ -51,10 +53,11 @@ This keeps obviously fabricated numbers off the boards without an arms race. Run
 | `/api/players` | POST `{ name, crest? }` | | `201 { playerId, token, name }`, `409 name_taken`, `422 invalid_name` |
 | `/api/players/me` | GET | token | `{ playerId, name, crest, title, level }` (also how recovery works) |
 | `/api/players/me` | PUT `{ name?, crest?, title?, level? }` | token | updated profile, `409` if the new name is taken |
-| `/api/runs` | POST run claim | token | `201 { accepted, ranked, rank, previousRank, best, above: { name, value } \| null }` |
+| `/api/runs` | POST run claim (+ `house`, `ghost`) | token | `201 { accepted, ranked, rank, previousRank, best, above: { name, value } \| null, ghostStored }` |
 | `/api/boards/:board?period=&metric=&player=` | GET | | `{ board, period, metric, entries: [{ rank, playerId, name, crest, title, level, value }], me }` |
 | `/api/community` | GET | | `{ bounty: { id, value, goal } \| null }` (sum over the bounty window) |
 | `/api/houses?period=` | GET | | `{ period, standings: [{ house, value, players }] }`, best house first |
+| `/api/ghosts/daily?period=&player=` | GET | | `{ playerId, name, score, data }` or `404` |
 
 Without a D1 binding every data route answers `503 {"error":"db_unavailable","fallback":"mock"}`.
 
@@ -69,7 +72,7 @@ Tests: `worker/index.test.ts` runs the real `schema.sql` and every query through
 5. Deploy (`npm run deploy` or push to `main`).
 6. Check `https://<your-worker>/api/health` shows `"db": true`.
 
-A database created before houses existed needs one migration: `npx wrangler d1 execute hydra-surfers --remote --file=worker/migrations/0002_houses.sql` (a database created from the current `schema.sql` already has the column; running the migration there fails harmlessly with "duplicate column").
+Re-running `worker/schema.sql` is always safe and creates tables added later (such as `ghosts`). A database created before houses existed also needs one migration: `npx wrangler d1 execute hydra-surfers --remote --file=worker/migrations/0002_houses.sql` (a database created from the current `schema.sql` already has the column; running the migration there fails harmlessly with "duplicate column").
 
 The schema changed from the first version (one `scores` table) to `players` + `runs`. The first version was never deployed with a database, so there is nothing to migrate.
 

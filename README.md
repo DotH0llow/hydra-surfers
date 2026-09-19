@@ -42,6 +42,7 @@ Feito com **Vite + TypeScript + three.js** (sem engine), UI em DOM sobre o canva
 
 **O grupo**
 - Livro dos Campeões: Diário, Semanal, Temporada e Torneio, e recordes de distância, moedas, combo e sequência limpa.
+- **Fantasma** na Corrida do Dia: você corre ao lado do fantasma de quem está logo acima de você no placar (ou do seu melhor, se estiver em primeiro).
 - Linha de rival na taverna ("#4 no Diário · 230 pontos atrás de Marina") e movimento de posição no fim da corrida.
 - Missão do Reino: uma meta coletiva (ex.: 150.000 moedas somadas) com recompensa para todos.
 - **Casas** (Leão, Corvo, Cervo, Serpente): escolha a sua no Brasão. A casa da semana é a de melhor média entre seus 5 melhores no Desafio Semanal; ter mais gente não ganha sozinho.

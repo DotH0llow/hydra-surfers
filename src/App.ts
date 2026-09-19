@@ -38,6 +38,8 @@ import { isAction, type Action, type InputSource } from "./input/actions";
 import { InputRouter } from "./input/InputRouter";
 import { UiRoot } from "./ui/UiRoot";
 import type { ResultView, ScreenHost, ScreenName } from "./ui/screens/registry";
+import type { GhostRecorder, GhostRunner } from "./game/ghost/Ghost";
+import { decodeGhost, encodeGhost } from "./shared/ghost";
 
 export const DISPLAY = defineTuning("display", "Display", {
   dprCap: { default: 2, min: 0.5, max: 4, step: 0.25, label: "Device pixel ratio cap" },
@@ -88,6 +90,8 @@ export class App implements ScreenHost, DebugHost {
   private runStats: RunStats = emptyRunStats();
   /** Mode the current (or last) run was started in. */
   currentMode: RunMode = modeById("normal", Date.now());
+  /** Bumped per run start so a late ghost download never lands in the wrong run. */
+  private ghostRequest = 0;
   /** Whether the current run counts for its board (seeded modes have limited ranked attempts). */
   ranked = true;
   private runBiomes: string[] = [];
@@ -170,6 +174,11 @@ export class App implements ScreenHost, DebugHost {
       if (ahead > 0 && ahead < 180 && (!best || ahead < best.dist)) best = { lane: it.lane, dist: ahead };
     }
     return best;
+  }
+
+  ghostLead(): { name: string; lead: number } | null {
+    const g = this.run.ctx.getSystem<GhostRunner>("ghost");
+    return g && g.name && Number.isFinite(g.lead) ? { name: g.name, lead: g.lead } : null;
   }
 
   communityProgress(): Promise<CommunityState | null> {
@@ -306,6 +315,7 @@ export class App implements ScreenHost, DebugHost {
       biomes: mode.biomes,
       weather: mode.weather,
     });
+    this.loadGhost(mode);
     const hb = this.hoverboard;
     if (hb) hb.charges = profile.currencies.mounts;
     this.runStats = emptyRunStats();
@@ -381,12 +391,39 @@ export class App implements ScreenHost, DebugHost {
     return true;
   }
 
+  /**
+   * The daily run races a ghost on the same road (settings can turn it off). It arrives
+   * asynchronously; ghosts run on run time, so a late arrival still lines up.
+   */
+  private loadGhost(mode: RunMode): void {
+    const ghost = this.run.ctx.getSystem<GhostRunner>("ghost");
+    const request = ++this.ghostRequest;
+    if (!ghost || mode.board !== "daily" || !this.store.get().settings.ghosts) return;
+    this.online
+      .getGhost(mode.board, mode.period)
+      .then((g) => {
+        if (request !== this.ghostRequest || !g || !this.run.active) return;
+        const track = decodeGhost(g.data);
+        if (track) ghost.setTrack(track, g.playerId === this.online.identity().playerId ? "Seu melhor" : g.name);
+      })
+      .catch(() => {});
+  }
+
+  /** The run's ghost track when it beats the player's best on the daily board, else undefined. */
+  private ghostToUpload(mode: RunMode, score: number, previousBest: number): string | undefined {
+    if (mode.board !== "daily" || !this.ranked || score <= previousBest) return undefined;
+    const rec = this.run.ctx.getSystem<GhostRecorder>("ghostRecorder");
+    return rec && rec.count > 1 ? encodeGhost(rec.dist, rec.x, rec.y, rec.count) : undefined;
+  }
+
   private onRunEnd(r: RunResult): void {
     this.resumeCountdown = 0;
     this.releaseWakeLock();
     const mode = this.currentMode;
     const summary = this.buildSummary(r);
     const prevBest = this.store.get().stats.bestScore;
+    const board = this.store.get().modes[mode.board];
+    const prevBoardBest = board?.period === mode.period ? board.best : 0;
     const holder: { report: RunReport | null } = { report: null };
     this.store.update((p) => {
       holder.report = applyRun(p, summary, Date.now());
@@ -422,6 +459,7 @@ export class App implements ScreenHost, DebugHost {
           // balance metrics are opt-out (settings)
           cause: this.store.get().settings.analytics ? r.cause : "",
           house: this.store.get().social.faction,
+          ghost: this.ghostToUpload(mode, r.score, prevBoardBest),
         })
         .then((res) => {
           // a fresh first place on today's board is the Campeão achievement's trigger

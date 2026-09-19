@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import worker, { attemptLimit, handleApi, type Env } from "./index";
 import { dayKey, seedFor, weekKey } from "../src/shared/calendar";
 import { DAILY_ATTEMPTS } from "../src/shared/content/season";
+import { GHOST_HZ, decodeGhost, encodeGhost } from "../src/shared/ghost";
 
 interface SqliteStatement {
   all(params?: Record<string, unknown>): unknown[];
@@ -173,6 +174,45 @@ describe("worker /api", () => {
     expect(body.standings[0]).toEqual({ house: "leao", value: (1500 + 1400 + 1300 + 1200 + 1100) / 5, players: 6 });
     expect(body.standings[1]).toEqual({ house: "corvo", value: 4000 / 5, players: 1 });
     expect((await call("/api/houses?period=nope")).status).toBe(400);
+  });
+
+  it("keeps each player's best daily ghost and serves the one just above you", async () => {
+    const daily = { board: "daily", period: today, seed: seedFor("daily", today) };
+    const track = (distance: number, duration: number) => {
+      const n = duration * GHOST_HZ + 1;
+      const d = Array.from({ length: n }, (_, i) => (distance * i) / (n - 1));
+      return encodeGhost(d, new Array(n).fill(0), new Array(n).fill(0), n);
+    };
+    const dailyRun = (score: number, distance: number, duration: number, ghost = track(distance, duration)) =>
+      run({ ...daily, score, distance, duration, coins: 10, ghost });
+
+    const low = await register("Lento");
+    const mid = await register("Medio");
+    const top = await register("Rapido");
+    const me = await register("Eu Mesmo");
+    const stored = async (token: string, body: Record<string, unknown>) => ((await (await post("/api/runs", body, token)).json()) as { ghostStored: boolean }).ghostStored;
+    expect(await stored(low.token, dailyRun(1000, 400, 40))).toBe(true);
+    expect(await stored(mid.token, dailyRun(2000, 600, 50))).toBe(true);
+    expect(await stored(top.token, dailyRun(3000, 800, 60))).toBe(true);
+    // a worse run does not replace the best ghost, and a track that does not fit its run is refused
+    expect(await stored(mid.token, dailyRun(1500, 500, 45))).toBe(false);
+    expect(await stored(top.token, dailyRun(3500, 900, 70, track(400, 20)))).toBe(false);
+
+    const ghostFor = async (playerId: string) => {
+      const res = await call(`/api/ghosts/daily?period=${today}&player=${playerId}`);
+      return res.status === 200 ? ((await res.json()) as { name: string; score: number; data: string }) : null;
+    };
+    // before any run: the most beatable ghost on the board
+    expect((await ghostFor(me.playerId))?.name).toBe("Lento");
+    await post("/api/runs", dailyRun(1200, 450, 42), me.token);
+    // then the next one above
+    expect((await ghostFor(me.playerId))?.name).toBe("Medio");
+    // the leader races their own best, and the data is a real track
+    const own = await ghostFor(top.playerId);
+    expect(own?.name).toBe("Rapido");
+    expect(decodeGhost(own!.data)?.count).toBe(60 * GHOST_HZ + 1);
+    expect((await call(`/api/ghosts/daily?period=2020-01-01&player=${me.playerId}`)).status).toBe(404);
+    expect((await call(`/api/ghosts/weekly?period=${today}`)).status).toBe(400);
   });
 
   it("rejects implausible runs and stale periods", async () => {

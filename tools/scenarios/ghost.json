@@ -1,0 +1,13 @@
+{
+  "description": "Races a synthetic ghost a few metres ahead (dev cheat ghostDemo) to check the translucent runner and the HUD chip.",
+  "query": "",
+  "seed": 3,
+  "setup": [
+    ["startRun", { "seed": 3, "skipIntro": true }],
+    ["cheat", "god", true],
+    ["cheat", "ghostDemo"]
+  ],
+  "timeline": [],
+  "seconds": 4,
+  "fps": 1
+}

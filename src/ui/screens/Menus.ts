@@ -243,6 +243,7 @@ registerScreen("settings", (host) => {
 
   const sound = toggle("sound", "Som", () => !host.store.get().settings.muted, (v) => host.store.update((p) => (p.settings.muted = !v)));
   const motion = toggle("reduced-motion", "Reduzir movimento", () => host.store.get().settings.reducedMotion, (v) => host.store.update((p) => (p.settings.reducedMotion = v)));
+  const ghosts = toggle("ghosts", "Fantasma na Corrida do Dia", () => host.store.get().settings.ghosts, (v) => host.store.update((p) => (p.settings.ghosts = v)));
   const analytics = toggle("analytics", "Métricas de equilíbrio", () => host.store.get().settings.analytics, (v) => host.store.update((p) => (p.settings.analytics = v)));
   const volume = h("input", { class: "interactive", attrs: { type: "range", min: "0", max: "100", step: "5", "data-id": "sfx-volume", "aria-label": "Volume dos efeitos" } });
   volume.addEventListener("input", () => host.store.update((p) => (p.settings.sfx = Number(volume.value) / 100)));
@@ -284,6 +285,7 @@ registerScreen("settings", (host) => {
   const paintAll = () => {
     sound.paint();
     motion.paint();
+    ghosts.paint();
     analytics.paint();
     volume.value = String(Math.round(host.store.get().settings.sfx * 100));
     music.value = String(Math.round(host.store.get().settings.music * 100));
@@ -299,6 +301,7 @@ registerScreen("settings", (host) => {
     h("div", { class: "setting" }, h("span", { text: "Efeitos" }), volume),
     h("div", { class: "setting" }, h("span", { text: "Música" }), music),
     motion.row,
+    ghosts.row,
     analytics.row,
     controls,
     h("h2", { text: "Conta" }),

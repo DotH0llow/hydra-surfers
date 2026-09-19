@@ -36,6 +36,18 @@ CREATE TABLE IF NOT EXISTS runs (
   created_at  INTEGER NOT NULL
 );
 
+-- The best ranked run of each player on a seeded board, as a ghost track (src/shared/ghost.ts).
+CREATE TABLE IF NOT EXISTS ghosts (
+  player_id   TEXT    NOT NULL,
+  board       TEXT    NOT NULL,
+  period      TEXT    NOT NULL,
+  score       INTEGER NOT NULL,
+  data        TEXT    NOT NULL,
+  created_at  INTEGER NOT NULL,
+  PRIMARY KEY (player_id, board, period)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ghosts_board ON ghosts (board, period, score);
 CREATE INDEX IF NOT EXISTS idx_runs_board   ON runs (board, period, ranked, player_id);
 CREATE INDEX IF NOT EXISTS idx_runs_season  ON runs (season, ranked, player_id);
 CREATE INDEX IF NOT EXISTS idx_runs_created ON runs (created_at);

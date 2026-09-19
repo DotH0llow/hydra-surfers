@@ -13,6 +13,9 @@ import { listCheats, listUnlockSources, registerCheat, runCheat, type CheatDef }
 import { tuning, type TuningEntry } from "../core/tuning";
 import { CHARACTERS, MOUNTS } from "../meta/catalog";
 import { distanceAtTime, timeForDistance } from "./devMath";
+import type { GhostRunner } from "../game/ghost/Ghost";
+import { GHOST_HZ, GHOST_MAX_SAMPLES } from "../shared/ghost";
+import { laneX } from "../game/world/coords";
 import { LongPressDetector, MultiFingerTap } from "./triggers";
 
 export const DEVTOOLS_MARKER = "yard-dash-devtools";
@@ -401,6 +404,27 @@ export function installDevtools(app: App): DevtoolsHandle {
       const t = Math.max(0, Number(s) || 0);
       app.run.warp(t, distanceAtTime(t));
       return Math.round(app.run.state.distance);
+    },
+  });
+  registerCheat({
+    name: "ghostDemo",
+    label: "Race a test ghost (a few metres ahead, weaving)",
+    group: "Run",
+    run: () => {
+      const ghost = app.run.ctx.getSystem<GhostRunner>("ghost");
+      const st = app.run.state;
+      if (!ghost) return "no ghost system";
+      const n = GHOST_MAX_SAMPLES;
+      const track = { count: n, dist: new Float32Array(n), x: new Float32Array(n), y: new Float32Array(n) };
+      const speed = Math.max(8, st.speed);
+      for (let i = 0; i < n; i++) {
+        const dt = i / GHOST_HZ - st.time;
+        track.dist[i] = Math.max(0, st.distance + 14 + dt * speed);
+        track.x[i] = laneX(Math.round(Math.sin(dt * 0.8)));
+        track.y[i] = dt > 0 && dt % 3 < 0.5 ? Math.sin(((dt % 3) / 0.5) * Math.PI) * 1.2 : 0;
+      }
+      ghost.setTrack(track, "Fantasma de teste");
+      return "ok";
     },
   });
   registerCheat({
