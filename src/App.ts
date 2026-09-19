@@ -141,6 +141,10 @@ export class App implements ScreenHost, DebugHost {
     return this.online.identity().playerName;
   }
 
+  get nameChosen(): boolean {
+    return this.online.identity().named === true;
+  }
+
   renamePlayer(name: string): Promise<{ ok: boolean; error?: "invalid" | "taken" | "offline" }> {
     return this.online.rename(name);
   }
@@ -293,7 +297,15 @@ export class App implements ScreenHost, DebugHost {
     this.run.state.multiplierBonus = multiplierBonus(profile);
     // mode mutators first, then the equipped build: both are just effect lists over RunRules
     const rules = resolveRules(mode.effects, buildEffects(profile));
-    this.run.start({ scenario, seed: seed >>> 0, skipIntro: !!opts.skipIntro, rules, biomes: mode.biomes, weather: mode.weather });
+    this.run.start({
+      scenario,
+      seed: seed >>> 0,
+      skipIntro: !!opts.skipIntro,
+      rules,
+      layoutSpeedMul: resolveRules(mode.effects).speedMul,
+      biomes: mode.biomes,
+      weather: mode.weather,
+    });
     const hb = this.hoverboard;
     if (hb) hb.charges = profile.currencies.mounts;
     this.runStats = emptyRunStats();
@@ -424,6 +436,11 @@ export class App implements ScreenHost, DebugHost {
         });
     }
     if (this.quitting) return;
+    bus.emit("app:runReport", {
+      records: report.records.length,
+      newBest: this.lastResult.newBest,
+      levelUp: report.levelAfter > report.levelBefore || report.seasonLevelAfter > report.seasonLevelBefore,
+    });
     this.show("gameover");
   }
 

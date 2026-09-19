@@ -6,6 +6,9 @@ import type { EventBus } from "../core/events";
 import type { ProfileStore } from "../core/store";
 import type { AssetLibrary } from "../assets/AssetLibrary";
 
+/** A combo sound plays each time the combo crosses a multiple of this. */
+const COMBO_SOUND_STEP = 5;
+
 export class AudioBus {
   private ac: AudioContext | null = null;
   private master: GainNode | null = null;
@@ -15,6 +18,7 @@ export class AudioBus {
   private musicGain: GainNode | null = null;
   private wantMusic = false;
   private ducked = false;
+  private comboStep = 0;
 
   constructor(
     private readonly assets: AssetLibrary,
@@ -41,6 +45,19 @@ export class AudioBus {
       if (e.kind === "key") this.play("sfx.key");
     });
     bus.on("mission:complete", () => this.play("sfx.mission"));
+    // skill feedback: pitch climbs along a perfect streak and per combo milestone
+    bus.on("skill:nearMiss", () => this.play("sfx.nearmiss"));
+    bus.on("skill:perfect", (e) => this.play("sfx.perfect", Math.pow(2, Math.min(e.streak - 1, 7) / 12)));
+    bus.on("combo:change", (e) => {
+      const step = Math.floor(e.combo / COMBO_SOUND_STEP);
+      if (step > this.comboStep) this.play("sfx.combo", Math.pow(2, Math.min(step - 1, 7) / 12));
+      this.comboStep = step;
+    });
+    bus.on("build:absorb", (e) => (e.kind === "smash" ? this.play("sfx.crash", 1.6) : this.play("sfx.block")));
+    bus.on("event:start", () => this.play("sfx.horn"));
+    bus.on("app:runReport", (e) => {
+      if (e.records > 0 || e.newBest || e.levelUp) this.play("sfx.fanfare");
+    });
     bus.on("ui:click", () => this.play("sfx.ui.tap"));
     bus.on("coin:collect", () => {
       const now = this.ac?.currentTime ?? 0;

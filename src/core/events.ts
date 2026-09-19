@@ -22,6 +22,8 @@ export interface EventMap {
   "app:ready": { placeholders: number };
   /** Page visibility changed (the app pauses runs when hidden). */
   "app:visibility": { hidden: boolean };
+  /** A finished run was scored, just before the results screen (records broken, levels gained). */
+  "app:runReport": { records: number; newBest: boolean; levelUp: boolean };
 }
 
 export type EventName = keyof EventMap;

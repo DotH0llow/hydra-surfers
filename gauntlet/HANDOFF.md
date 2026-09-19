@@ -14,17 +14,20 @@ The game became a medieval runner for a private group of ~30-40 friends over a 3
 
 **Phase 4 — social: mostly done.** Profiles (name, title, procedural crest), daily/weekly/season/tournament boards and record boards (distance, coins, combo, clean), rival lines, community bounty (sum over the bounty window), bearer-token identity with recovery code, proportional plausibility checks.
 
-**Phase 5 — polish: partly done.** Near miss, perfect dodge, combo, clean streak (SkillSystem, tested). Run events (market day, ambush, runaway carts, storm, fog) and per-run weather as spawn/light modifiers. Speed FOV (off with reduced motion).
+**Phase 5 — polish: partly done.** Near miss, perfect dodge, combo, clean streak (SkillSystem, tested). Run events (market day, ambush, runaway carts, storm, fog) and per-run weather as spawn/light modifiers. Speed FOV (off with reduced motion). Sounds for near miss, perfect dodge (pitch climbs along the streak), combo milestones, blocked hits, road events (horn) and records/level-ups on results (fanfare).
+
+**Fairness (anti-frustration).** `tests/unit/fairness.test.ts` generates the real road (spawner + regions + events) for the free run and every weekly challenge, at normal speed and under the Hourglass, and proves every stretch is reachable with a 0.25 s human budget per lane change. It found and fixed: runaway carts ignoring the Hourglass (they met the runner up to ~13 m early), gaps too short to cross two lanes at top speed in dense modes (new `spawn.minGapSeconds`, planned on the mode's speed, not the build's), and pickup draws that let a build with more pickups shift the rest of a daily road (now asserted: every equipment item leaves the daily road identical). After touching patterns or spawn tuning run `FAIRNESS_SEEDS=200 npx vitest run tests/unit/fairness.test.ts`.
+
+**First visit.** The tavern asks for the name the group will see; a taken name is reported instead of silently getting digits, and with no server the name is kept and registered with the first run.
 
 ## Not done (deliberately left for a second stage)
 
 1. **Ghosts.** Needs a trajectory recorder, storage per ranked run and a translucent runner. The determinism work (own RNG streams, nominal-distance spawning) is what makes it clean to add now.
 2. **Factions / houses.** Optional in the brief; would be a `faction` column and a weekly average-of-top-N query.
-3. **Special moments and set pieces** (dragon pass, closing gate, broken bridge, rooftop sequences) and a **layout validator** for impossible combinations. Patterns still guarantee a free lane per pattern with a 9 m minimum gap, as before.
+3. **Special moments and set pieces** (dragon pass, closing gate, broken bridge, rooftop sequences). New patterns are covered by the fairness test as soon as they use wagons or carts.
 4. **Weather particles** (rain streaks). Weather is lighting and fog only.
-5. **New sounds** for near miss / perfect / combo / records; they reuse existing placeholder sfx cues where wired.
-6. **Local analytics dashboard.** Run `cause` is sent to the server (opt-out in settings) so balance can be read with SQL on `runs`; there is no in-game dashboard.
-7. **Late-game difficulty by patterns** beyond the existing difficulty ramp (events add pressure, but there is no second-stage pattern tier yet).
+5. **Local analytics dashboard.** Run `cause` is sent to the server (opt-out in settings) so balance can be read with SQL on `runs`; there is no in-game dashboard.
+6. **Late-game difficulty by patterns** beyond the existing difficulty ramp (events add pressure, but there is no second-stage pattern tier yet).
 
 ## Operating the season
 
@@ -33,7 +36,7 @@ The game became a medieval runner for a private group of ~30-40 friends over a 3
 
 ## Verified (2026-09-19)
 
-Typecheck (app + worker), vitest 20 files / 145 tests (Worker routes against real SQLite via node:sqlite), build within the 250 kB initial-JS budget, assets:check, devstrip, wrangler dry run. Captures of the region crossings (village → ruins → mines), a pickup run, the tavern and the results screen.
+Typecheck (app + worker), vitest 22 files / 169 tests (Worker routes against real SQLite via node:sqlite), build within the 250 kB initial-JS budget, assets:check, devstrip, wrangler dry run. Captures of the region crossings (village → ruins → mines), a pickup run, the tavern and the results screen.
 
 ## Environment gotchas
 

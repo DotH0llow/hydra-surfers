@@ -11,7 +11,8 @@ The game talks to the server only through the `LeaderboardService` interface in 
 
 - A player is a **unique display name** (3-16 letters, digits, spaces, `_ . -`; case and accents are folded, so there is only one "Ana") plus a server-issued **token**.
 - The client stores `{ playerId, playerName, token }` under `hydra-surfers.player`, separately from the profile, so resetting progress never loses the account.
-- Registration is lazy: the first run submitted (or the first rename) creates the server-side player. A taken name is retried with two digits appended.
+- The tavern asks for a name on the first visit. A chosen name is checked with the server right away (`409` is shown as "taken"); with no server it is kept locally.
+- Registration is otherwise lazy: the first run submitted creates the server-side player. A taken name there (a player who never chose one) is retried with two digits appended.
 - Every write carries `Authorization: Bearer <token>`. The token is shown in the settings as the **recovery code** (`XXXXX-XXXXX-XXXXX`); entering it on another device restores the account.
 - The server stores only `sha256(token)`.
 

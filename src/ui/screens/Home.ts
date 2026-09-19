@@ -33,6 +33,36 @@ registerScreen("home", (host: ScreenHost) => {
   build.addEventListener("click", () => go("arsenal"));
   const contractsBadge = h("i", { class: "badge" });
 
+  // first visit: ask for the name the group will see (non-blocking; playing first is fine)
+  const welcomeInput = h("input", { class: "interactive name-input", attrs: { type: "text", maxlength: "16", placeholder: "Seu nome", "data-id": "welcome-name", "aria-label": "Nome" } });
+  const welcomeNote = h("small", { class: "note" });
+  const welcomeForm = h(
+    "form",
+    { class: "tv-welcome-row" },
+    welcomeInput,
+    h("button", { class: "btn interactive", text: "Entrar", attrs: { type: "submit", "data-id": "welcome-save" } }),
+  );
+  const welcome = h(
+    "div",
+    { class: "tv-welcome" },
+    h("b", { text: "Bem-vindo à taverna, viajante." }),
+    h("span", { text: "Como o grupo vai te ver nos placares?" }),
+    welcomeForm,
+    welcomeNote,
+  );
+  welcomeForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    host.bus.emit("ui:click", { id: "welcome-save" });
+    host.renamePlayer(welcomeInput.value).then((r) => {
+      if (r.ok) {
+        welcome.hidden = true;
+        setText(name, host.playerName);
+        return;
+      }
+      setText(welcomeNote, r.error === "taken" ? "Esse nome já é de outra pessoa." : r.error === "offline" ? "Sem conexão agora: tente depois." : "Use de 3 a 16 letras, números ou espaços.");
+    });
+  });
+
   function go(id: string): void {
     host.bus.emit("ui:click", { id });
     host.goto(id);
@@ -63,6 +93,7 @@ registerScreen("home", (host: ScreenHost) => {
       h("div", { class: "chip chip-key" }, h("span", { class: "chip-label", text: "CHAVES" }), keys),
       h("div", { class: "chip chip-mount" }, h("span", { class: "chip-label", text: "MONTARIAS" }), mounts),
     ),
+    welcome,
     rival,
     modes,
     build,
@@ -108,6 +139,8 @@ registerScreen("home", (host: ScreenHost) => {
       const p = host.store.get();
       crest.innerHTML = crestSvg(p.equipped.crest, 56);
       setText(name, host.playerName);
+      welcome.hidden = host.nameChosen;
+      setText(welcomeNote, "");
       const t = titleName(p.equipped.title);
       setText(title, t);
       title.hidden = !t;

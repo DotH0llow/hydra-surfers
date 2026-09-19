@@ -83,6 +83,34 @@ describe("online: identity + http provider", () => {
     expect(http.identity().token).toBe("AAAAA-BBBBB-CCCCC");
   });
 
+  it("a chosen name is checked by the server: taken is reported, no digits appended", async () => {
+    const saved: Identity[] = [];
+    const api = (async () => new Response(JSON.stringify({ error: "name_taken" }), { status: 409 })) as unknown as typeof fetch;
+    const http = new HttpProvider(ME, mk(), (id) => saved.push(id), "", api);
+    expect(await http.rename("Ana")).toEqual({ ok: false, error: "taken" });
+    expect(http.identity()).toEqual(ME);
+    expect(saved).toEqual([]);
+  });
+
+  it("without a server the chosen name is kept locally and registered later", async () => {
+    const fetch503 = (async () => new Response(JSON.stringify({ error: "db_unavailable" }), { status: 503 })) as unknown as typeof fetch;
+    const http = new HttpProvider(ME, mk(), () => {}, "", fetch503);
+    expect(await http.rename(" Ana ")).toEqual({ ok: true });
+    expect(http.identity()).toMatchObject({ playerName: "Ana", named: true });
+    expect(http.identity().token).toBeUndefined();
+  });
+
+  it("a registered player renames through the server and needs it", async () => {
+    let status = 200;
+    const api = (async () => new Response("{}", { status })) as unknown as typeof fetch;
+    const http = new HttpProvider({ ...ME, token: "T" }, mk(), () => {}, "", api);
+    expect(await http.rename("Beto")).toEqual({ ok: true });
+    expect(http.identity()).toMatchObject({ playerName: "Beto", token: "T", named: true });
+    status = 503;
+    expect(await http.rename("Caio")).toEqual({ ok: false, error: "offline" });
+    expect(http.identity().playerName).toBe("Beto");
+  });
+
   it("maps server board rows onto entries and marks the player", async () => {
     const api = (async () =>
       new Response(JSON.stringify({ entries: [{ rank: 1, playerId: "local_me", name: "Eu", value: 77, crest: "1.2.0.3", title: "title.rei" }], me: { rank: 1, value: 77 } }))) as unknown as typeof fetch;

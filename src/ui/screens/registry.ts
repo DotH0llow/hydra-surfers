@@ -50,6 +50,8 @@ export interface ScreenHost {
   readonly ranked: boolean;
   /** Display name everyone else sees. */
   readonly playerName: string;
+  /** False until the player picks a name (the tavern asks on the first visit). */
+  readonly nameChosen: boolean;
   renamePlayer(name: string): Promise<{ ok: boolean; error?: "invalid" | "taken" | "offline" }>;
   /** One line about the nearest rival ("#4 no Diário · 230 pontos atrás de Marina"), or null. */
   rivalLine(): Promise<string | null>;

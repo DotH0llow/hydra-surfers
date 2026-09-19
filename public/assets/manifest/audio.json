@@ -14,6 +14,12 @@
     { "id": "sfx.board", "type": "audio", "src": "audio/sfx/hoverboard.ogg", "placeholder": "synth-board", "volume": 0.5, "spec": "Hoverboard power-on hum sweep, < 500 ms, mono." },
     { "id": "sfx.mission", "type": "audio", "src": "audio/sfx/mission.ogg", "placeholder": "synth-mission", "volume": 0.55, "spec": "Mission complete: two-note chime, < 500 ms, mono." },
     { "id": "sfx.key", "type": "audio", "src": "audio/sfx/key.ogg", "placeholder": "synth-key", "volume": 0.55, "spec": "Key pickup sparkle, < 400 ms, mono." },
+    { "id": "sfx.nearmiss", "type": "audio", "src": "audio/sfx/nearmiss.ogg", "placeholder": "synth-nearmiss", "volume": 0.4, "spec": "Near miss: a close air swish past the ear with a tiny bright tick, < 200 ms, mono." },
+    { "id": "sfx.perfect", "type": "audio", "src": "audio/sfx/perfect.ogg", "placeholder": "synth-perfect", "volume": 0.45, "spec": "Perfect dodge: small bright bell, < 400 ms, mono. Engine raises the pitch along a perfect streak." },
+    { "id": "sfx.combo", "type": "audio", "src": "audio/sfx/combo.ogg", "placeholder": "synth-combo", "volume": 0.45, "spec": "Combo milestone (every 5): short three-note brass rise, < 500 ms, mono. Engine raises the pitch per milestone." },
+    { "id": "sfx.block", "type": "audio", "src": "audio/sfx/block.ogg", "placeholder": "synth-block", "volume": 0.6, "spec": "Hit absorbed by a shield / the Aegis: metallic clang, < 400 ms, mono." },
+    { "id": "sfx.horn", "type": "audio", "src": "audio/sfx/horn.ogg", "placeholder": "synth-horn", "volume": 0.45, "spec": "Road event starts (market, ambush, storm…): two-note hunting horn call, < 1 s, mono." },
+    { "id": "sfx.fanfare", "type": "audio", "src": "audio/sfx/fanfare.ogg", "placeholder": "synth-fanfare", "volume": 0.5, "spec": "Results with a new record or level: short royal fanfare, < 1 s, mono." },
     { "id": "music.run", "type": "audio", "src": "audio/music/run.ogg", "placeholder": "synth-music", "volume": 0.32, "loop": true, "spec": "In-run music loop: upbeat, ~128 BPM, seamless loop of 15-60 s, stereo or mono OGG/MP3 44.1 kHz, peak -6 dBFS." }
   ]
 }

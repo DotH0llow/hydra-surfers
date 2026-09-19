@@ -18,6 +18,8 @@ export interface Identity {
   playerName: string;
   /** Bearer token issued by the server; also the player's recovery code. */
   token?: string;
+  /** True once the player chose the name (the tavern asks on the first visit). */
+  named?: boolean;
 }
 
 export interface LeaderboardEntry {

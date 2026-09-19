@@ -108,7 +108,7 @@ export class MockProvider implements LeaderboardService {
   async rename(name: string): Promise<{ ok: boolean; error?: "invalid" | "taken" | "offline" }> {
     const clean = validName(name);
     if (!clean) return { ok: false, error: "invalid" };
-    this.me = { ...this.me, playerName: clean };
+    this.me = { ...this.me, playerName: clean, named: true };
     this.opts.onIdentity?.(this.me);
     return { ok: true };
   }

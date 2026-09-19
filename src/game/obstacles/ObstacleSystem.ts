@@ -128,7 +128,9 @@ export class ObstacleSystem implements RunSystem {
       inst.prevS = inst.s;
       if (inst.speed !== 0 && ctx.state.mode !== "crashed") {
         const within = inst.type.moveWithin ? inst.type.moveWithin() : Infinity;
-        if (inst.s - ctx.state.distance <= within) inst.s -= inst.speed * dt;
+        // moving obstacles share the road's clock: the Hourglass slows them with everything else,
+        // so a runaway cart still meets the runner where its pattern planned (see patterns.ts)
+        if (inst.s - ctx.state.distance <= within) inst.s -= inst.speed * ctx.state.speedScale * dt;
       }
       if (inst.retired || inst.s + inst.length < limit) this.despawnAt(i);
     }

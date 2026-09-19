@@ -20,7 +20,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (266 fields in 41 groups)
+## Registry (267 fields in 41 groups)
 
 [Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Runner animation](#anim) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
 
@@ -438,6 +438,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `spawn.gapSecondsEnd` | Gap between patterns at full difficulty | 0.8 | 0.2 | 5 | 0.05 | s |
 | `spawn.gapJitter` | Gap jitter (±fraction) | 0.25 | 0 | 1 | 0.01 |  |
 | `spawn.minGap` | Minimum gap | 9 | 0 | 60 | 0.5 | m |
+| `spawn.minGapSeconds` | Minimum gap in time. Time to cross two lanes between patterns, so the open lane can switch sides fairly (tests/unit/fairness.test.ts) | 0.65 | 0 | 3 | 0.05 | s |
 
 <a id="collision"></a>
 ### Collision (`collision`)

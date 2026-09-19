@@ -25,6 +25,15 @@ export const SPAWN = defineTuning("spawn", "Spawner", {
   gapSecondsEnd: { default: 0.8, min: 0.2, max: 5, step: 0.05, label: "Gap between patterns at full difficulty", unit: "s" },
   gapJitter: { default: 0.25, min: 0, max: 1, step: 0.01, label: "Gap jitter (±fraction)" },
   minGap: { default: 9, min: 0, max: 60, step: 0.5, label: "Minimum gap", unit: "m" },
+  minGapSeconds: {
+    default: 0.65,
+    min: 0,
+    max: 3,
+    step: 0.05,
+    label: "Minimum gap in time",
+    unit: "s",
+    help: "Time to cross two lanes between patterns, so the open lane can switch sides fairly (tests/unit/fairness.test.ts)",
+  },
 });
 
 export class Spawner implements RunSystem, SpawnApi {
@@ -36,6 +45,7 @@ export class Spawner implements RunSystem, SpawnApi {
   speed = 0;
   private nextS = 0;
   private procedural = false;
+  private layoutSpeedMul = 1;
   private weights = new Float64Array(16);
   private ctx!: RunContext;
   private biomes: BiomeSystem | undefined;
@@ -60,6 +70,7 @@ export class Spawner implements RunSystem, SpawnApi {
     const live = ctx.state.mode !== "idle";
     this.procedural = live && sc.procedural;
     this.nextS = sc.proceduralStart ?? SPAWN.safeStart;
+    this.layoutSpeedMul = opts.layoutSpeedMul ?? 1;
   }
 
   /** Scenario layouts are placed after obstacle/coin pools have been cleared by their own reset. */
@@ -95,10 +106,17 @@ export class Spawner implements RunSystem, SpawnApi {
       const idx = this.rng.weighted(this.weights, pats.length);
       const used = idx >= 0 ? pats[idx].place(this, this.nextS) : 10;
       const gapT = SPAWN.gapSecondsStart + (SPAWN.gapSecondsEnd - SPAWN.gapSecondsStart) * this.difficulty;
-      const gap = Math.max(SPAWN.minGap, this.speed * gapT * (1 + this.rng.range(-SPAWN.gapJitter, SPAWN.gapJitter)) * ctx.rules.obstacleGapMul * (this.event?.gapMul ?? 1));
-      // pickups sit in the open gap after a pattern
-      if (idx >= 0 && this.rng.chance(PICKUPS.chance * ctx.rules.pickupChanceMul)) {
-        this.pickup(choosePickup(this.rng, this.difficulty), this.rng.int(-1, 1), this.nextS + used + gap * 0.5);
+      // the floor uses the mode's speed, not the build's, so every player on a daily seed gets the
+      // same road
+      const floor = Math.max(SPAWN.minGap, this.speed * this.layoutSpeedMul * SPAWN.minGapSeconds);
+      const gap = Math.max(floor, this.speed * gapT * (1 + this.rng.range(-SPAWN.gapJitter, SPAWN.gapJitter)) * ctx.rules.obstacleGapMul * (this.event?.gapMul ?? 1));
+      // pickups sit in the open gap after a pattern. All three draws happen whether or not the
+      // pickup appears: a build with more pickups must not shift the rest of the road.
+      if (idx >= 0) {
+        const roll = this.rng.next();
+        const kind = choosePickup(this.rng, this.difficulty);
+        const lane = this.rng.int(-1, 1);
+        if (roll < PICKUPS.chance * ctx.rules.pickupChanceMul) this.pickup(kind, lane, this.nextS + used + gap * 0.5);
       }
       this.nextS += used + gap;
     }

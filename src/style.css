@@ -902,6 +902,26 @@ body {
   background: rgba(141, 59, 70, 0.85);
   color: #fff;
 }
+.tv-welcome {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 194, 90, 0.55);
+  background: rgba(20, 14, 10, 0.82);
+  font-family: var(--yd-font-body);
+  font-size: 14px;
+}
+.tv-welcome-row {
+  display: flex;
+  gap: 8px;
+}
+.tv-welcome-row .name-input {
+  flex: 1;
+  min-width: 0;
+}
 .tv-modes {
   display: flex;
   flex-direction: column;

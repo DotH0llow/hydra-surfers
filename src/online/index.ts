@@ -47,6 +47,6 @@ export function saveIdentity(storage: StorageLike | null, id: Identity): void {
 export function createLeaderboardService(storage: StorageLike | null, provider = import.meta.env.VITE_ONLINE_PROVIDER ?? "http"): LeaderboardService {
   const identity = getIdentity(storage);
   const save = (id: Identity) => saveIdentity(storage, id);
-  const mock = new MockProvider({ identity, storage, seed: 1, onIdentity: (id) => save({ ...getIdentity(storage), playerName: id.playerName }) });
+  const mock = new MockProvider({ identity, storage, seed: 1, onIdentity: (id) => save({ ...getIdentity(storage), playerName: id.playerName, named: true }) });
   return provider === "http" ? new HttpProvider(identity, mock, save) : mock;
 }

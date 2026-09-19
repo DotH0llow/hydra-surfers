@@ -65,6 +65,11 @@ export interface ResolvedRunOptions {
   skipIntro: boolean;
   /** Modifiers for this run (mode mutators + equipped build). Defaults to neutral rules. */
   rules?: RunRules;
+  /**
+   * Speed multiplier of the mode alone (not the build). The spawner plans its time-based gaps with
+   * it, so everyone on a seeded board gets the same road whatever they have equipped.
+   */
+  layoutSpeedMul?: number;
   /** Restrict the run to these biome ids (a challenge may); undefined = the full rotation. */
   biomes?: string[];
   /** Force a weather state for the whole run instead of letting the director pick. */

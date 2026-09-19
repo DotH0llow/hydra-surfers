@@ -577,6 +577,59 @@ registerSfxPlaceholder("synth-key", (ac) =>
   }, 13),
 );
 
+/** Brass-ish tone: a few harmonics of a soft sawtooth. */
+const brass = (f: number, t: number, bright = 1.3) => {
+  let v = 0;
+  for (let k = 1; k <= 5; k++) v += Math.sin(TAU * f * k * t) / Math.pow(k, bright);
+  return v;
+};
+registerSfxPlaceholder("synth-nearmiss", (ac) => {
+  let lp = 0;
+  return synth(ac, 0.18, (t, _i, noise) => {
+    lp += (noise() - lp) * (0.08 + 0.6 * (t / 0.18));
+    return lp * env(t, 0.03, 0.05) + 0.25 * Math.sin(TAU * 2093 * t) * env(t, 0.001, 0.015);
+  }, 15);
+});
+registerSfxPlaceholder("synth-perfect", (ac) =>
+  synth(ac, 0.4, (t) => {
+    const f = 1568;
+    return Math.sin(TAU * f * t) * env(t, 0.002, 0.14) + 0.45 * Math.sin(TAU * f * 2.76 * t) * env(t, 0.002, 0.05) + 0.25 * Math.sin(TAU * f * 5.4 * t) * env(t, 0.001, 0.02);
+  }, 16),
+);
+registerSfxPlaceholder("synth-combo", (ac) =>
+  synth(ac, 0.46, (t) => {
+    const notes = [392, 523, 659];
+    const k = Math.min(notes.length - 1, Math.floor(t / 0.08));
+    const lt = t - k * 0.08;
+    return brass(notes[k], t) * env(lt, 0.01, k === notes.length - 1 ? 0.14 : 0.05);
+  }, 17),
+);
+registerSfxPlaceholder("synth-block", (ac) =>
+  synth(ac, 0.38, (t, _i, noise) => {
+    const partials = [540, 1130, 1790, 2610];
+    let v = 0;
+    for (let k = 0; k < partials.length; k++) v += Math.sin(TAU * partials[k] * t) * env(t, 0.001, 0.12 / (k + 1)) / (k + 1);
+    return v + noise() * 0.5 * env(t, 0.0005, 0.008);
+  }, 18),
+);
+registerSfxPlaceholder("synth-horn", (ac) =>
+  synth(ac, 0.9, (t) => {
+    const second = t >= 0.32;
+    const lt = second ? t - 0.32 : t;
+    const f = (second ? 392 : 262) * (1 + 0.006 * Math.sin(TAU * 5 * t));
+    const shape = second ? Math.min(1, lt / 0.06) * Math.exp(-Math.max(0, lt - 0.3) / 0.12) : Math.min(1, lt / 0.06) * (lt < 0.28 ? 1 : Math.exp(-(lt - 0.28) / 0.02));
+    return brass(f, t, 1.6) * shape;
+  }, 19),
+);
+registerSfxPlaceholder("synth-fanfare", (ac) =>
+  synth(ac, 0.95, (t) => {
+    const notes = [523, 659, 784, 1047];
+    const k = Math.min(notes.length - 1, Math.floor(t / 0.11));
+    const lt = t - k * 0.11;
+    return brass(notes[k], t) * env(lt, 0.012, k === notes.length - 1 ? 0.3 : 0.07);
+  }, 20),
+);
+
 export function buildSfxPlaceholder(ac: BaseAudioContext, entry: AssetEntry): AudioBuffer {
   const key = entry.placeholder ?? "synth-blip";
   return (sfxBuilders.get(key) ?? sfxBuilders.get("synth-blip")!)(ac, entry);

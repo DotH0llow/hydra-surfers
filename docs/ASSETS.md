@@ -33,7 +33,7 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 
 ## Status
 
-72 assets in 5 parts. 0 have files and 72 still use procedural placeholders.
+78 assets in 5 parts. 0 have files and 78 still use procedural placeholders.
 
 ## core (`public/assets/manifest/core.json`)
 
@@ -625,6 +625,12 @@ Sound effects and music. Owned by lane D.
 | `sfx.board` | audio | `audio/sfx/hoverboard.ogg` | placeholder (`synth-board`) |  |  |
 | `sfx.mission` | audio | `audio/sfx/mission.ogg` | placeholder (`synth-mission`) |  |  |
 | `sfx.key` | audio | `audio/sfx/key.ogg` | placeholder (`synth-key`) |  |  |
+| `sfx.nearmiss` | audio | `audio/sfx/nearmiss.ogg` | placeholder (`synth-nearmiss`) |  |  |
+| `sfx.perfect` | audio | `audio/sfx/perfect.ogg` | placeholder (`synth-perfect`) |  |  |
+| `sfx.combo` | audio | `audio/sfx/combo.ogg` | placeholder (`synth-combo`) |  |  |
+| `sfx.block` | audio | `audio/sfx/block.ogg` | placeholder (`synth-block`) |  |  |
+| `sfx.horn` | audio | `audio/sfx/horn.ogg` | placeholder (`synth-horn`) |  |  |
+| `sfx.fanfare` | audio | `audio/sfx/fanfare.ogg` | placeholder (`synth-fanfare`) |  |  |
 | `music.run` | audio | `audio/music/run.ogg` | placeholder (`synth-music`) |  |  |
 
 ### `sfx.coin`
@@ -710,6 +716,48 @@ Sound effects and music. Owned by lane D.
 - **Playback volume:** 0.55
 - **Placeholder:** `synth-key`
 - **Brief:** Key pickup sparkle, < 400 ms, mono.
+
+### `sfx.nearmiss`
+
+- **File:** `public/assets/audio/sfx/nearmiss.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.4
+- **Placeholder:** `synth-nearmiss`
+- **Brief:** Near miss: a close air swish past the ear with a tiny bright tick, < 200 ms, mono.
+
+### `sfx.perfect`
+
+- **File:** `public/assets/audio/sfx/perfect.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.45
+- **Placeholder:** `synth-perfect`
+- **Brief:** Perfect dodge: small bright bell, < 400 ms, mono. Engine raises the pitch along a perfect streak.
+
+### `sfx.combo`
+
+- **File:** `public/assets/audio/sfx/combo.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.45
+- **Placeholder:** `synth-combo`
+- **Brief:** Combo milestone (every 5): short three-note brass rise, < 500 ms, mono. Engine raises the pitch per milestone.
+
+### `sfx.block`
+
+- **File:** `public/assets/audio/sfx/block.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.6
+- **Placeholder:** `synth-block`
+- **Brief:** Hit absorbed by a shield / the Aegis: metallic clang, < 400 ms, mono.
+
+### `sfx.horn`
+
+- **File:** `public/assets/audio/sfx/horn.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.45
+- **Placeholder:** `synth-horn`
+- **Brief:** Road event starts (market, ambush, storm…): two-note hunting horn call, < 1 s, mono.
+
+### `sfx.fanfare`
+
+- **File:** `public/assets/audio/sfx/fanfare.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.5
+- **Placeholder:** `synth-fanfare`
+- **Brief:** Results with a new record or level: short royal fanfare, < 1 s, mono.
 
 ### `music.run`
 

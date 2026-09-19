@@ -16,6 +16,7 @@ import type {
   ScoreSubmission,
   SubmitResult,
 } from "./LeaderboardService";
+import { validName } from "../shared/plausibility";
 
 type Fetch = typeof fetch;
 
@@ -82,24 +83,32 @@ export class HttpProvider implements LeaderboardService {
     }
   }
 
+  /**
+   * A chosen name is checked against the server right away, so a taken name is reported instead of
+   * silently getting digits appended. With no server (offline, or no database bound) the name is
+   * kept locally and registered with the first run.
+   */
   async rename(name: string): Promise<{ ok: boolean; error?: "invalid" | "taken" | "offline" }> {
-    const local = await this.fallback.rename(name);
-    if (!local.ok) return local;
-    const clean = this.fallback.identity().playerName;
+    const clean = validName(name);
+    if (!clean) return { ok: false, error: "invalid" };
+    if (this.registering) await this.registering;
     try {
-      if (!this.me.token) {
-        this.me = { ...this.me, playerName: clean };
-        const ok = await this.ensureRegistered();
-        return ok ? { ok: true } : { ok: false, error: "taken" };
-      }
-      const res = await this.call("/api/players/me", "PUT", { name: clean });
+      const res = this.me.token ? await this.call("/api/players/me", "PUT", { name: clean }) : await this.call("/api/players", "POST", { name: clean });
       if (res.status === 409) return { ok: false, error: "taken" };
-      if (!res.ok) return { ok: false, error: "offline" };
-      this.remember({ ...this.me, playerName: clean });
-      return { ok: true };
+      if (res.ok) {
+        const body = (await res.json()) as { playerId?: string; token?: string; name?: string };
+        this.remember(this.me.token ? { ...this.me, playerName: clean, named: true } : { playerId: body.playerId!, playerName: body.name ?? clean, token: body.token!, named: true });
+        await this.fallback.rename(clean);
+        return { ok: true };
+      }
     } catch {
-      return { ok: false, error: "offline" };
+      /* unreachable: handled below */
     }
+    // renaming a registered player needs the server; an unregistered one keeps the name locally
+    if (this.me.token) return { ok: false, error: "offline" };
+    this.remember({ ...this.me, playerName: clean, named: true });
+    await this.fallback.rename(clean);
+    return { ok: true };
   }
 
   async updateProfile(profile: PublicProfile): Promise<void> {
@@ -128,7 +137,7 @@ export class HttpProvider implements LeaderboardService {
       const res = await this.fetchImpl(`${this.base}/api/players/me`, { headers: { authorization: `Bearer ${token}` } });
       if (!res.ok) return false;
       const body = (await res.json()) as { playerId: string; name: string };
-      this.remember({ playerId: body.playerId, playerName: body.name, token });
+      this.remember({ playerId: body.playerId, playerName: body.name, token, named: true });
       return true;
     } catch {
       return false;
@@ -144,7 +153,7 @@ export class HttpProvider implements LeaderboardService {
         const res = await this.call("/api/players", "POST", { name });
         if (res.status === 201) {
           const body = (await res.json()) as { playerId: string; token: string; name: string };
-          this.remember({ playerId: body.playerId, playerName: body.name, token: body.token });
+          this.remember({ ...this.me, playerId: body.playerId, playerName: body.name, token: body.token });
           return true;
         }
         if (res.status !== 409) return false;
