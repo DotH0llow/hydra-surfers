@@ -180,7 +180,8 @@ describe("layout fairness", () => {
       }
     }
     expect(failures.length, failures.slice(0, 5).join(" | ")).toBe(0);
-  });
+    // generating and checking thousands of roads takes a while, especially with FAIRNESS_SEEDS
+  }, 120_000);
 
   it("a seeded road is the same whatever the player has equipped", () => {
     tuning.reset();
