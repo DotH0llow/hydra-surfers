@@ -54,7 +54,7 @@ export class AudioBus {
       this.comboStep = step;
     });
     bus.on("build:absorb", (e) => (e.kind === "smash" ? this.play("sfx.crash", 1.6) : this.play("sfx.block")));
-    bus.on("event:start", () => this.play("sfx.horn"));
+    bus.on("event:start", (e) => this.play(e.id === "dragao" ? "sfx.dragon" : "sfx.horn"));
     bus.on("app:rank", (e) => {
       if (e.improved || e.passed > 0) this.play("sfx.rankup");
     });

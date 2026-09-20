@@ -5,7 +5,7 @@
 import { defineTuning } from "../../core/tuning";
 import type { Rng } from "../../core/rng";
 import { COINS } from "../collectibles/CoinSystem";
-import { GATE, HOLE, LANTERN_OUTER, LANTERN_WARN, RAMP, RUNAWAY, WAGON } from "../obstacles/builtin";
+import { FIRE, GATE, HOLE, KNIGHT, LANTERN_OUTER, LANTERN_WARN, PORTCULLIS, RAMP, RUNAWAY, WAGON } from "../obstacles/builtin";
 import type { ObstacleInstance } from "../obstacles/ObstacleSystem";
 import type { PickupKind } from "../powerups/PickupSystem";
 
@@ -28,6 +28,9 @@ export interface Pattern {
   label: string;
   /** Not picked below this difficulty. */
   minDifficulty: number;
+  /** Only placed in these regions (biome ids); omitted = anywhere. A road event that favours the
+   * pattern overrides this, so "Cavaleiros!" can happen outside the battlefield. */
+  biomes?: string[];
   /** Not picked below this late-game pressure (0..1, see LATE); omitted = any time. */
   minLate?: number;
   /** Weight multiplier at full late-game pressure (blended in); omitted = 1. */
@@ -51,6 +54,10 @@ export const SPAWN_WEIGHTS = defineTuning("spawnWeights", "Spawn pattern weights
   gatehouse: { default: 1.2, min: 0, max: 10, step: 0.1, label: "Gatehouse with obstacles" },
   wagonSlalom: { default: 1.4, min: 0, max: 10, step: 0.1, label: "Wagon slalom (late game)" },
   brokenBridge: { default: 0.8, min: 0, max: 10, step: 0.1, label: "Broken bridge (holes to jump)" },
+  knightCharge: { default: 1.2, min: 0, max: 10, step: 0.1, label: "Charging knights" },
+  closingGate: { default: 1.1, min: 0, max: 10, step: 0.1, label: "Closing gates" },
+  mineTunnel: { default: 1.2, min: 0, max: 10, step: 0.1, label: "Mine tunnel (beams to roll under)" },
+  dragonFire: { default: 1, min: 0, max: 10, step: 0.1, label: "Dragon fire" },
 });
 
 export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern details", {
@@ -69,6 +76,12 @@ export const SPAWN_PATTERNS = defineTuning("spawnPatterns", "Spawn pattern detai
   runawayCartMinDifficulty: { default: 0.2, min: 0, max: 1, step: 0.01, label: "Runaway cart min difficulty" },
   gatehouseMinDifficulty: { default: 0.05, min: 0, max: 1, step: 0.01, label: "Gatehouse min difficulty" },
   signalChance: { default: 0.35, min: 0, max: 1, step: 0.01, label: "Chance of a lantern post beside a wagon" },
+  knightMinDifficulty: { default: 0.2, min: 0, max: 1, step: 0.01, label: "Charging knights min difficulty" },
+  gateMinDifficulty: { default: 0.25, min: 0, max: 1, step: 0.01, label: "Closing gates min difficulty" },
+  gateGapSeconds: { default: 0.55, min: 0.2, max: 3, step: 0.05, label: "Closing gates: time between the two gates", unit: "s", help: "Time to move one lane (tests/unit/fairness.test.ts)" },
+  tunnelMinDifficulty: { default: 0.15, min: 0, max: 1, step: 0.01, label: "Mine tunnel min difficulty" },
+  tunnelRowSeconds: { default: 0.95, min: 0.4, max: 3, step: 0.05, label: "Mine tunnel: time between beams", unit: "s", help: "Enough to come out of a roll and start the next" },
+  fireMinDifficulty: { default: 0.2, min: 0, max: 1, step: 0.01, label: "Dragon fire min difficulty" },
   bridgeMinDifficulty: { default: 0.15, min: 0, max: 1, step: 0.01, label: "Broken bridge min difficulty" },
   bridgeRowSeconds: { default: 1.05, min: 0.6, max: 3, step: 0.05, label: "Broken bridge: time between rows of holes", unit: "s", help: "Enough to land and jump again" },
   slalomMinLate: { default: 0.05, min: 0, max: 1, step: 0.01, label: "Wagon slalom: min late-game pressure" },
@@ -359,6 +372,7 @@ registerPattern({
 registerPattern({
   id: "brokenBridge",
   label: "Broken bridge",
+  biomes: ["forest", "swamp"],
   get minDifficulty() {
     return SPAWN_PATTERNS.bridgeMinDifficulty;
   },
@@ -382,5 +396,104 @@ registerPattern({
       }
     }
     return (rows - 1) * spacing + HOLE.length;
+  },
+});
+
+/** Knights riding the other way down one lane: the same reading as a runaway cart, faster. */
+registerPattern({
+  id: "knightCharge",
+  label: "Charging knights",
+  biomes: ["battlefield", "castle"],
+  get minDifficulty() {
+    return SPAWN_PATTERNS.knightMinDifficulty;
+  },
+  lateWeight: 1.3,
+  weight: () => SPAWN_WEIGHTS.knightCharge,
+  place(api, s) {
+    const lane = api.rng.int(-1, 1);
+    const riders = api.rng.int(1, Math.max(1, Math.min(3, 1 + Math.round(api.difficulty * 2))));
+    // like the runaway cart: they set off so the runner meets them at the pattern's start
+    const sweep = KNIGHT.speed * (KNIGHT.spawnAhead / (Math.max(1, api.speed) + KNIGHT.speed));
+    const step = KNIGHT.length + KNIGHT.gap;
+    for (let i = 0; i < riders; i++) api.obstacle("knight", lane, s + sweep + i * step, KNIGHT.length, KNIGHT.speed);
+    const len = sweep + riders * step;
+    if (api.rng.chance(SPAWN_PATTERNS.coinChance)) api.coinLine(otherLane(api.rng, lane), s, Math.max(3, Math.floor(len / 2.5)), 2.5);
+    return len;
+  },
+});
+
+/** Gates of the wall coming down: one lane is open, and a second gate may move the opening. */
+registerPattern({
+  id: "closingGate",
+  label: "Closing gates",
+  biomes: ["castle", "village"],
+  get minDifficulty() {
+    return SPAWN_PATTERNS.gateMinDifficulty;
+  },
+  lateWeight: 1.4,
+  weight: () => SPAWN_WEIGHTS.closingGate,
+  place(api, s) {
+    const open = api.rng.int(-1, 1);
+    for (let l = -1; l <= 1; l++) if (l !== open) api.obstacle("portcullis", l, s);
+    const coins = api.rng.chance(SPAWN_PATTERNS.coinChance);
+    const second = api.rng.chance(0.55);
+    if (!second) {
+      if (coins) api.coinLine(open, s + 2, 5, 2.4);
+      return PORTCULLIS.length;
+    }
+    // the opening moves one lane, never two, with time to cross
+    const gap = Math.max(8, api.speed * SPAWN_PATTERNS.gateGapSeconds);
+    const next = open !== 0 ? 0 : api.rng.chance(0.5) ? -1 : 1;
+    for (let l = -1; l <= 1; l++) if (l !== next) api.obstacle("portcullis", l, s + gap);
+    if (coins) api.coinLine(next, s + gap + 2, 4, 2.4);
+    return gap + PORTCULLIS.length;
+  },
+});
+
+/** Mine tunnel: low beams across the whole road, one roll after another. */
+registerPattern({
+  id: "mineTunnel",
+  label: "Mine tunnel",
+  biomes: ["mines"],
+  get minDifficulty() {
+    return SPAWN_PATTERNS.tunnelMinDifficulty;
+  },
+  lateWeight: 1.2,
+  weight: () => SPAWN_WEIGHTS.mineTunnel,
+  place(api, s) {
+    const rows = api.rng.int(2, 4);
+    const spacing = Math.max(9, api.speed * SPAWN_PATTERNS.tunnelRowSeconds);
+    const coins = api.rng.chance(SPAWN_PATTERNS.coinChance);
+    const lane = api.rng.int(-1, 1);
+    for (let r = 0; r < rows; r++) {
+      const at = s + r * spacing;
+      for (let l = -1; l <= 1; l++) api.obstacle("beam", l, at);
+      if (coins && r > 0) api.coinLine(lane, at - spacing + 3, 3, 2.2);
+    }
+    return (rows - 1) * spacing + 2;
+  },
+});
+
+/** Dragon fire: one or two lanes burning for a long stretch. Only the open lane gets through. */
+registerPattern({
+  id: "dragonFire",
+  label: "Dragon fire",
+  biomes: ["ruins", "cemetery", "battlefield"],
+  get minDifficulty() {
+    return SPAWN_PATTERNS.fireMinDifficulty;
+  },
+  lateWeight: 1.3,
+  weight: () => SPAWN_WEIGHTS.dragonFire,
+  place(api, s) {
+    const safe = api.rng.int(-1, 1);
+    const other = otherLane(api.rng, safe);
+    const both = api.rng.chance(0.5);
+    const len = api.rng.range(FIRE.minLength, FIRE.maxLength);
+    for (let l = -1; l <= 1; l++) {
+      if (l === safe || (!both && l !== other)) continue;
+      api.obstacle("fire", l, s, len);
+    }
+    if (api.rng.chance(SPAWN_PATTERNS.coinChance)) api.coinLine(safe, s + 1, Math.max(3, Math.floor(len / 2.4)), 2.4);
+    return len;
   },
 });

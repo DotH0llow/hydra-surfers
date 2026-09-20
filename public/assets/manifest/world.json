@@ -141,6 +141,16 @@
       "pivot": "bottom-center",
       "forward": "-z",
       "spec": "Paling fence section 2 m along Z and 1.1 m tall, tiling end to end. Origin at the ground centre. <= 200 tris."
+    },
+    {
+      "id": "env.dragon",
+      "type": "gltf",
+      "src": "models/world/dragon.glb",
+      "placeholder": "prop-dragon",
+      "color": "#3f5a42",
+      "pivot": "center",
+      "forward": "-z",
+      "spec": "Flying dragon seen from below, ~12 m wingspan, 11 m nose to tail, origin at the body centre, facing -z. The wings must be two nodes named \"wingL\" and \"wingR\", pivoting at the shoulders, so the engine can beat them. Neutral greys; it flies over during the Dragão event only. <= 1500 tris."
     }
   ]
 }

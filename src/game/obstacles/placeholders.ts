@@ -82,6 +82,72 @@ registerMeshPlaceholder("hole", ({ entry }) => {
   return g;
 });
 
+/** Charging knight: a horse at full gallop with a rider and a levelled lance, facing the runner. */
+registerMeshPlaceholder("knight", ({ entry }) => {
+  const g = new Group();
+  const horse = mat(entry.color ?? "#6f5335");
+  const iron = mat("#9aa2ac");
+  const cloth = mat("#b3434f");
+  const skin = mat("#c8a07a");
+  // body and neck: the horse faces -z (toward the runner it is riding at), chest broad enough to
+  // read head-on, which is the only angle the runner ever sees
+  box(g, 1.05, 0.95, 2.4, horse, 0, 1.25, 0);
+  box(g, 1.15, 0.85, 0.6, horse, 0, 1.2, -1.15);
+  box(g, 0.55, 0.85, 0.55, horse, 0, 1.8, -1.2);
+  box(g, 0.48, 0.45, 0.85, horse, 0, 2.05, -1.6);
+  for (const sx of [-1, 1]) box(g, 0.14, 0.3, 0.14, horse, sx * 0.16, 2.35, -1.5);
+  for (const sx of [-1, 1])
+    for (const sz of [-1, 1]) box(g, 0.22, 0.85, 0.24, horse, sx * 0.34, 0.42, sz * 0.85);
+  box(g, 0.1, 0.5, 0.5, horse, 0, 1.45, 1.25);
+  // rider
+  box(g, 0.6, 0.7, 0.42, cloth, 0, 2.15, 0.15);
+  box(g, 0.34, 0.34, 0.34, iron, 0, 2.62, 0.12);
+  box(g, 0.18, 0.16, 0.3, skin, 0, 2.6, -0.06);
+  box(g, 0.18, 0.4, 0.18, cloth, 0, 2.9, 0.18);
+  // lance levelled at the runner, with a pennon, and a shield turned to face them
+  box(g, 0.12, 0.12, 3, iron, -0.5, 2, -1.2);
+  box(g, 0.07, 0.34, 0.5, cloth, -0.5, 2.3, -0.6);
+  box(g, 0.62, 0.72, 0.12, cloth, 0.52, 2.05, -0.5);
+  box(g, 0.2, 0.22, 0.14, iron, 0.52, 2.05, -0.58);
+  return g;
+});
+
+/** Portcullis: a stone arch with an iron grid that drops (the "bars" group is animated). */
+registerMeshPlaceholder("portcullis", ({ entry }) => {
+  const g = new Group();
+  const stone = mat(entry.color ?? "#6f6a63");
+  const iron = mat("#4a4f57");
+  box(g, 0.45, 4.6, 0.6, stone, -1.35, 2.3, 0);
+  box(g, 0.45, 4.6, 0.6, stone, 1.35, 2.3, 0);
+  box(g, 3.2, 0.6, 0.7, stone, 0, 4.6, 0);
+  const bars = new Group();
+  bars.name = "bars";
+  for (let i = -3; i <= 3; i++) box(bars, 0.12, 3.9, 0.16, iron, i * 0.38, 1.95, 0);
+  for (const y of [0.6, 2, 3.4]) box(bars, 2.5, 0.12, 0.14, iron, 0, y, 0);
+  for (let i = -3; i <= 3; i++) box(bars, 0.12, 0.3, 0.16, iron, i * 0.38, 0.05, 0);
+  g.add(bars);
+  return g;
+});
+
+/** Dragon fire: a burning stretch of road. Scorched ground with flames along it. */
+registerMeshPlaceholder("dragonfire", ({ entry }) => {
+  const g = new Group();
+  const ash = mat("#241a16");
+  const flame = mat(entry.color ?? "#e26a1e", "#c2450c");
+  const core = mat("#f6c95a", "#f0a21e");
+  box(g, 2.3, 0.04, 10, ash, 0, 0.02, 0);
+  box(g, 1.9, 0.12, 9.6, mat("#3a1608", "#7a2606"), 0, 0.06, 0);
+  // flames repeat along the model's length; the view is scaled along z by the instance length
+  for (let i = -9; i <= 9; i++) {
+    const z = i * 0.52;
+    const h = 1.2 + 0.85 * Math.abs(Math.sin(i * 2.3));
+    const x = 0.62 * Math.sin(i * 1.1);
+    box(g, 0.42, h, 0.36, flame, x, h / 2, z);
+    box(g, 0.2, h * 0.55, 0.18, core, x, h * 0.3, z + 0.04);
+  }
+  return g;
+});
+
 /** Hanging beam: a trunk slung from a gallows frame. Open underneath, impossible to clear. */
 registerMeshPlaceholder("beam", ({ entry }) => {
   const g = new Group();

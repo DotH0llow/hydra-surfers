@@ -640,6 +640,15 @@ registerSfxPlaceholder("synth-rankup", (ac) =>
   }, 21),
 );
 
+registerSfxPlaceholder("synth-dragon", (ac) => {
+  let lp = 0;
+  return synth(ac, 0.92, (t, _i, noise) => {
+    lp += (noise() - lp) * 0.06;
+    const growl = Math.sin(TAU * (70 + 40 * t) * t + Math.sin(TAU * 11 * t) * 1.2);
+    return (growl * 0.8 + lp * 1.6) * env(t, 0.05, 0.28);
+  }, 22);
+});
+
 export function buildSfxPlaceholder(ac: BaseAudioContext, entry: AssetEntry): AudioBuffer {
   const key = entry.placeholder ?? "synth-blip";
   return (sfxBuilders.get(key) ?? sfxBuilders.get("synth-blip")!)(ac, entry);

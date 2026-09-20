@@ -256,3 +256,29 @@ registerMeshPlaceholder("road-rut", () => {
   box(g, 0.34, 0.03, 1, tone(0.42), 0, 0.015, 0);
   return g;
 });
+
+/** Flying dragon: body, neck, tail and two wing groups the engine beats ("wingL" / "wingR"). */
+registerMeshPlaceholder("prop-dragon", ({ entry }) => {
+  const g = new Group();
+  const hide = new MeshLambertMaterial({ color: entry.color ?? "#3f5a42" });
+  const belly = tone(0.55);
+  box(g, 1.7, 1.5, 5.2, hide, 0, 0, 0);
+  box(g, 1.2, 0.5, 4.4, belly, 0, -0.6, 0);
+  // neck and head reaching forward (-z), tail behind
+  box(g, 0.9, 0.9, 2.2, hide, 0, 0.35, -3.2);
+  box(g, 1, 0.8, 1.3, hide, 0, 0.5, -4.6);
+  box(g, 0.35, 0.3, 0.5, tone(0.3), 0, 0.3, -5.3);
+  for (const sx of [-1, 1]) box(g, 0.22, 0.6, 0.25, tone(0.8), sx * 0.3, 1, -4.4);
+  box(g, 0.7, 0.6, 3, hide, 0, 0, 3.6);
+  box(g, 0.35, 0.35, 2.2, hide, 0, -0.1, 5.8);
+  for (const [name, sx] of [["wingL", -1], ["wingR", 1]] as Array<[string, number]>) {
+    const wing = new Group();
+    wing.name = name;
+    box(wing, 5.4, 0.16, 2.6, hide, (sx * 5.4) / 2, 0, 0.2);
+    box(wing, 5.6, 0.3, 0.3, tone(0.4), (sx * 5.6) / 2, 0.15, -0.9);
+    box(wing, 3.2, 0.22, 0.22, tone(0.4), (sx * 3.2) / 2, 0.05, 1.2);
+    wing.position.set(sx * 0.8, 0.5, 0);
+    g.add(wing);
+  }
+  return g;
+});

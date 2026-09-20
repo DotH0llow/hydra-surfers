@@ -1,0 +1,117 @@
+{
+  "description": "Closing gates only, in the castle of seed 12 (dev warp): two lanes barred, the opening moving one lane at a time.",
+  "query": "",
+  "seed": 12,
+  "setup": [
+    [
+      "setTuning",
+      "spawnWeights.barricadeSingle",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.barricadeDouble",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.barricadeRow",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.wagonSingle",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.wagonDouble",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.coinRun",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.beamSingle",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.barricadeMixed",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.wagonRamp",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.runawayCart",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.gatehouse",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.wagonSlalom",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.brokenBridge",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.knightCharge",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.mineTunnel",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.dragonFire",
+      0
+    ],
+    [
+      "setTuning",
+      "spawnWeights.closingGate",
+      10
+    ],
+    [
+      "setTuning",
+      "spawnPatterns.gateMinDifficulty",
+      0
+    ],
+    [
+      "startRun",
+      {
+        "seed": 12,
+        "skipIntro": true
+      }
+    ],
+    [
+      "cheat",
+      "god",
+      true
+    ],
+    [
+      "cheat",
+      "jumpToDistance",
+      4300
+    ]
+  ],
+  "timeline": [],
+  "seconds": 12,
+  "fps": 1
+}

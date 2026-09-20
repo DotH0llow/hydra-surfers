@@ -54,6 +54,31 @@ export const RUNAWAY = defineTuning("obsRunaway", "Obstacle: runaway cart", {
   maxCars: { default: 3, min: 1, max: 6, step: 1, label: "Max carts in a bolt" },
 });
 
+export const KNIGHT = defineTuning("obsKnight", "Obstacle: charging knight", {
+  width: { default: 1.9, min: 0.5, max: 3, step: 0.05, label: "Collider width", unit: "m" },
+  height: { default: 3, min: 1, max: 6, step: 0.05, label: "Collider height", unit: "m" },
+  length: { default: 3.6, min: 1, max: 12, step: 0.1, label: "Horse and rider length", unit: "m" },
+  gap: { default: 5, min: 0, max: 30, step: 0.5, label: "Gap between knights in a charge", unit: "m" },
+  speed: { default: 13, min: 1, max: 40, step: 0.5, label: "Speed toward the runner", unit: "m/s" },
+  spawnAhead: { default: 140, min: 20, max: 400, step: 5, label: "Starts riding this far ahead of the runner", unit: "m" },
+});
+
+export const PORTCULLIS = defineTuning("obsPortcullis", "Obstacle: closing gate", {
+  width: { default: 2.3, min: 0.5, max: 3, step: 0.05, label: "Collider width", unit: "m" },
+  height: { default: 4, min: 1, max: 8, step: 0.1, label: "Collider height", unit: "m" },
+  length: { default: 0.6, min: 0.1, max: 4, step: 0.05, label: "Collider depth", unit: "m" },
+  dropFrom: { default: 55, min: 5, max: 200, step: 1, label: "Bars start dropping this far ahead", unit: "m" },
+  dropTo: { default: 22, min: 1, max: 100, step: 1, label: "Bars fully down this far ahead", unit: "m" },
+  restingOpen: { default: 0.45, min: 0, max: 1, step: 0.01, label: "How far up the bars sit while far away", help: "Kept low so a closed lane always reads as closed" },
+});
+
+export const FIRE = defineTuning("obsFire", "Obstacle: dragon fire", {
+  width: { default: 2.3, min: 0.5, max: 3, step: 0.05, label: "Collider width", unit: "m" },
+  height: { default: 2.6, min: 0.5, max: 6, step: 0.05, label: "Collider height (too tall to jump)", unit: "m" },
+  minLength: { default: 10, min: 2, max: 40, step: 0.5, label: "Shortest burning stretch", unit: "m" },
+  maxLength: { default: 18, min: 2, max: 60, step: 0.5, label: "Longest burning stretch", unit: "m" },
+});
+
 export const RAMP = defineTuning("obsRamp", "Obstacle: ramp", {
   length: { default: 6.5, min: 2, max: 20, step: 0.1, label: "Ramp length (ground to roof)", unit: "m" },
 });
@@ -108,6 +133,61 @@ registerObstacleType({
   defaultLength: () => BEAM.length,
   collider(inst, out) {
     laneBox(inst, out, BEAM.width / 2, BEAM.bottom, BEAM.top);
+  },
+});
+
+/** A knight riding the other way: the lane is his until he has passed. */
+registerObstacleType({
+  id: "knight",
+  label: "Cavaleiro",
+  assetId: "obstacle.knight",
+  rules: { jumpable: false, rollable: false, solid: true },
+  poolSize: 8,
+  modelLength: 3.6,
+  defaultLength: () => KNIGHT.length,
+  collider(inst, out) {
+    laneBox(inst, out, KNIGHT.width / 2, 0, KNIGHT.height);
+  },
+  moveWithin: () => KNIGHT.spawnAhead,
+});
+
+/**
+ * A gate of the wall coming down over one lane. The bars sit low from far away — a closed lane
+ * must read as closed — and finish dropping as the runner arrives; the collider never changes.
+ */
+registerObstacleType({
+  id: "portcullis",
+  label: "Portão que fecha",
+  assetId: "struct.portcullis",
+  rules: { jumpable: false, rollable: false, solid: true },
+  poolSize: 8,
+  modelLength: 0,
+  defaultLength: () => PORTCULLIS.length,
+  collider(inst, out) {
+    laneBox(inst, out, PORTCULLIS.width / 2, 0, PORTCULLIS.height);
+  },
+  renderView(_inst, view) {
+    const bars = (view.userData.bars as Object3D | undefined) ?? (view.userData.bars = view.getObjectByName("bars") ?? null);
+    if (!bars) return;
+    // the caller has already placed the view: -z is how far ahead of the runner it is
+    const ahead = -view.position.z;
+    const span = Math.max(1, PORTCULLIS.dropFrom - PORTCULLIS.dropTo);
+    const t = Math.min(1, Math.max(0, (PORTCULLIS.dropFrom - ahead) / span));
+    bars.position.y = PORTCULLIS.height * PORTCULLIS.restingOpen * (1 - t);
+  },
+});
+
+/** Dragon fire: a burning stretch of a lane. Too tall to jump, too long to outrun: go around. */
+registerObstacleType({
+  id: "fire",
+  label: "Fogo de dragão",
+  assetId: "fx.dragonfire",
+  rules: { jumpable: false, rollable: false, solid: false },
+  poolSize: 6,
+  modelLength: 10,
+  defaultLength: () => FIRE.minLength,
+  collider(inst, out) {
+    laneBox(inst, out, FIRE.width / 2, 0, FIRE.height);
   },
 });
 

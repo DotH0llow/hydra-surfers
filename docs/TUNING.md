@@ -20,9 +20,9 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (287 fields in 45 groups)
+## Registry (319 fields in 49 groups)
 
-[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hole in a broken bridge (jump only)](#obsHole) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Late game](#late) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Runner animation](#anim) · [Ghost](#ghost) · [Rain](#rain) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
+[Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hole in a broken bridge (jump only)](#obsHole) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: charging knight](#obsKnight) · [Obstacle: closing gate](#obsPortcullis) · [Obstacle: dragon fire](#obsFire) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Late game](#late) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Runner animation](#anim) · [Ghost](#ghost) · [Dragon flyover](#dragon) · [Rain](#rain) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
 
 <a id="lanes"></a>
 ### Lanes (`lanes`)
@@ -135,6 +135,40 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `obsRunaway.speed` | Speed toward the runner | 9 | 0 | 30 | 0.5 | m/s |
 | `obsRunaway.spawnAhead` | Starts moving this far ahead of the runner | 120 | 20 | 400 | 5 | m |
 | `obsRunaway.maxCars` | Max carts in a bolt | 3 | 1 | 6 | 1 |  |
+
+<a id="obsKnight"></a>
+### Obstacle: charging knight (`obsKnight`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `obsKnight.width` | Collider width | 1.9 | 0.5 | 3 | 0.05 | m |
+| `obsKnight.height` | Collider height | 3 | 1 | 6 | 0.05 | m |
+| `obsKnight.length` | Horse and rider length | 3.6 | 1 | 12 | 0.1 | m |
+| `obsKnight.gap` | Gap between knights in a charge | 5 | 0 | 30 | 0.5 | m |
+| `obsKnight.speed` | Speed toward the runner | 13 | 1 | 40 | 0.5 | m/s |
+| `obsKnight.spawnAhead` | Starts riding this far ahead of the runner | 140 | 20 | 400 | 5 | m |
+
+<a id="obsPortcullis"></a>
+### Obstacle: closing gate (`obsPortcullis`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `obsPortcullis.width` | Collider width | 2.3 | 0.5 | 3 | 0.05 | m |
+| `obsPortcullis.height` | Collider height | 4 | 1 | 8 | 0.1 | m |
+| `obsPortcullis.length` | Collider depth | 0.6 | 0.1 | 4 | 0.05 | m |
+| `obsPortcullis.dropFrom` | Bars start dropping this far ahead | 55 | 5 | 200 | 1 | m |
+| `obsPortcullis.dropTo` | Bars fully down this far ahead | 22 | 1 | 100 | 1 | m |
+| `obsPortcullis.restingOpen` | How far up the bars sit while far away. Kept low so a closed lane always reads as closed | 0.45 | 0 | 1 | 0.01 |  |
+
+<a id="obsFire"></a>
+### Obstacle: dragon fire (`obsFire`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `obsFire.width` | Collider width | 2.3 | 0.5 | 3 | 0.05 | m |
+| `obsFire.height` | Collider height (too tall to jump) | 2.6 | 0.5 | 6 | 0.05 | m |
+| `obsFire.minLength` | Shortest burning stretch | 10 | 2 | 40 | 0.5 | m |
+| `obsFire.maxLength` | Longest burning stretch | 18 | 2 | 60 | 0.5 | m |
 
 <a id="obsRamp"></a>
 ### Obstacle: ramp (`obsRamp`)
@@ -344,6 +378,18 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `ghost.opacity` | Opacity | 0.38 | 0 | 1 | 0.01 |  |
 | `ghost.fadeSeconds` | Fade out after the ghost's run ended | 1.5 | 0 | 10 | 0.1 | s |
 
+<a id="dragon"></a>
+### Dragon flyover (`dragon`)
+
+| path | label | default | min | max | step | unit |
+|---|---|---|---|---|---|---|
+| `dragon.seconds` | Time to cross the sky | 4.5 | 0.5 | 20 | 0.1 | s |
+| `dragon.height` | Height above the road | 26 | 2 | 80 | 1 | m |
+| `dragon.across` | Half the width it crosses | 46 | 5 | 200 | 1 | m |
+| `dragon.fromZ` | Comes in this far ahead | 150 | 10 | 400 | 5 | m |
+| `dragon.toZ` | Leaves this far behind | 40 | 0 | 200 | 5 | m |
+| `dragon.wingBeats` | Wing beats per second | 1.6 | 0 | 8 | 0.1 | Hz |
+
 <a id="rain"></a>
 ### Rain (`rain`)
 
@@ -445,6 +491,10 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `spawnWeights.gatehouse` | Gatehouse with obstacles | 1.2 | 0 | 10 | 0.1 |  |
 | `spawnWeights.wagonSlalom` | Wagon slalom (late game) | 1.4 | 0 | 10 | 0.1 |  |
 | `spawnWeights.brokenBridge` | Broken bridge (holes to jump) | 0.8 | 0 | 10 | 0.1 |  |
+| `spawnWeights.knightCharge` | Charging knights | 1.2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.closingGate` | Closing gates | 1.1 | 0 | 10 | 0.1 |  |
+| `spawnWeights.mineTunnel` | Mine tunnel (beams to roll under) | 1.2 | 0 | 10 | 0.1 |  |
+| `spawnWeights.dragonFire` | Dragon fire | 1 | 0 | 10 | 0.1 |  |
 
 <a id="spawnPatterns"></a>
 ### Spawn pattern details (`spawnPatterns`)
@@ -466,6 +516,12 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `spawnPatterns.runawayCartMinDifficulty` | Runaway cart min difficulty | 0.2 | 0 | 1 | 0.01 |  |
 | `spawnPatterns.gatehouseMinDifficulty` | Gatehouse min difficulty | 0.05 | 0 | 1 | 0.01 |  |
 | `spawnPatterns.signalChance` | Chance of a lantern post beside a wagon | 0.35 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.knightMinDifficulty` | Charging knights min difficulty | 0.2 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.gateMinDifficulty` | Closing gates min difficulty | 0.25 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.gateGapSeconds` | Closing gates: time between the two gates. Time to move one lane (tests/unit/fairness.test.ts) | 0.55 | 0.2 | 3 | 0.05 | s |
+| `spawnPatterns.tunnelMinDifficulty` | Mine tunnel min difficulty | 0.15 | 0 | 1 | 0.01 |  |
+| `spawnPatterns.tunnelRowSeconds` | Mine tunnel: time between beams. Enough to come out of a roll and start the next | 0.95 | 0.4 | 3 | 0.05 | s |
+| `spawnPatterns.fireMinDifficulty` | Dragon fire min difficulty | 0.2 | 0 | 1 | 0.01 |  |
 | `spawnPatterns.bridgeMinDifficulty` | Broken bridge min difficulty | 0.15 | 0 | 1 | 0.01 |  |
 | `spawnPatterns.bridgeRowSeconds` | Broken bridge: time between rows of holes. Enough to land and jump again | 1.05 | 0.6 | 3 | 0.05 | s |
 | `spawnPatterns.slalomMinLate` | Wagon slalom: min late-game pressure | 0.05 | 0 | 1 | 0.01 |  |
@@ -581,7 +637,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `flow.reviveOfferSeconds` | Revive offer stays open | 5 | 1 | 15 | 0.5 | s |
 | `flow.missionCheckSeconds` | Distance/score mission check interval | 0.5 | 0.1 | 5 | 0.1 | s |
 
-## Cheats (12)
+## Cheats (18)
 
 Callable as `window.__game.cheat(name, ...args)` and from the dev panel (see DEVTOOLS.md).
 
@@ -599,6 +655,12 @@ Callable as `window.__game.cheat(name, ...args)` and from the dev panel (see DEV
 | `giveBoards` | Give hoverboards | Profile |
 | `completeMissions` | Complete current missions | Profile |
 | `resetProfile` | Reset profile | Profile |
+| `devPanel` | Toggle dev panel | Dev |
+| `noClip` | No-clip (no crashes or bumps) | Run |
+| `jumpToTime` | Jump to run time (s) | Run |
+| `ghostDemo` | Race a test ghost (a few metres ahead, weaving) | Run |
+| `jumpToDistance` | Jump to distance (m) | Run |
+| `unlockAll` | Unlock all characters and mounts | Profile |
 
 ## Game scenarios (10)
 

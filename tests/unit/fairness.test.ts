@@ -1,8 +1,9 @@
 /**
  * Layout fairness: no procedural road may contain a stretch the runner cannot get through.
  *
- * Barricades, beams, ramps and gatehouses are always passable by an action (jump, roll, run up,
- * run through), so the only things that close a lane are wagons and runaway carts. The check is a
+ * Barricades, beams, holes, ramps and gatehouses are always passable by an action (jump, roll, run
+ * up, run through), so the lane closers are wagons, portcullises and dragon fire, plus whatever
+ * rides the other way (runaway carts and knights). The check is a
  * reachability pass over a 3-lane grid: the runner moves forward, and a lane change costs
  * `LANE_CHANGE_SECONDS` of travel during which both lanes must be free — a budget for a human to
  * read and swipe, well above the 0.1 s the switch animation takes.
@@ -14,7 +15,8 @@ import { describe, expect, it } from "vitest";
 import { EventBus } from "../../src/core/events";
 import { Rng } from "../../src/core/rng";
 import { tuning } from "../../src/core/tuning";
-import { WAGON, RUNAWAY } from "../../src/game/obstacles/builtin";
+import { WAGON } from "../../src/game/obstacles/builtin";
+import { getObstacleType } from "../../src/game/obstacles/registry";
 import { defaultRules, resolveRules, type RunRules } from "../../src/game/rules";
 import { Spawner } from "../../src/game/spawn/Spawner";
 import { getScenario } from "../../src/game/spawn/scenarios";
@@ -47,9 +49,14 @@ interface Placed {
   s: number;
   length: number;
   speed: number;
+  /** How far ahead a moving obstacle sets off (its type's moveWithin). */
+  reach: number;
   /** Nominal runner speed the spawner planned this pattern for. */
   planned: number;
 }
+
+/** Types that close their lane standing still. */
+const BLOCKERS: ReadonlySet<string> = new Set(["wagon", "portcullis", "fire"]);
 
 interface Block {
   type: string;
@@ -73,7 +80,8 @@ function layout(seed: number, rules: RunRules, biomes?: string[], layoutSpeedMul
     getSystem: (id: string) => systems[id],
     obstacles: {
       spawn: (type: string, lane: number, s: number, length?: number, speed?: number) => {
-        placed.push({ type, lane, s, length: length ?? 0, speed: speed ?? 0, planned: sp.speed });
+        const def = getObstacleType(type);
+        placed.push({ type, lane, s, length: length ?? def?.defaultLength() ?? 0, speed: speed ?? 0, reach: def?.moveWithin?.() ?? 0, planned: sp.speed });
         return null;
       },
     },
@@ -93,19 +101,21 @@ function layout(seed: number, rules: RunRules, biomes?: string[], layoutSpeedMul
 }
 
 /**
- * Where each obstacle closes its lane, for a runner going `scale` times the road speed. A wagon
- * closes its own extent. A runaway cart rolls toward the runner from `s` once they are
+ * Where each obstacle closes its lane, for a runner going `scale` times the road speed. A standing
+ * blocker closes its own extent. Anything riding the other way rolls toward the runner from `s` once they are
  * `spawnAhead` away: they meet its front at s - R·A/(v+R) and are alongside it for v·len/(v+R)
  * metres, after which the lane is clear again.
  */
 function blocksFor(placed: Placed[], rules: RunRules, scale: number): Block[] {
-  return placed.filter((o) => o.type === "wagon" || o.type === "runaway").map((o) => {
-    if (o.type !== "runaway") return { type: o.type, lane: o.lane, from: o.s, to: o.s + o.length };
-    const v = o.planned * rules.speedMul * scale;
-    const r = o.speed * scale;
-    const meet = o.s - r * (RUNAWAY.spawnAhead / (v + r));
-    return { type: o.type, lane: o.lane, from: meet, to: meet + (v * o.length) / (v + r) };
-  });
+  return placed
+    .filter((o) => o.speed > 0 || BLOCKERS.has(o.type))
+    .map((o) => {
+      if (o.speed <= 0) return { type: o.type, lane: o.lane, from: o.s, to: o.s + o.length };
+      const v = o.planned * rules.speedMul * scale;
+      const r = o.speed * scale;
+      const meet = o.s - r * (o.reach / (v + r));
+      return { type: o.type, lane: o.lane, from: meet, to: meet + (v * o.length) / (v + r) };
+    });
 }
 
 /** Runner speed at a track position (the curve is in run time; speedMul stretches distance). */

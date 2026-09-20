@@ -109,6 +109,36 @@
       "spec": "Horse cart bolting toward the runner. Same footprint as obstacle.wagon (2.3 m wide, 3.6 m tall, 13 m along Z, origin bottom centre). Put the horses and shafts in a child node named \"harness\" at the +Z end; the engine hides that node on trailing carts. <= 3k tris."
     },
     {
+      "id": "obstacle.knight",
+      "type": "gltf",
+      "src": "models/obstacles/knight.glb",
+      "placeholder": "knight",
+      "color": "#6f5335",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Knight on a galloping horse riding TOWARD the runner (faces -z), 3.6 m long, 1.9 m wide, up to 3 m tall, lance levelled. Origin bottom centre. <= 1200 tris."
+    },
+    {
+      "id": "struct.portcullis",
+      "type": "gltf",
+      "src": "models/structures/portcullis.glb",
+      "placeholder": "portcullis",
+      "color": "#6f6a63",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Stone gate over one lane with an iron grid: 3.2 m wide, 4.6 m tall, 0.7 m deep. The grid must be a node named \"bars\" that the engine slides down as the runner approaches. Origin bottom centre. <= 900 tris."
+    },
+    {
+      "id": "fx.dragonfire",
+      "type": "gltf",
+      "src": "models/fx/dragonfire.glb",
+      "placeholder": "dragonfire",
+      "color": "#e26a1e",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Burning stretch of one lane: scorched ground plus flames, 2.3 m wide, ~2 m tall, 10 m long (the engine scales it along Z to the burning length). Origin bottom centre of the strip. <= 900 tris."
+    },
+    {
       "id": "obstacle.ramp",
       "type": "gltf",
       "src": "models/obstacles/ramp.glb",

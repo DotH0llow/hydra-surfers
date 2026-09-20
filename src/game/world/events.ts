@@ -54,6 +54,10 @@ export const RUN_EVENTS: readonly RunEventDef[] = [
   { id: "emboscada", name: "Emboscada!", weight: 1, gapMul: 0.72, patternWeights: { beamSingle: 1.6, barricadeMixed: 1.8, barricadeRow: 1.4 } },
   { id: "carrocas", name: "Carroças soltas!", weight: 0.9, patternWeights: { runawayCart: 4, wagonDouble: 0.6 } },
   { id: "tempestade", name: "Tempestade", weight: 0.8, gapMul: 1.1, mood: { light: 0.55, fog: 0.5, tint: "#3d4a5c", tintAmount: 0.55, rain: 1 } },
+  { id: "cavaleiros", name: "Cavaleiros!", weight: 0.9, patternWeights: { knightCharge: 6, wagonDouble: 0.5, coinRun: 0.6 } },
+  { id: "portao", name: "Fechem os portões!", weight: 0.8, patternWeights: { closingGate: 6, barricadeSingle: 0.6 } },
+  { id: "invasao", name: "Invasão!", weight: 0.7, gapMul: 0.85, patternWeights: { knightCharge: 2.5, runawayCart: 2, barricadeRow: 1.5, coinRun: 0.4 }, mood: { light: 0.8, fog: 0.8, tint: "#8a4a2a", tintAmount: 0.35 } },
+  { id: "dragao", name: "Dragão!", weight: 0.5, gapMul: 1.15, patternWeights: { dragonFire: 8, coinRun: 0.4, wagonDouble: 0.4 }, mood: { light: 0.7, fog: 0.75, tint: "#7a3a1e", tintAmount: 0.45 } },
   { id: "ponte", name: "Ponte quebrada!", weight: 0.7, patternWeights: { brokenBridge: 6, wagonDouble: 0.5, wagonRamp: 0.5 } },
   { id: "neblina", name: "Neblina", weight: 0.8, mood: { light: 0.85, fog: 0.35, tint: "#c8cfd6", tintAmount: 0.6 } },
 ];

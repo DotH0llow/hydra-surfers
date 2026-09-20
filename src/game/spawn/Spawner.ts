@@ -111,7 +111,10 @@ export class Spawner implements RunSystem, SpawnApi {
       const eventWeights = this.event?.patternWeights;
       for (let i = 0; i < pats.length; i++) {
         const p = pats[i];
-        let w = this.difficulty >= p.minDifficulty && this.late >= (p.minLate ?? 0) ? p.weight() : 0;
+        // a pattern tied to regions is only placed there, unless the running event calls for it
+        const favoured = (eventWeights?.[p.id] ?? 0) > 1;
+        const regionOk = !p.biomes || favoured || !this.biome || p.biomes.includes(this.biome.id);
+        let w = regionOk && this.difficulty >= p.minDifficulty && this.late >= (p.minLate ?? 0) ? p.weight() : 0;
         if (w > 0 && p.lateWeight !== undefined) w *= 1 + (p.lateWeight - 1) * this.late;
         if (w > 0 && biomeWeights) w *= biomeWeights[p.id] ?? 1;
         if (w > 0 && eventWeights) w *= eventWeights[p.id] ?? 1;

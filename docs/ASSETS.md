@@ -33,7 +33,7 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 
 ## Status
 
-79 assets in 5 parts. 0 have files and 79 still use procedural placeholders.
+85 assets in 5 parts. 0 have files and 85 still use procedural placeholders.
 
 ## core (`public/assets/manifest/core.json`)
 
@@ -187,6 +187,9 @@ Road, obstacles and collectibles.
 | `obstacle.beam` | gltf | `models/obstacles/beam.glb` | placeholder (`beam`) | bottom-center, faces -z | <= 800 tris |
 | `obstacle.hole` | gltf | `models/obstacles/hole.glb` | placeholder (`hole`) | bottom-center, faces -z | <= 800 tris |
 | `obstacle.cart.runaway` | gltf | `models/obstacles/cart_runaway.glb` | placeholder (`cart-runaway`) | bottom-center, faces -z | <= 3000 tris |
+| `obstacle.knight` | gltf | `models/obstacles/knight.glb` | placeholder (`knight`) | bottom-center, faces -z | <= 1200 tris |
+| `struct.portcullis` | gltf | `models/structures/portcullis.glb` | placeholder (`portcullis`) | bottom-center, faces -z | <= 900 tris |
+| `fx.dragonfire` | gltf | `models/fx/dragonfire.glb` | placeholder (`dragonfire`) | bottom-center, faces -z | <= 900 tris |
 | `obstacle.ramp` | gltf | `models/obstacles/ramp.glb` | placeholder (`ramp`) | bottom-center, faces -z | <= 600 tris |
 | `struct.gate` | gltf | `models/world/gatehouse.glb` | placeholder (`gate`) | bottom-center, faces -z | <= 2000 tris |
 | `struct.lantern` | gltf | `models/world/lantern.glb` | placeholder (`lantern`) | bottom-center, faces -z | <= 400 tris |
@@ -287,6 +290,30 @@ Road, obstacles and collectibles.
 - **Placeholder tint / palette hint:** `#7a3f34`
 - **Placeholder:** `cart-runaway`
 - **Brief:** Horse cart bolting toward the runner. Same footprint as obstacle.wagon (2.3 m wide, 3.6 m tall, 13 m along Z, origin bottom centre). Put the horses and shafts in a child node named "harness" at the +Z end; the engine hides that node on trailing carts. <= 3k tris.
+
+### `obstacle.knight`
+
+- **File:** `public/assets/models/obstacles/knight.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#6f5335`
+- **Placeholder:** `knight`
+- **Brief:** Knight on a galloping horse riding TOWARD the runner (faces -z), 3.6 m long, 1.9 m wide, up to 3 m tall, lance levelled. Origin bottom centre. <= 1200 tris.
+
+### `struct.portcullis`
+
+- **File:** `public/assets/models/structures/portcullis.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#6f6a63`
+- **Placeholder:** `portcullis`
+- **Brief:** Stone gate over one lane with an iron grid: 3.2 m wide, 4.6 m tall, 0.7 m deep. The grid must be a node named "bars" that the engine slides down as the runner approaches. Origin bottom centre. <= 900 tris.
+
+### `fx.dragonfire`
+
+- **File:** `public/assets/models/fx/dragonfire.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#e26a1e`
+- **Placeholder:** `dragonfire`
+- **Brief:** Burning stretch of one lane: scorched ground plus flames, 2.3 m wide, ~2 m tall, 10 m long (the engine scales it along Z to the burning length). Origin bottom centre of the strip. <= 900 tris.
 
 ### `obstacle.ramp`
 
@@ -452,6 +479,7 @@ Roadside scenery for the biomes. Instanced and tinted per region, so one model d
 | `env.reed` | gltf | `models/world/reed.glb` | placeholder (`prop-reed`) | bottom-center, faces -z | <= 150 tris |
 | `env.minebeam` | gltf | `models/world/mine_support.glb` | placeholder (`prop-minebeam`) | bottom-center, faces -z | <= 200 tris |
 | `env.fence` | gltf | `models/world/fence.glb` | placeholder (`prop-fence`) | bottom-center, faces -z | <= 200 tris |
+| `env.dragon` | gltf | `models/world/dragon.glb` | placeholder (`prop-dragon`) | center, faces -z | <= 1500 tris |
 
 ### `env.house`
 
@@ -565,6 +593,14 @@ Roadside scenery for the biomes. Instanced and tinted per region, so one model d
 - **Placeholder:** `prop-fence`
 - **Brief:** Paling fence section 2 m along Z and 1.1 m tall, tiling end to end. Origin at the ground centre. <= 200 tris.
 
+### `env.dragon`
+
+- **File:** `public/assets/models/world/dragon.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** center, faces -z
+- **Placeholder tint / palette hint:** `#3f5a42`
+- **Placeholder:** `prop-dragon`
+- **Brief:** Flying dragon seen from below, ~12 m wingspan, 11 m nose to tail, origin at the body centre, facing -z. The wings must be two nodes named "wingL" and "wingR", pivoting at the shoulders, so the engine can beat them. Neutral greys; it flies over during the Dragão event only. <= 1500 tris.
+
 ## ui (`public/assets/manifest/ui.json`)
 
 UI sprites and icons. Owned by lane C.
@@ -640,6 +676,8 @@ Sound effects and music. Owned by lane D.
 | `sfx.block` | audio | `audio/sfx/block.ogg` | placeholder (`synth-block`) |  |  |
 | `sfx.horn` | audio | `audio/sfx/horn.ogg` | placeholder (`synth-horn`) |  |  |
 | `sfx.fanfare` | audio | `audio/sfx/fanfare.ogg` | placeholder (`synth-fanfare`) |  |  |
+| `sfx.rankup` | audio | `audio/sfx/rankup.ogg` | placeholder (`synth-rankup`) |  |  |
+| `sfx.dragon` | audio | `audio/sfx/dragon.ogg` | placeholder (`synth-dragon`) |  |  |
 | `music.run` | audio | `audio/music/run.ogg` | placeholder (`synth-music`) |  |  |
 
 ### `sfx.coin`
@@ -767,6 +805,20 @@ Sound effects and music. Owned by lane D.
 - **Playback volume:** 0.5
 - **Placeholder:** `synth-fanfare`
 - **Brief:** Results with a new record or level: short royal fanfare, < 1 s, mono.
+
+### `sfx.rankup`
+
+- **File:** `public/assets/audio/sfx/rankup.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.5
+- **Placeholder:** `synth-rankup`
+- **Brief:** Climbed on a leaderboard: quick rising three-bell chime, < 600 ms, mono.
+
+### `sfx.dragon`
+
+- **File:** `public/assets/audio/sfx/dragon.ogg` (audio: .ogg, .mp3, .m4a, .wav, .webm)
+- **Playback volume:** 0.6
+- **Placeholder:** `synth-dragon`
+- **Brief:** Dragon roar overhead: low growl with a rising tail, < 1 s, mono.
 
 ### `music.run`
 
