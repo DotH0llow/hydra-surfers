@@ -234,11 +234,15 @@ registerScreen("profile", (host) => {
     });
   });
   const titleSelect = h("select", { class: "interactive", attrs: { "data-id": "title-select", "aria-label": "Título" } });
-  titleSelect.addEventListener("change", () => host.store.update((p) => (p.equipped.title = titleSelect.value)));
+  titleSelect.addEventListener("change", () => {
+    host.store.update((p) => (p.equipped.title = titleSelect.value));
+    host.pushProfile();
+  });
   const houseSelect = h("select", { class: "interactive", attrs: { "data-id": "house-select", "aria-label": "Casa" } });
   const houseNote = h("small", { class: "note" });
   houseSelect.addEventListener("change", () => {
     host.store.update((p) => (p.social.faction = houseSelect.value));
+    host.pushProfile();
     renderHouseNote();
   });
   const renderHouseNote = () => {
@@ -330,17 +334,33 @@ registerScreen("profile", (host) => {
 
     const prog = achievementProgress(p);
     achievements.textContent = "";
-    achievements.append(h("h2", { text: `Conquistas ${prog.done}/${prog.total}` }));
+    achievements.append(h("h2", { text: `Conquistas ${prog.done}/${prog.total}` }), h("small", { class: "note", text: "Toque numa conquista para destacá-la no seu perfil (até 3)." }));
     for (const a of ACHIEVEMENTS) {
       const done = isUnlocked(p, a.id);
-      achievements.append(
-        h(
-          "div",
-          { class: `ach${done ? " done" : ""}` },
-          h("b", { text: `${done ? "✓ " : ""}${a.name}` }),
-          h("small", { text: a.reward ? `${a.desc} · ${describeReward(a.reward)}` : a.desc }),
-        ),
+      const shown = p.equipped.showcase.includes(a.id);
+      const row = h(
+        "div",
+        { class: `ach${done ? " done interactive" : ""}${shown ? " shown" : ""}`, attrs: done ? { "data-id": `showcase-${a.id}` } : {} },
+        h("b", { text: `${shown ? "★ " : done ? "✓ " : ""}${a.name}` }),
+        h("small", { text: a.reward ? `${a.desc} · ${describeReward(a.reward)}` : a.desc }),
       );
+      if (done) {
+        row.addEventListener("click", () => {
+          host.bus.emit("ui:click", { id: `showcase-${a.id}` });
+          host.store.update((q) => {
+            const list = q.equipped.showcase;
+            const i = list.indexOf(a.id);
+            if (i >= 0) list.splice(i, 1);
+            else {
+              list.push(a.id);
+              if (list.length > 3) list.shift();
+            }
+          });
+          host.pushProfile();
+          render();
+        });
+      }
+      achievements.append(row);
     }
   }
 

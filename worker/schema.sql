@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS players (
   crest       TEXT    NOT NULL DEFAULT '0.1.0.0',
   title       TEXT    NOT NULL DEFAULT '',
   level       INTEGER NOT NULL DEFAULT 1,
+  house       TEXT    NOT NULL DEFAULT '',
+  build       TEXT    NOT NULL DEFAULT '',     -- equipped weapon,armour,relic ids
+  showcase    TEXT    NOT NULL DEFAULT '',     -- up to three achievement ids
   created_at  INTEGER NOT NULL,
   updated_at  INTEGER NOT NULL
 );

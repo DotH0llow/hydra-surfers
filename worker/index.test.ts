@@ -213,7 +213,7 @@ describe("worker /api", () => {
     expect(own?.name).toBe("Rapido");
     expect(decodeGhost(own!.data)?.count).toBe(60 * GHOST_HZ + 1);
     expect((await call(`/api/ghosts/daily?period=2020-01-01&player=${me.playerId}`)).status).toBe(404);
-    expect((await call(`/api/ghosts/weekly?period=${today}`)).status).toBe(400);
+    expect((await call(`/api/ghosts/season?period=`)).status).toBe(400);
   });
 
   it("reports every bounty started this season, finished ones included, with the group's total", async () => {
@@ -227,6 +227,66 @@ describe("worker /api", () => {
     expect(body.bounty?.id ?? null).toBe(running?.id ?? null);
     // the run counts only for the bounty whose window covers today
     for (const b of body.bounties) expect(b.value).toBe(b.id === running?.id && running.stat === "coins" ? 700 : b.id === running?.id && running.stat === "runs" ? 1 : b.id === running?.id && running.stat === "distance" ? 1200 : 0);
+  });
+
+  it("names the players a run overtook, closest first, and nobody on a first entry", async () => {
+    const a = await register("Alfa");
+    const b = await register("Beta");
+    const c = await register("Gama");
+    await post("/api/runs", run({ score: 3000 }), a.token);
+    await post("/api/runs", run({ score: 2000 }), b.token);
+    const passedOf = async (token: string, score: number) => ((await (await post("/api/runs", run({ score }), token)).json()) as { passed: string[] }).passed;
+    expect(await passedOf(c.token, 1000)).toEqual([]);
+    expect(await passedOf(c.token, 3500)).toEqual(["Alfa", "Beta"]);
+    // a worse run passes nobody
+    expect(await passedOf(c.token, 1200)).toEqual([]);
+  });
+
+  it("serves a public card with house, build, showcase and season bests", async () => {
+    const { playerId, token } = await register("Cartao");
+    await post("/api/players/me", { house: "corvo", build: ["weapon.sword", "armor.leather", "BAD ID!"], showcase: ["ach.first"], title: "title.escudeiro" }, token, "PUT");
+    await post("/api/runs", run({ score: 5000, contracts: 2 }), token);
+    await post("/api/runs", run({ score: 4000, distance: 1500, contracts: 1 }), token);
+    const card = (await (await call(`/api/players/${playerId}`)).json()) as Record<string, unknown>;
+    expect(card).toMatchObject({ name: "Cartao", house: "corvo", build: ["weapon.sword", "armor.leather"], showcase: ["ach.first"] });
+    expect(card.season).toMatchObject({ score: 5000, distance: 1500, contracts: 3, runs: 2 });
+    expect((await call("/api/players/nobody")).status).toBe(404);
+    // an unknown house is cleared
+    await post("/api/players/me", { house: "dragao" }, token, "PUT");
+    expect(((await (await call(`/api/players/${playerId}`)).json()) as { house: string }).house).toBe("");
+  });
+
+  it("ranks the contracts board by the season total, not the best run", async () => {
+    const a = await register("Muitos");
+    const b = await register("Um Bom");
+    for (let i = 0; i < 3; i++) await post("/api/runs", run({ contracts: 2 }), a.token);
+    await post("/api/runs", run({ contracts: 4 }), b.token);
+    const body = (await (await call("/api/boards/season?metric=contracts")).json()) as { entries: Array<{ name: string; value: number }> };
+    expect(body.entries.map((e) => [e.name, e.value])).toEqual([
+      ["Muitos", 6],
+      ["Um Bom", 4],
+    ]);
+  });
+
+  it("keeps ghosts on every seeded board and serves a chosen player's or your own", async () => {
+    const week = weekKey(NOW);
+    const weekly = { board: "weekly", period: week, seed: seedFor("weekly", week) };
+    const track = (distance: number, duration: number) => {
+      const n = duration * GHOST_HZ + 1;
+      return encodeGhost(Array.from({ length: n }, (_, i) => (distance * i) / (n - 1)), new Array(n).fill(0), new Array(n).fill(0), n);
+    };
+    const a = await register("Semana A");
+    const b = await register("Semana B");
+    const stored = async (token: string, score: number, distance: number, duration: number) =>
+      ((await (await post("/api/runs", run({ ...weekly, score, distance, duration, ghost: track(distance, duration) }), token)).json()) as { ghostStored: boolean }).ghostStored;
+    expect(await stored(a.token, 1000, 400, 40)).toBe(true);
+    expect(await stored(b.token, 2000, 600, 50)).toBe(true);
+    const ghostOf = async (q: string) => ((await (await call(`/api/ghosts/weekly?period=${week}&${q}`)).json()) as { name: string }).name;
+    expect(await ghostOf(`player=${a.playerId}`)).toBe("Semana B");
+    expect(await ghostOf(`player=${b.playerId}&target=${a.playerId}`)).toBe("Semana A");
+    expect(await ghostOf(`player=${a.playerId}&self=1`)).toBe("Semana A");
+    // the season board is not seeded: no ghosts there
+    expect((await call(`/api/ghosts/season?player=${a.playerId}`)).status).toBe(400);
   });
 
   it("rejects implausible runs and stale periods", async () => {

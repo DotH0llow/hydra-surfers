@@ -7,7 +7,7 @@ import { Rng, hash32 } from "../core/rng";
 import type { StorageLike } from "../core/store";
 import { hashString } from "../shared/hash";
 import { validName } from "../shared/plausibility";
-import type { Board, Community, GhostData, HouseStanding, Identity, LeaderboardEntry, LeaderboardService, Metric, PublicProfile, ScoreSubmission, SubmitResult } from "./LeaderboardService";
+import type { Board, Community, GhostData, PlayerCard, HouseStanding, Identity, LeaderboardEntry, LeaderboardService, Metric, PublicProfile, ScoreSubmission, SubmitResult } from "./LeaderboardService";
 
 export interface MockProviderOptions {
   /** League seed (same seed → same fake players). */
@@ -33,7 +33,7 @@ const NAMES = [
 ];
 
 /** Scale of each metric in the fake league, so records boards look like records boards. */
-const SCALE: Record<Metric, number> = { score: 60000, distance: 9000, coins: 1400, combo: 90, clean: 3500 };
+const SCALE: Record<Metric, number> = { score: 60000, distance: 9000, coins: 1400, combo: 90, clean: 3500, contracts: 90 };
 
 const METRIC_OF: Record<Metric, (s: ScoreSubmission) => number> = {
   score: (s) => s.score,
@@ -41,7 +41,11 @@ const METRIC_OF: Record<Metric, (s: ScoreSubmission) => number> = {
   coins: (s) => s.coins,
   combo: (s) => s.maxCombo ?? 0,
   clean: (s) => s.cleanDistance ?? 0,
+  contracts: (s) => s.contracts ?? 0,
 };
+
+/** Contracts add up over the season; every other metric is a best. */
+const SUMMED: ReadonlySet<Metric> = new Set<Metric>(["contracts"]);
 
 export class MockProvider implements LeaderboardService {
   readonly id = "mock" as const;
@@ -73,8 +77,11 @@ export class MockProvider implements LeaderboardService {
     const before = this.saved[key] ? { ...this.saved[key] } : null;
     const ranked = sub.ranked !== false;
     if (ranked) {
-      const cur = this.saved[key] ?? { score: 0, distance: 0, coins: 0, combo: 0, clean: 0 };
-      for (const m of Object.keys(METRIC_OF) as Metric[]) cur[m] = Math.max(cur[m], Math.floor(METRIC_OF[m](sub)));
+      const cur = this.saved[key] ?? { score: 0, distance: 0, coins: 0, combo: 0, clean: 0, contracts: 0 };
+      for (const m of Object.keys(METRIC_OF) as Metric[]) {
+        const v = Math.floor(METRIC_OF[m](sub));
+        cur[m] = SUMMED.has(m) ? (cur[m] ?? 0) + v : Math.max(cur[m] ?? 0, v);
+      }
       this.saved[key] = cur;
       this.persist();
     }
@@ -84,6 +91,8 @@ export class MockProvider implements LeaderboardService {
     const best = this.saved[key]?.score ?? 0;
     const rankOf = (v: number) => league.filter((r) => r.score > v).length + 1;
     const above = best > 0 ? league.filter((r) => r.score > best).sort((a, b) => a.score - b.score)[0] : undefined;
+    const old = before?.score ?? 0;
+    const passed = old > 0 ? league.filter((r) => r.score > old && r.score < best).sort((a, b) => b.score - a.score).slice(0, 3).map((r) => r.name) : [];
     return {
       accepted: true,
       ranked,
@@ -91,6 +100,7 @@ export class MockProvider implements LeaderboardService {
       previousRank: before && before.score > 0 ? rankOf(before.score) : null,
       best,
       above: above ? { name: above.name, value: above.score } : null,
+      passed,
       provider: "mock",
     };
   }
@@ -124,6 +134,10 @@ export class MockProvider implements LeaderboardService {
   }
 
   async getGhost(_board: string, _period: string): Promise<GhostData | null> {
+    return null;
+  }
+
+  async getPlayer(_playerId: string): Promise<PlayerCard | null> {
     return null;
   }
 

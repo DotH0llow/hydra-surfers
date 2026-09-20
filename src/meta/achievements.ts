@@ -44,6 +44,8 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: "ach.escapes50", name: "Fora-da-Lei", desc: "Escape da guarda 50 vezes", tier: 2, test: (p) => p.stats.stumbles >= 50, reward: { kind: "title", id: "title.foradalei" } },
   { id: "ach.contracts50", name: "Taverneiro", desc: "Complete 50 contratos", tier: 2, test: (p) => p.stats.contractsDone >= 50, reward: { kind: "title", id: "title.taverneiro" } },
   { id: "ach.daily7", name: "Fiel à Estrada", desc: "Sete dias seguidos de corrida", tier: 2, test: (p) => p.streak.best >= 7, reward: { kind: "keys", amount: 3 } },
+  { id: "ach.overtake", name: "Pedra no Sapato", desc: "Passe alguém do grupo num placar", tier: 1, test: (p) => p.stats.overtakes >= 1, reward: { kind: "coins", amount: 300 } },
+  { id: "ach.overtake25", name: "Terror do Livro", desc: "Passe 25 vezes alguém do grupo nos placares", tier: 2, test: (p) => p.stats.overtakes >= 25, reward: { kind: "keys", amount: 3 } },
   { id: "ach.daily.first", name: "Campeão", desc: "Termine em 1º na Corrida do Dia", tier: 3, test: (p) => p.stats.dailyWins >= 1, reward: { kind: "title", id: "title.campeao" } },
   { id: "ach.mounts5", name: "Estábulo", desc: "Possua cinco montarias", tier: 2, test: (p) => countOwnedMounts(p) >= 5, reward: { kind: "coins", amount: 800 } },
   { id: "ach.season30", name: "Temporada Completa", desc: "Chegue ao nível 30 da temporada", tier: 3, test: (p) => p.progress.seasonXp >= 30_000, reward: { kind: "crest", id: "crest.frame.gold" } },

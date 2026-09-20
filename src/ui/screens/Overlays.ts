@@ -191,6 +191,10 @@ registerScreen("gameover", (host) => {
         const lines: string[] = [];
         if (res.rank !== null) {
           const where = board === "daily" ? "no Diário" : board === "weekly" ? "no Semanal" : board.startsWith("event:") ? "no torneio" : "na temporada";
+          if (res.passed.length > 0) {
+            const names = res.passed.length === 1 ? res.passed[0] : `${res.passed.slice(0, -1).join(", ")} e ${res.passed[res.passed.length - 1]}`;
+            lines.push(`Você passou ${names}!`);
+          }
           if (res.previousRank === null) lines.push(`Você entrou ${where} em #${res.rank}.`);
           else if (res.rank < res.previousRank) lines.push(`Você subiu de #${res.previousRank} para #${res.rank} ${where}!`);
           else lines.push(`Você é #${res.rank} ${where}.`);

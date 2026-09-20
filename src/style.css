@@ -112,7 +112,8 @@ body {
   flex-direction: column;
   pointer-events: none;
 }
-.screen[hidden] {
+/* The UI toggles visibility with the hidden attribute everywhere; no display rule may override it. */
+[hidden] {
   display: none !important;
 }
 .screen .interactive,
@@ -918,6 +919,52 @@ body {
   border-radius: 10px;
   background: rgba(141, 59, 70, 0.85);
   color: #fff;
+}
+.lb-row.interactive {
+  cursor: pointer;
+}
+.lb-card-back {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(10, 6, 4, 0.6);
+  z-index: 5;
+}
+.lb-card {
+  width: min(420px, 100%);
+  max-height: 90%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lb-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lb-card-head b {
+  display: block;
+  font-size: 20px;
+}
+.lb-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-family: var(--yd-font-body);
+  font-size: 14px;
+}
+.lb-card-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.achievements .ach.shown {
+  border-color: rgba(232, 194, 90, 0.9);
+  background: rgba(120, 88, 20, 0.35);
 }
 .lb-house {
   width: 22px;

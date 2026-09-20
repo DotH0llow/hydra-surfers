@@ -15,7 +15,8 @@
  *   GET  /api/health
  *   POST /api/players                 { name, crest? }                  -> 201 { playerId, token }
  *   GET  /api/players/me              (auth)                           -> { playerId, name, crest, title, level }
- *   PUT  /api/players/me              (auth) { name?, crest?, title?, level? }
+ *   PUT  /api/players/me              (auth) { name?, crest?, title?, level?, house?, build?, showcase? }
+ *   GET  /api/players/:id                                              -> public card (profile + season bests)
  *   POST /api/runs                    (auth) run claim + extras        -> 201 { accepted, ranked, rank, previousRank, best, above }
  *   GET  /api/boards/:board?period=&metric=&player=                    -> { entries, me }
  *   GET  /api/community                                                -> { bounty: { id, value, goal } | null, bounties: [...] }
@@ -58,7 +59,15 @@ function dbUnavailable(): Response {
 }
 
 /** Board columns a leaderboard can be ranked by. */
-export const METRICS = { score: "score", distance: "distance", coins: "coins", combo: "max_combo", clean: "clean" } as const;
+/** How each board metric aggregates a player's runs: a best, or (contracts) a season total. */
+export const METRICS = {
+  score: "MAX(score)",
+  distance: "MAX(distance)",
+  coins: "MAX(coins)",
+  combo: "MAX(max_combo)",
+  clean: "MAX(clean)",
+  contracts: "SUM(contracts)",
+} as const;
 export type Metric = keyof typeof METRICS;
 
 /** Ranked attempts a player gets on a board per period (0 = unlimited). */
@@ -98,12 +107,15 @@ interface PlayerRow {
   crest: string;
   title: string;
   level: number;
+  house: string;
+  build: string;
+  showcase: string;
 }
 
 async function authPlayer(request: Request, db: D1Database): Promise<PlayerRow | null> {
   const token = bearer(request);
   if (!token) return null;
-  return db.prepare("SELECT id, name, crest, title, level FROM players WHERE token_hash = ?1").bind(await sha256(token)).first<PlayerRow>();
+  return db.prepare("SELECT id, name, crest, title, level, house, build, showcase FROM players WHERE token_hash = ?1").bind(await sha256(token)).first<PlayerRow>();
 }
 
 /** Bodies are small JSON objects; a run may carry a ghost track. */
@@ -119,6 +131,15 @@ async function readJson(request: Request, maxChars = MAX_BODY): Promise<Record<s
   } catch {
     return null;
   }
+}
+
+/** A short list of content ids (items, achievements) stored comma-joined; anything odd is dropped. */
+function cleanIds(raw: unknown, max: number): string {
+  if (!Array.isArray(raw)) return "";
+  return raw
+    .filter((v): v is string => typeof v === "string" && /^[a-z0-9._-]{1,40}$/.test(v))
+    .slice(0, max)
+    .join(",");
 }
 
 /** Crest is stored as the four indices joined with dots ("2.5.0.3"). */
@@ -163,9 +184,12 @@ async function updatePlayer(request: Request, db: D1Database, me: PlayerRow): Pr
   const crest = body.crest !== undefined ? cleanCrest(body.crest) : me.crest;
   const title = typeof body.title === "string" && /^[a-z0-9._-]{0,40}$/.test(body.title) ? body.title : me.title;
   const level = typeof body.level === "number" && Number.isFinite(body.level) ? Math.max(1, Math.min(999, Math.floor(body.level))) : me.level;
+  const house = typeof body.house === "string" ? (houseById(body.house) ? body.house : "") : me.house;
+  const build = body.build !== undefined ? cleanIds(body.build, 3) : me.build;
+  const showcase = body.showcase !== undefined ? cleanIds(body.showcase, 3) : me.showcase;
   await db
-    .prepare("UPDATE players SET name = ?2, name_key = ?3, crest = ?4, title = ?5, level = ?6, updated_at = ?7 WHERE id = ?1")
-    .bind(me.id, name, nameKey(name), crest, title, level, Date.now())
+    .prepare("UPDATE players SET name = ?2, name_key = ?3, crest = ?4, title = ?5, level = ?6, house = ?7, build = ?8, showcase = ?9, updated_at = ?10 WHERE id = ?1")
+    .bind(me.id, name, nameKey(name), crest, title, level, house, build, showcase, Date.now())
     .run();
   return json({ playerId: me.id, name, crest, title, level });
 }
@@ -178,15 +202,15 @@ function num(v: unknown): number {
 
 /** Best value and rank of a player on a board (null rank = no ranked run yet). */
 async function standing(db: D1Database, board: string, period: string, metric: Metric, playerId: string): Promise<{ best: number; rank: number | null }> {
-  const col = METRICS[metric];
+  const agg = METRICS[metric];
   const { where, binds } = boardFilter(board, period);
   const mine = await db
-    .prepare(`SELECT MAX(${col}) AS v FROM runs WHERE ${where} AND player_id = ?${binds.length + 1}`)
+    .prepare(`SELECT ${agg} AS v FROM runs WHERE ${where} AND player_id = ?${binds.length + 1}`)
     .bind(...binds, playerId)
     .first<{ v: number | null }>();
   if (!mine || mine.v === null) return { best: 0, rank: null };
   const above = await db
-    .prepare(`SELECT COUNT(*) AS n FROM (SELECT MAX(${col}) AS v FROM runs WHERE ${where} GROUP BY player_id) WHERE v > ?${binds.length + 1}`)
+    .prepare(`SELECT COUNT(*) AS n FROM (SELECT ${agg} AS v FROM runs WHERE ${where} GROUP BY player_id) WHERE v > ?${binds.length + 1}`)
     .bind(...binds, mine.v)
     .first<{ n: number }>();
   return { best: mine.v, rank: (above?.n ?? 0) + 1 };
@@ -243,9 +267,9 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
     .run();
   const after = await standing(db, board, period, "score", me.id);
 
-  // a ranked daily run may carry its ghost; it is kept while it is the player's best of the day
+  // a ranked run on a seeded board may carry its ghost; it is kept while it is the player's best
   let ghostStored = false;
-  if (board === "daily" && ranked && typeof body.ghost === "string") {
+  if (limit > 0 && ranked && typeof body.ghost === "string") {
     const track = decodeGhost(body.ghost);
     if (track && ghostMatchesRun(track, claim.duration, claim.distance)) {
       const res = await db
@@ -256,6 +280,20 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
         .run();
       ghostStored = (res.meta?.changes ?? 0) > 0;
     }
+  }
+
+  // who this run overtook (only when the player was already on the board and improved)
+  let passed: string[] = [];
+  if (before.rank !== null && after.best > before.best) {
+    const { where, binds } = boardFilter(board, period);
+    const n = binds.length;
+    const rows = await db
+      .prepare(
+        `SELECT p.name AS name FROM (SELECT player_id, MAX(score) AS v FROM runs WHERE ${where} GROUP BY player_id) t JOIN players p ON p.id = t.player_id WHERE t.v > ?${n + 1} AND t.v < ?${n + 2} AND t.player_id != ?${n + 3} ORDER BY t.v DESC LIMIT 3`,
+      )
+      .bind(...binds, before.best, after.best, me.id)
+      .all<{ name: string }>();
+    passed = (rows.results ?? []).map((r) => r.name);
   }
 
   // who is right above now: the rival line of the results screen
@@ -269,7 +307,7 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
       .bind(...binds, after.best)
       .first<{ name: string; value: number }>();
   }
-  return json({ accepted: true, ranked: ranked === 1, rank: after.rank, previousRank: before.rank, best: after.best, above, ghostStored }, 201);
+  return json({ accepted: true, ranked: ranked === 1, rank: after.rank, previousRank: before.rank, best: after.best, above, passed, ghostStored }, 201);
 }
 
 // ---------------------------------------------------------------------------- boards
@@ -281,12 +319,12 @@ async function board(url: URL, boardId: string, db: D1Database): Promise<Respons
   if (!/^(season|daily|weekly|event:[a-z0-9-]{1,40})$/.test(boardId)) return json({ error: "bad_board" }, 400);
   const limitRaw = Number(url.searchParams.get("limit") ?? 50);
   const limit = Math.max(1, Math.min(100, Number.isFinite(limitRaw) ? Math.floor(limitRaw) : 50));
-  const col = METRICS[metric];
+  const agg = METRICS[metric];
   const { where, binds } = boardFilter(boardId, period);
   const rows = await db
     .prepare(
       `SELECT t.player_id AS playerId, p.name AS name, p.crest AS crest, p.title AS title, p.level AS level, t.v AS value
-       FROM (SELECT player_id, MAX(${col}) AS v, MIN(created_at) AS at FROM runs WHERE ${where} GROUP BY player_id) t
+       FROM (SELECT player_id, ${agg} AS v, MIN(created_at) AS at FROM runs WHERE ${where} GROUP BY player_id) t
        JOIN players p ON p.id = t.player_id ORDER BY t.v DESC, t.at ASC LIMIT ${limit}`,
     )
     .bind(...binds)
@@ -323,25 +361,55 @@ async function community(db: D1Database): Promise<Response> {
 }
 
 /**
- * The ghost to race on a board: the player just above your best (the next target), your own best
- * when you lead, or — before your first run — the lowest ghost on the board, the most beatable.
+ * The ghost to race on a seeded board: a chosen player's (`target`), your own best (`self=1`), or
+ * by default the player just above your best (the next target) — your own best when you lead, and
+ * before your first run the lowest ghost on the board, the most beatable.
  */
 async function ghost(url: URL, boardId: string, db: D1Database): Promise<Response> {
-  if (boardId !== "daily") return json({ error: "bad_board" }, 400);
+  if (attemptLimit(boardId) <= 0) return json({ error: "bad_board" }, 400);
   const period = url.searchParams.get("period") ?? "";
   const player = url.searchParams.get("player") ?? "";
+  const target = url.searchParams.get("target");
   const cols = "g.player_id AS playerId, p.name AS name, g.score AS score, g.data AS data";
   const from = "FROM ghosts g JOIN players p ON p.id = g.player_id WHERE g.board = ?1 AND g.period = ?2";
   type Row = { playerId: string; name: string; score: number; data: string };
   const mine = await db.prepare("SELECT MAX(score) AS v FROM runs WHERE board = ?1 AND period = ?2 AND ranked = 1 AND player_id = ?3").bind(boardId, period, player).first<{ v: number | null }>();
   let row: Row | null;
-  if (mine?.v != null) {
+  if (target || url.searchParams.get("self") === "1") {
+    row = await db.prepare(`SELECT ${cols} ${from} AND g.player_id = ?3`).bind(boardId, period, target || player).first<Row>();
+  } else if (mine?.v != null) {
     row = await db.prepare(`SELECT ${cols} ${from} AND g.score > ?3 AND g.player_id != ?4 ORDER BY g.score ASC LIMIT 1`).bind(boardId, period, mine.v, player).first<Row>();
     row ??= await db.prepare(`SELECT ${cols} ${from} AND g.player_id = ?3`).bind(boardId, period, player).first<Row>();
   } else {
     row = await db.prepare(`SELECT ${cols} ${from} ORDER BY g.score ASC LIMIT 1`).bind(boardId, period).first<Row>();
   }
   return row ? json(row) : json({ error: "no_ghost" }, 404);
+}
+
+/** A player's public card: profile plus season bests and totals from their ranked runs. */
+async function playerCard(db: D1Database, id: string): Promise<Response> {
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) return json({ error: "bad_player" }, 400);
+  const p = await db.prepare("SELECT id, name, crest, title, level, house, build, showcase FROM players WHERE id = ?1").bind(id).first<PlayerRow>();
+  if (!p) return json({ error: "not_found" }, 404);
+  const s = await db
+    .prepare(
+      "SELECT MAX(score) AS score, MAX(distance) AS distance, MAX(coins) AS coins, MAX(max_combo) AS combo, MAX(clean) AS clean, SUM(contracts) AS contracts, COUNT(*) AS runs FROM runs WHERE season = ?1 AND ranked = 1 AND player_id = ?2",
+    )
+    .bind(SEASON.id, id)
+    .first<Record<string, number | null>>();
+  const n = (k: string) => Math.floor(s?.[k] ?? 0);
+  const list = (v: string) => (v ? v.split(",") : []);
+  return json({
+    playerId: p.id,
+    name: p.name,
+    crest: p.crest,
+    title: p.title,
+    level: p.level,
+    house: p.house,
+    build: list(p.build),
+    showcase: list(p.showcase),
+    season: { score: n("score"), distance: n("distance"), coins: n("coins"), combo: n("combo"), clean: n("clean"), contracts: n("contracts"), runs: n("runs") },
+  });
 }
 
 /** Weekly house standings: each house's players' best ranked weekly score, top N averaged. */
@@ -370,7 +438,7 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
       if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });
       return json({ ok: true, db: !!env.DB, version: env.APP_VERSION ?? API_VERSION, time: new Date().toISOString() });
     }
-    const known = path === "/api/players" || path === "/api/players/me" || path === "/api/runs" || path === "/api/community" || path === "/api/houses" || path.startsWith("/api/boards/") || path.startsWith("/api/ghosts/");
+    const known = path === "/api/players" || path === "/api/players/me" || path === "/api/runs" || path === "/api/community" || path === "/api/houses" || path.startsWith("/api/boards/") || path.startsWith("/api/ghosts/") || path.startsWith("/api/players/");
     if (!known) return json({ error: "not_found", path }, 404);
     const db = env.DB;
     if (!db) return dbUnavailable();
@@ -386,6 +454,10 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
     if (path === "/api/houses") {
       if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });
       return await houses(url, db);
+    }
+    if (path.startsWith("/api/players/") && path !== "/api/players/me") {
+      if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });
+      return await playerCard(db, decodeURIComponent(path.slice("/api/players/".length)));
     }
     if (path.startsWith("/api/ghosts/")) {
       if (method !== "GET") return json({ error: "method_not_allowed" }, 405, { allow: "GET" });

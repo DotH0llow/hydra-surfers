@@ -1,4 +1,6 @@
 /** Menu screens reached from the tavern: the market, the book of champions and the settings. */
+import { EQUIPMENT } from "../../meta/equipment";
+import { ACHIEVEMENTS } from "../../meta/achievements";
 import { HOUSE_TOP_N, houseById } from "../../shared/content/season";
 import { weekKey } from "../../shared/calendar";
 import type { HouseStanding } from "../../online/LeaderboardService";
@@ -102,6 +104,7 @@ const METRICS: Array<[Metric, string, string]> = [
   ["coins", "Moedas", ""],
   ["combo", "Combo", ""],
   ["clean", "Sem colisão", " m"],
+  ["contracts", "Contratos", ""],
 ];
 const TOP_ROWS = 10;
 
@@ -115,6 +118,61 @@ registerScreen("leaderboard", (host) => {
   const list = h("div", { class: "board-list" });
   const foot = h("div", { class: "note" });
 
+  // the card: tap a row to see who that is (build, highlights, season), and challenge their ghost
+  let cardToken = 0;
+  const cardBox = h("div", { class: "panel lb-card" });
+  const cardBack = h("div", { class: "lb-card-back interactive" }, cardBox);
+  cardBack.hidden = true;
+  const closeCard = () => {
+    cardToken++;
+    cardBack.hidden = true;
+  };
+  cardBack.addEventListener("click", (ev) => {
+    if (ev.target === cardBack) closeCard();
+  });
+  const cardLine = (label: string, value: string) => h("div", { class: "lb-card-line" }, h("span", { text: label }), h("b", { text: value }));
+  const seededMode = (board: string) => (board === "daily" ? "daily" : board === "weekly" ? "weekly" : board.startsWith("event:") ? "event" : "");
+  const openCard = (e: Board["entries"][number]) => {
+    const t = ++cardToken;
+    cardBox.textContent = "";
+    const crestEl = h("div", { class: "lb-card-crest" });
+    crestEl.innerHTML = crestSvg(e.crest ? parseCrest(e.crest) : crestFromId(e.playerId), 64);
+    const sub = [e.title ? findTitle(e.title)?.name ?? "" : "", e.level ? `Nível ${e.level}` : ""].filter(Boolean).join(" · ");
+    const info = h("div", { class: "lb-card-info", text: "Consultando o livro…" });
+    cardBox.append(h("div", { class: "lb-card-head" }, crestEl, h("div", {}, h("b", { text: e.name }), sub ? h("small", { text: sub }) : null)), info);
+    const mode = seededMode(boardId);
+    if (mode && !e.isMe) {
+      cardBox.append(button(host, "challenge", `Correr contra o fantasma de ${e.name}`, () => host.challenge(e.playerId, mode)));
+      cardBox.append(h("small", { class: "note", text: "Se não houver fantasma dessa pessoa nesta corrida, você corre contra o rival de sempre. Gasta uma tentativa." }));
+    }
+    cardBox.append(button(host, "card-close", "Fechar", closeCard, "btn secondary"));
+    cardBack.hidden = false;
+    host.online.getPlayer(e.playerId).then((card) => {
+      if (t !== cardToken) return;
+      info.textContent = "";
+      if (!card) {
+        setText(info, "O perfil completo aparece com o servidor ligado.");
+        return;
+      }
+      const house = houseById(card.house);
+      if (house) info.append(cardLine("Casa", house.name));
+      const build = card.build.map((id) => EQUIPMENT.find((i) => i.id === id)?.name).filter((n): n is string => !!n);
+      info.append(cardLine("Equipamento", build.length ? build.join(" · ") : "nada equipado"));
+      const shown = card.showcase.map((id) => ACHIEVEMENTS.find((a) => a.id === id)?.name).filter((n): n is string => !!n);
+      if (shown.length) info.append(cardLine("Em destaque", shown.join(" · ")));
+      const s = card.season;
+      info.append(
+        cardLine("Melhor corrida", `${formatInt(s.score)} pontos`),
+        cardLine("Maior distância", `${formatInt(s.distance)} m`),
+        cardLine("Mais moedas", formatInt(s.coins)),
+        cardLine("Maior combo", formatInt(s.combo)),
+        cardLine("Sem colisão", `${formatInt(s.clean)} m`),
+        cardLine("Contratos", formatInt(s.contracts)),
+        cardLine("Corridas na temporada", formatInt(s.runs)),
+      );
+    });
+  };
+
   const row = (e: Board["entries"][number], unit: string) => {
     const crest = e.crest ? parseCrest(e.crest) : crestFromId(e.playerId);
     const crestEl = h("span", { class: "lb-crest" });
@@ -122,7 +180,7 @@ registerScreen("leaderboard", (host) => {
     const title = e.title ? findTitle(e.title)?.name : "";
     return h(
       "div",
-      { class: `lb-row${e.isMe ? " me" : ""}` },
+      { class: `lb-row interactive${e.isMe ? " me" : ""}`, attrs: { "data-id": `player-${e.playerId}` }, on: { click: () => openCard(e) } },
       h("span", { class: "rank", text: `#${formatInt(e.rank)}` }),
       crestEl,
       h("span", { class: "name" }, h("b", { text: e.name }), title ? h("small", { text: title }) : null),
@@ -171,6 +229,7 @@ registerScreen("leaderboard", (host) => {
   };
 
   const load = () => {
+    closeCard();
     const t = ++token;
     const now = Date.now();
     const modes = availableModes(now);
@@ -215,7 +274,8 @@ registerScreen("leaderboard", (host) => {
   };
 
   const el = menuScreen(host, "leaderboard", "Livro dos Campeões", tabs, metricTabs, status, list, foot);
-  return { el, show: load, hide() {} };
+  el.append(cardBack);
+  return { el, show: load, hide: closeCard };
 });
 
 function parseCrest(s: string): { bg: number; symbol: number; frame: number; color: number } {
@@ -243,7 +303,8 @@ registerScreen("settings", (host) => {
 
   const sound = toggle("sound", "Som", () => !host.store.get().settings.muted, (v) => host.store.update((p) => (p.settings.muted = !v)));
   const motion = toggle("reduced-motion", "Reduzir movimento", () => host.store.get().settings.reducedMotion, (v) => host.store.update((p) => (p.settings.reducedMotion = v)));
-  const ghosts = toggle("ghosts", "Fantasma na Corrida do Dia", () => host.store.get().settings.ghosts, (v) => host.store.update((p) => (p.settings.ghosts = v)));
+  const ghosts = toggle("ghosts", "Fantasmas (Dia, Semana, Torneio)", () => host.store.get().settings.ghosts, (v) => host.store.update((p) => (p.settings.ghosts = v)));
+  const ghostSelf = toggle("ghost-self", "Correr contra o meu recorde", () => host.store.get().settings.ghostSelf, (v) => host.store.update((p) => (p.settings.ghostSelf = v)));
   const analytics = toggle("analytics", "Métricas de equilíbrio", () => host.store.get().settings.analytics, (v) => host.store.update((p) => (p.settings.analytics = v)));
   const volume = h("input", { class: "interactive", attrs: { type: "range", min: "0", max: "100", step: "5", "data-id": "sfx-volume", "aria-label": "Volume dos efeitos" } });
   volume.addEventListener("input", () => host.store.update((p) => (p.settings.sfx = Number(volume.value) / 100)));
@@ -286,6 +347,7 @@ registerScreen("settings", (host) => {
     sound.paint();
     motion.paint();
     ghosts.paint();
+    ghostSelf.paint();
     analytics.paint();
     volume.value = String(Math.round(host.store.get().settings.sfx * 100));
     music.value = String(Math.round(host.store.get().settings.music * 100));
@@ -302,6 +364,7 @@ registerScreen("settings", (host) => {
     h("div", { class: "setting" }, h("span", { text: "Música" }), music),
     motion.row,
     ghosts.row,
+    ghostSelf.row,
     analytics.row,
     controls,
     h("h2", { text: "Conta" }),

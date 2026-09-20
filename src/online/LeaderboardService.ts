@@ -11,7 +11,7 @@
  */
 
 export type ProviderId = "mock" | "http";
-export type Metric = "score" | "distance" | "coins" | "combo" | "clean";
+export type Metric = "score" | "distance" | "coins" | "combo" | "clean" | "contracts";
 
 export interface Identity {
   playerId: string;
@@ -102,6 +102,8 @@ export interface SubmitResult {
   best: number;
   /** The player right above, for "X pontos atrás de Fulano". */
   above: { name: string; value: number } | null;
+  /** Players this run overtook on its board, closest first (at most 3). */
+  passed: string[];
   provider: ProviderId;
 }
 
@@ -122,6 +124,25 @@ export interface PublicProfile {
   crest: string;
   title: string;
   level: number;
+  house?: string;
+  /** Equipped weapon, armour and relic ids. */
+  build?: string[];
+  /** Up to three achievement ids the player chose to show. */
+  showcase?: string[];
+}
+
+/** What anyone can see about a player (the champions book card). */
+export interface PlayerCard {
+  playerId: string;
+  name: string;
+  crest: string;
+  title: string;
+  level: number;
+  house: string;
+  build: string[];
+  showcase: string[];
+  /** Season bests (ranked runs) and totals. */
+  season: { score: number; distance: number; coins: number; combo: number; clean: number; contracts: number; runs: number };
 }
 
 export interface LeaderboardService {
@@ -140,6 +161,11 @@ export interface LeaderboardService {
   recover(code: string): Promise<boolean>;
   /** Weekly house standings, or null offline. */
   houses(period: string): Promise<HouseStanding[] | null>;
-  /** The ghost to race on a seeded board: the player just above you (see worker), or null. */
-  getGhost(board: string, period: string): Promise<GhostData | null>;
+  /**
+   * The ghost to race on a seeded board: by default the player just above you (see worker), your
+   * own best with `self`, or a chosen player's with `target`; null when there is none.
+   */
+  getGhost(board: string, period: string, opts?: { self?: boolean; target?: string }): Promise<GhostData | null>;
+  /** A player's public card, or null offline. */
+  getPlayer(playerId: string): Promise<PlayerCard | null>;
 }

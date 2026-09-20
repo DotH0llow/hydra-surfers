@@ -630,6 +630,16 @@ registerSfxPlaceholder("synth-fanfare", (ac) =>
   }, 20),
 );
 
+registerSfxPlaceholder("synth-rankup", (ac) =>
+  synth(ac, 0.55, (t) => {
+    const notes = [1047, 1319, 1568];
+    const k = Math.min(notes.length - 1, Math.floor(t / 0.09));
+    const lt = t - k * 0.09;
+    const f = notes[k];
+    return Math.sin(TAU * f * t) * env(lt, 0.002, k === notes.length - 1 ? 0.18 : 0.07) + 0.35 * Math.sin(TAU * f * 2.76 * t) * env(lt, 0.002, 0.03);
+  }, 21),
+);
+
 export function buildSfxPlaceholder(ac: BaseAudioContext, entry: AssetEntry): AudioBuffer {
   const key = entry.placeholder ?? "synth-blip";
   return (sfxBuilders.get(key) ?? sfxBuilders.get("synth-blip")!)(ac, entry);

@@ -95,6 +95,8 @@ export class App implements ScreenHost, DebugHost {
   currentMode: RunMode = modeById("normal", Date.now());
   /** Bumped per run start so a late ghost download never lands in the wrong run. */
   private ghostRequest = 0;
+  /** A player chosen in the champions book to race on the next seeded run (used once). */
+  private ghostTarget: string | null = null;
   /** Whether the current run counts for its board (seeded modes have limited ranked attempts). */
   ranked = true;
   private runBiomes: string[] = [];
@@ -177,6 +179,24 @@ export class App implements ScreenHost, DebugHost {
       if (ahead > 0 && ahead < 180 && (!best || ahead < best.dist)) best = { lane: it.lane, dist: ahead };
     }
     return best;
+  }
+
+  pushProfile(): void {
+    const p = this.store.get();
+    const c = p.equipped.crest;
+    void this.online.updateProfile({
+      crest: `${c.bg}.${c.symbol}.${c.frame}.${c.color}`,
+      title: p.equipped.title,
+      level: accountLevel(p.progress.xp),
+      house: p.social.faction,
+      build: [p.equipped.weapon, p.equipped.armor, p.equipped.relic].filter(Boolean),
+      showcase: p.equipped.showcase.slice(0, 3),
+    });
+  }
+
+  challenge(playerId: string, mode: string): void {
+    this.ghostTarget = playerId;
+    this.startRun({ mode });
   }
 
   ghostLead(): { name: string; lead: number } | null {
@@ -384,7 +404,9 @@ export class App implements ScreenHost, DebugHost {
   private onAction(action: Action, source: InputSource): void {
     switch (this.screen) {
       case "home":
-        if (action === "tap" || (source === "keyboard" && action === "jump")) this.startRun();
+        // only the keyboard starts from the tavern: a tap there lands on cards, notices and the
+        // name field, and must not throw the player into a run (touch uses the "Partir" card)
+        if (source === "keyboard" && (action === "tap" || action === "jump")) this.startRun();
         break;
       case "run":
         if (action === "pause") this.goto("pause");
@@ -413,15 +435,22 @@ export class App implements ScreenHost, DebugHost {
   }
 
   /**
-   * The daily run races a ghost on the same road (settings can turn it off). It arrives
-   * asynchronously; ghosts run on run time, so a late arrival still lines up.
+   * Runs on a seeded board (daily, weekly, tournament) race a ghost on the same road: a player
+   * picked in the champions book, else the rival above or the player's own best (settings; they
+   * can also turn ghosts off). It arrives asynchronously; ghosts run on run time, so a late
+   * arrival still lines up.
    */
   private loadGhost(mode: RunMode): void {
     const ghost = this.run.ctx.getSystem<GhostRunner>("ghost");
     const request = ++this.ghostRequest;
-    if (!ghost || mode.board !== "daily" || !this.store.get().settings.ghosts) return;
+    const target = this.ghostTarget;
+    this.ghostTarget = null;
+    const settings = this.store.get().settings;
+    if (!ghost || mode.attempts <= 0 || !settings.ghosts) return;
+    const fallback = { self: settings.ghostSelf };
     this.online
-      .getGhost(mode.board, mode.period)
+      .getGhost(mode.board, mode.period, target ? { target } : fallback)
+      .then((g) => (g || !target ? g : this.online.getGhost(mode.board, mode.period, fallback)))
       .then((g) => {
         if (request !== this.ghostRequest || !g || !this.run.active) return;
         const track = decodeGhost(g.data);
@@ -430,9 +459,9 @@ export class App implements ScreenHost, DebugHost {
       .catch(() => {});
   }
 
-  /** The run's ghost track when it beats the player's best on the daily board, else undefined. */
+  /** The run's ghost track when it beats the player's best on a seeded board, else undefined. */
   private ghostToUpload(mode: RunMode, score: number, previousBest: number): string | undefined {
-    if (mode.board !== "daily" || !this.ranked || score <= previousBest) return undefined;
+    if (mode.attempts <= 0 || !this.ranked || score <= previousBest) return undefined;
     const rec = this.run.ctx.getSystem<GhostRecorder>("ghostRecorder");
     return rec && rec.count > 1 ? encodeGhost(rec.dist, rec.x, rec.y, rec.count) : undefined;
   }
@@ -485,9 +514,11 @@ export class App implements ScreenHost, DebugHost {
         .then((res) => {
           // a fresh first place on today's board is the Campeão achievement's trigger
           if (res.ranked && mode.board === "daily" && res.rank === 1 && res.previousRank !== 1) this.store.update(recordDailyWin);
-          const p = this.store.get();
-          const c = p.equipped.crest;
-          void this.online.updateProfile({ crest: `${c.bg}.${c.symbol}.${c.frame}.${c.color}`, title: p.equipped.title, level: accountLevel(p.progress.xp) });
+          // overtakes count for achievements only on the real league
+          if (res.ranked && res.provider === "http" && res.passed.length > 0) this.store.update((p) => void (p.stats.overtakes += res.passed.length));
+          const improved = res.ranked && res.rank !== null && (res.previousRank === null || res.rank < res.previousRank);
+          bus.emit("app:rank", { improved, passed: res.passed.length });
+          this.pushProfile();
           return res;
         })
         .catch((err) => {

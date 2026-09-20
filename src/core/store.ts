@@ -31,6 +31,8 @@ export interface Profile {
     /** Title id shown next to the name on the boards ("" = none). */
     title: string;
     crest: Crest;
+    /** Up to three achievement ids shown on the public card. */
+    showcase: string[];
   };
   /** Account level (permanent) and the current season's progress. */
   progress: {
@@ -71,6 +73,8 @@ export interface Profile {
     bestDailyScore: number;
     /** Times the player finished first on a daily board. */
     dailyWins: number;
+    /** Players overtaken on the real boards (server-confirmed). */
+    overtakes: number;
     contractsDone: number;
     timePlayed: number;
     biomesVisited: string[];
@@ -103,6 +107,8 @@ export interface Profile {
     analytics: boolean;
     /** Show other players' ghosts in seeded modes. */
     ghosts: boolean;
+    /** Race your own best instead of the rival above. */
+    ghostSelf: boolean;
   };
   /** Free-form per-module storage, e.g. ext["upgrades"]. */
   ext: Record<string, unknown>;
@@ -130,6 +136,7 @@ export function defaultProfile(): Profile {
       relic: STARTER.relic,
       title: "",
       crest: { bg: 0, symbol: 0, frame: 0, color: 0 },
+      showcase: [],
     },
     progress: { xp: 0, seasonId: "", seasonXp: 0, claimedLevels: [], claimedBounties: [], xpDay: 0, xpToday: 0 },
     stats: {
@@ -155,6 +162,7 @@ export function defaultProfile(): Profile {
       bestSpeed: 0,
       bestDailyScore: 0,
       dailyWins: 0,
+      overtakes: 0,
       contractsDone: 0,
       timePlayed: 0,
       biomesVisited: [],
@@ -166,7 +174,7 @@ export function defaultProfile(): Profile {
     streak: { day: 0, count: 0, best: 0, claimed: 0 },
     modes: {},
     social: { faction: "", lastRanks: {}, registered: false },
-    settings: { music: 0.7, sfx: 0.9, muted: false, reducedMotion: false, analytics: true, ghosts: true },
+    settings: { music: 0.7, sfx: 0.9, muted: false, reducedMotion: false, analytics: true, ghosts: true, ghostSelf: false },
     ext: {},
   };
 }

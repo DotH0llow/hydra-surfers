@@ -55,6 +55,9 @@ export class AudioBus {
     });
     bus.on("build:absorb", (e) => (e.kind === "smash" ? this.play("sfx.crash", 1.6) : this.play("sfx.block")));
     bus.on("event:start", () => this.play("sfx.horn"));
+    bus.on("app:rank", (e) => {
+      if (e.improved || e.passed > 0) this.play("sfx.rankup");
+    });
     bus.on("app:runReport", (e) => {
       if (e.records > 0 || e.newBest || e.levelUp) this.play("sfx.fanfare");
     });

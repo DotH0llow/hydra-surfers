@@ -13,6 +13,7 @@ import type {
   GhostData,
   HouseStanding,
   Identity,
+  PlayerCard,
   LeaderboardService,
   Metric,
   PublicProfile,
@@ -65,7 +66,7 @@ export class HttpProvider implements LeaderboardService {
       });
       if (!res.ok) return local;
       const body = (await res.json()) as Omit<SubmitResult, "provider">;
-      return { ...body, provider: "http" };
+      return { ...body, passed: body.passed ?? [], provider: "http" };
     } catch {
       return local;
     }
@@ -146,12 +147,24 @@ export class HttpProvider implements LeaderboardService {
     }
   }
 
-  async getGhost(board: string, period: string): Promise<GhostData | null> {
+  async getGhost(board: string, period: string, opts: { self?: boolean; target?: string } = {}): Promise<GhostData | null> {
     try {
       const q = new URLSearchParams({ period, player: this.me.playerId });
+      if (opts.target) q.set("target", opts.target);
+      else if (opts.self) q.set("self", "1");
       const res = await this.fetchImpl(`${this.base}/api/ghosts/${encodeURIComponent(board)}?${q}`);
       if (!res.ok) return null;
       return (await res.json()) as GhostData;
+    } catch {
+      return null;
+    }
+  }
+
+  async getPlayer(playerId: string): Promise<PlayerCard | null> {
+    try {
+      const res = await this.fetchImpl(`${this.base}/api/players/${encodeURIComponent(playerId)}`);
+      if (!res.ok) return null;
+      return (await res.json()) as PlayerCard;
     } catch {
       return null;
     }

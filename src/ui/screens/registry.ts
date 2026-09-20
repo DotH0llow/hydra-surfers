@@ -56,7 +56,11 @@ export interface ScreenHost {
   /** One line about the nearest rival ("#4 no Diário · 230 pontos atrás de Marina"), or null. */
   /** Tavern arrival: the rival line and one-off notices (group rewards claimed, who passed you). */
   tavernNews(): Promise<{ rival: string | null; notices: string[] }>;
-  /** The ghost being raced (daily run): whose it is and how far ahead (m, negative = behind). */
+  /** Pushes what other players see on the card (crest, title, level, house, build, showcase). */
+  pushProfile(): void;
+  /** Starts a seeded run racing a chosen player's ghost (from the champions book). */
+  challenge(playerId: string, mode: string): void;
+  /** The ghost being raced: whose it is and how far ahead (m, negative = behind). */
   ghostLead(): { name: string; lead: number } | null;
   /** Nearest power-up ahead when the build reveals them, else null. */
   upcomingPickup(): { lane: number; dist: number } | null;

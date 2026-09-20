@@ -20,6 +20,7 @@
     { "id": "sfx.block", "type": "audio", "src": "audio/sfx/block.ogg", "placeholder": "synth-block", "volume": 0.6, "spec": "Hit absorbed by a shield / the Aegis: metallic clang, < 400 ms, mono." },
     { "id": "sfx.horn", "type": "audio", "src": "audio/sfx/horn.ogg", "placeholder": "synth-horn", "volume": 0.45, "spec": "Road event starts (market, ambush, storm…): two-note hunting horn call, < 1 s, mono." },
     { "id": "sfx.fanfare", "type": "audio", "src": "audio/sfx/fanfare.ogg", "placeholder": "synth-fanfare", "volume": 0.5, "spec": "Results with a new record or level: short royal fanfare, < 1 s, mono." },
+    { "id": "sfx.rankup", "type": "audio", "src": "audio/sfx/rankup.ogg", "placeholder": "synth-rankup", "volume": 0.5, "spec": "Climbed on a leaderboard: quick rising three-bell chime, < 600 ms, mono." },
     { "id": "music.run", "type": "audio", "src": "audio/music/run.ogg", "placeholder": "synth-music", "volume": 0.32, "loop": true, "spec": "In-run music loop: upbeat, ~128 BPM, seamless loop of 15-60 s, stereo or mono OGG/MP3 44.1 kHz, peak -6 dBFS." }
   ]
 }
