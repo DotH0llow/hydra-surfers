@@ -467,6 +467,25 @@ export const HOUSES: HouseDef[] = [
 
 export const HOUSE_TOP_N = 5;
 
+/**
+ * Oldest client the boards accept ("" = any). Raise it after shipping a fix that changes what a
+ * run can score, so nobody keeps posting from a build that still has the old numbers.
+ */
+export const MIN_CLIENT = "";
+
+/** Compares dotted versions ("0.2.0" >= "0.1.9"); anything unparsable counts as older. */
+export function versionAtLeast(version: string, minimum: string): boolean {
+  if (!minimum) return true;
+  const parts = (v: string) => v.split(".").map((n) => Number.parseInt(n, 10) || 0);
+  const a = parts(version);
+  const b = parts(minimum);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const d = (a[i] ?? 0) - (b[i] ?? 0);
+    if (d !== 0) return d > 0;
+  }
+  return true;
+}
+
 export function houseById(id: string): HouseDef | undefined {
   return HOUSES.find((h) => h.id === id);
 }

@@ -47,6 +47,7 @@ export const MOUNTS: readonly CatalogItem[] = [
   { id: "mount.boar", name: "Javali", price: 9000, currency: "coins", color: "#4a3a2f", note: "Não foi domado, só convencido." },
   { id: "mount.wolf", name: "Lobo", price: 12000, currency: "coins", color: "#5a5f66", note: "Corre pelo esporte." },
   { id: "mount.ghosthorse", name: "Cavalo Fantasma", price: 20, currency: "keys", color: "#9fd8ff", note: "Não come, não dorme, não para." },
+  { id: "mount.broom", name: "Vassoura", price: 15, currency: "keys", color: "#a8863f", note: "Da bruxa que não quis emprestar." },
   { id: "mount.dragonling", name: "Dragãozinho", price: 30, currency: "keys", color: "#3f7a4a", note: "Ainda não voa. Já queima." },
 ];
 

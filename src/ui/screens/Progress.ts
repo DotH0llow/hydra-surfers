@@ -322,6 +322,8 @@ registerScreen("profile", (host) => {
       ["Maior combo", formatInt(st.bestCombo)],
       ["Maior sequência limpa", `${formatInt(st.bestCleanDistance)} m`],
       ["Melhor Corrida do Dia", formatInt(st.bestDailyScore)],
+      ["Corridas do Dia", formatInt(st.dailyRuns)],
+      ["Maior velocidade", `${Math.round(st.bestSpeed * 3.6)} km/h`],
       ["Corridas", formatInt(st.runs)],
       ["Distância total", `${formatInt(st.totalDistance / 1000)} km`],
       ["Passadas raspando", formatInt(st.nearMisses)],

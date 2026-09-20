@@ -209,3 +209,18 @@ registerMeshPlaceholder("mount-wolf", ({ entry }) => beast(entry.color ?? "#5a5f
 registerMeshPlaceholder("mount-boar", ({ entry }) => beast(entry.color ?? "#4a3a2f", "#d8cbb0", { snout: 0.24, ears: true, horn: true, wings: false, glow: 0.1 }));
 registerMeshPlaceholder("mount-ghosthorse", ({ entry }) => beast(entry.color ?? "#9fd8ff", "#dff1ff", { snout: 0.34, ears: true, horn: false, wings: false, glow: 0.75 }));
 registerMeshPlaceholder("mount-dragonling", ({ entry }) => beast(entry.color ?? "#3f7a4a", "#c95a2a", { snout: 0.26, ears: false, horn: true, wings: true, glow: 0.25 }));
+
+/** Broom: a handle with bound bristles, ridden standing up. */
+registerMeshPlaceholder("mount-broom", ({ entry }) => {
+  const g = new Group();
+  const wood = entry.color ?? "#a8863f";
+  const handle = add(g, new CylinderGeometry(0.055, 0.05, 1.6, 8), wood, 0, 0.2, 0, 0.1);
+  handle.rotation.x = Math.PI / 2;
+  const head = add(g, new CylinderGeometry(0.1, 0.22, 0.5, 8), "#c8a75a", 0, 0.2, 0.85, 0.12);
+  head.rotation.x = Math.PI / 2;
+  for (const z of [0.62, 0.72]) {
+    const band = add(g, new TorusGeometry(0.085, 0.022, 6, 12), "#5a4a32", 0, 0.2, z, 0.14);
+    band.rotation.y = Math.PI / 2;
+  }
+  return g;
+});

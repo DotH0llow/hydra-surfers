@@ -73,6 +73,8 @@ export interface Profile {
     bestDailyScore: number;
     /** Times the player finished first on a daily board. */
     dailyWins: number;
+    /** Ranked Corrida do Dia runs finished. */
+    dailyRuns: number;
     /** Players overtaken on the real boards (server-confirmed). */
     overtakes: number;
     contractsDone: number;
@@ -162,6 +164,7 @@ export function defaultProfile(): Profile {
       bestSpeed: 0,
       bestDailyScore: 0,
       dailyWins: 0,
+      dailyRuns: 0,
       overtakes: 0,
       contractsDone: 0,
       timePlayed: 0,

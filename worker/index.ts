@@ -27,7 +27,7 @@
  * falls back to its offline league. Schema: worker/schema.sql.
  */
 import { dayIndex, dayStart } from "../src/shared/calendar";
-import { DAILY_ATTEMPTS, HOUSES, SEASON, TOURNAMENTS, WEEKLY_ATTEMPTS, activeBounty, houseById, houseScore, seasonStartDay, startedBounties, type BountyDef } from "../src/shared/content/season";
+import { MIN_CLIENT, versionAtLeast, DAILY_ATTEMPTS, HOUSES, SEASON, TOURNAMENTS, WEEKLY_ATTEMPTS, activeBounty, houseById, houseScore, seasonStartDay, startedBounties, type BountyDef } from "../src/shared/content/season";
 import { LIMITS, checkRun, nameKey, validName, type RunClaim } from "../src/shared/plausibility";
 import { GHOST_MAX_CHARS, decodeGhost, ghostMatchesRun } from "../src/shared/ghost";
 
@@ -231,6 +231,9 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
   const now = Date.now();
   const errors = checkRun(claim, now);
   if (errors.length) return json({ error: "implausible", errors }, 422);
+  const version = typeof body.version === "string" ? body.version.slice(0, 16) : "";
+  // a build older than the season's minimum cannot post: its numbers are not comparable
+  if (!versionAtLeast(version, MIN_CLIENT)) return json({ error: "client_too_old", minimum: MIN_CLIENT }, 426);
 
   // ranked attempts are capped per period; extra runs are kept, just not ranked
   let ranked = body.ranked === false ? 0 : 1;
@@ -244,7 +247,7 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
   const clampInt = (v: unknown, max: number) => Math.max(0, Math.min(max, Math.floor(Number.isFinite(num(v)) ? num(v) : 0)));
   await db
     .prepare(
-      "INSERT INTO runs (player_id, season, board, period, seed, score, distance, coins, duration, max_combo, clean, contracts, cause, ranked, house, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+      "INSERT INTO runs (player_id, season, board, period, seed, score, distance, coins, duration, max_combo, clean, contracts, cause, ranked, house, powerup, version, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
     )
     .bind(
       me.id,
@@ -262,6 +265,8 @@ async function submitRun(request: Request, db: D1Database, me: PlayerRow): Promi
       typeof body.cause === "string" ? body.cause.slice(0, 24) : "",
       ranked,
       typeof body.house === "string" && houseById(body.house) ? body.house : "",
+      typeof body.powerup === "string" ? body.powerup.slice(0, 24) : "",
+      version,
       now,
     )
     .run();

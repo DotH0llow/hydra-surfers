@@ -30,6 +30,8 @@ export const CAMERA = defineTuning("camera", "Run camera", {
   homeLookAhead: { default: 8, min: -10, max: 40, step: 0.5, label: "Home: look-at ahead", unit: "m" },
   homeFov: { default: 55, min: 25, max: 100, step: 0.5, label: "Home: FOV", unit: "°" },
   shakeAmplitude: { default: 0.22, min: 0, max: 2, step: 0.01, label: "Crash shake amplitude", unit: "m" },
+  eventShakeScale: { default: 0.35, min: 0, max: 2, step: 0.05, label: "Road event shake (x crash amplitude)" },
+  perfectShakeScale: { default: 0.16, min: 0, max: 2, step: 0.02, label: "Perfect dodge kick (x crash amplitude)" },
   shakeDecay: { default: 6, min: 0.5, max: 30, step: 0.5, label: "Crash shake decay", unit: "1/s" },
   shakeFrequency: { default: 18, min: 1, max: 60, step: 0.5, label: "Crash shake frequency", unit: "Hz" },
   speedFov: { default: 5, min: 0, max: 20, step: 0.5, label: "Extra FOV at top speed (0 with reduced motion)", unit: "°" },
@@ -68,14 +70,27 @@ export class RunCamera implements RunSystem {
   private laneTo = 0;
   private laneT = 0;
   private shakeT = -1;
+  /** Amplitude of the shake running now, as a fraction of CAMERA.shakeAmplitude. */
+  private shakeScale = 1;
   private viewportAspect = DESIGN_ASPECT;
   private appliedFov = -1;
   private appliedAspect = -1;
 
   init(ctx: RunContext): void {
+    // a horn in the distance and a dodge by a hair both move the camera, far less than a crash
+    ctx.bus.on("event:start", () => this.shake(CAMERA.eventShakeScale));
+    ctx.bus.on("skill:perfect", () => this.shake(CAMERA.perfectShakeScale));
     ctx.bus.on("player:crash", () => {
+      this.shakeScale = 1;
       this.shakeT = 0;
     });
+  }
+
+  /** Starts a shake at `scale` of the crash amplitude, unless a stronger one is still running. */
+  private shake(scale: number): void {
+    if (this.shakeT >= 0 && this.shakeScale > scale) return;
+    this.shakeScale = scale;
+    this.shakeT = 0;
   }
 
   reset(ctx: RunContext, opts: ResolvedRunOptions): void {
@@ -171,7 +186,7 @@ export class RunCamera implements RunSystem {
     this.fov = CAMERA.homeFov + (CAMERA.fov - CAMERA.homeFov) * b + CAMERA.speedFov * fast * b;
     if (this.shakeT >= 0) {
       const t = this.shakeT;
-      const a = CAMERA.shakeAmplitude * Math.exp(-CAMERA.shakeDecay * t);
+      const a = CAMERA.shakeAmplitude * this.shakeScale * Math.exp(-CAMERA.shakeDecay * t);
       if (a < 0.002) this.shakeT = -1;
       else {
         const w = Math.PI * 2 * CAMERA.shakeFrequency * t;

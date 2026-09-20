@@ -69,8 +69,12 @@ export interface ScoreSubmission {
   cause?: string;
   /** House the run is run for ('' = none). */
   house?: string;
-  /** Ghost track of this run (src/shared/ghost.ts); sent with a new daily best only. */
+  /** Ghost track of this run (src/shared/ghost.ts); sent with a new best on a seeded board only. */
   ghost?: string;
+  /** Build that produced the run (anti-cheat and balance metrics). */
+  version?: string;
+  /** Power-up active when the run ended, if any (balance metrics). */
+  powerup?: string;
 }
 
 /** Someone's ghost to race against. */

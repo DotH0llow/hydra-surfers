@@ -33,7 +33,7 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 
 ## Status
 
-85 assets in 5 parts. 0 have files and 85 still use procedural placeholders.
+90 assets in 5 parts. 0 have files and 90 still use procedural placeholders.
 
 ## core (`public/assets/manifest/core.json`)
 
@@ -52,6 +52,10 @@ Playable archetypes, the royal guard and shared effects. The placeholder reads i
 | `char.runner.monk` | gltf | `models/characters/monk.glb` | placeholder (`runner`) | feet-center, faces -z |  |
 | `char.runner.mercenary` | gltf | `models/characters/mercenary.glb` | placeholder (`runner`) | feet-center, faces -z |  |
 | `char.chaser.guard` | gltf | `models/characters/guard.glb` | placeholder (`guard`) | feet-center, faces -z | <= 6000 tris |
+| `char.chaser.knight` | gltf | `models/characters/chaser_knight.glb` | placeholder (`guard`) | feet-center, faces -z |  |
+| `char.chaser.inquisitor` | gltf | `models/characters/chaser_inquisitor.glb` | placeholder (`guard`) | feet-center, faces -z |  |
+| `char.chaser.collector` | gltf | `models/characters/chaser_collector.glb` | placeholder (`guard`) | feet-center, faces -z |  |
+| `char.chaser.hunter` | gltf | `models/characters/chaser_hunter.glb` | placeholder (`guard`) | feet-center, faces -z |  |
 | `fx.shadow.blob` | texture | `textures/fx/shadow_blob.png` | placeholder (`radial-shadow`) |  |  |
 
 ### `char.runner.default`
@@ -164,6 +168,46 @@ Playable archetypes, the royal guard and shared effects. The placeholder reads i
 - **Placeholder:** `guard`
 - **Brief:** Guarda real who chases the runner. Height 1.85 m, stocky, helmed, tabard over mail, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop), Catch, Idle.
 
+### `char.chaser.knight`
+
+- **File:** `public/assets/models/characters/chaser_knight.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, catch → `Catch`, idle → `Idle`
+- **Placeholder tint / palette hint:** `#6b7280`
+- **Placeholder:** `guard`
+- **Brief:** Cavaleiro da guarda: plate over mail, great helm, shield on the back. Same rig, size, orientation and clips as char.chaser.guard.
+
+### `char.chaser.inquisitor`
+
+- **File:** `public/assets/models/characters/chaser_inquisitor.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, catch → `Catch`, idle → `Idle`
+- **Placeholder tint / palette hint:** `#2f2b33`
+- **Placeholder:** `guard`
+- **Brief:** Inquisidor: long dark robe and hood, gilded trim, no armour. Same rig, size, orientation and clips as char.chaser.guard.
+
+### `char.chaser.collector`
+
+- **File:** `public/assets/models/characters/chaser_collector.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, catch → `Catch`, idle → `Idle`
+- **Placeholder tint / palette hint:** `#6b4a2a`
+- **Placeholder:** `guard`
+- **Brief:** Cobrador do rei: padded coat, flat cap, satchel of ledgers, no cape. Same rig, size, orientation and clips as char.chaser.guard.
+
+### `char.chaser.hunter`
+
+- **File:** `public/assets/models/characters/chaser_hunter.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, catch → `Catch`, idle → `Idle`
+- **Placeholder tint / palette hint:** `#3f5a42`
+- **Placeholder:** `guard`
+- **Brief:** Caçador de recompensas: leathers, hood, quiver on the back. Same rig, size, orientation and clips as char.chaser.guard.
+
 ### `fx.shadow.blob`
 
 - **File:** `public/assets/textures/fx/shadow_blob.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
@@ -208,6 +252,7 @@ Road, obstacles and collectibles.
 | `mount.boar` | gltf | `models/mounts/boar.glb` | placeholder (`mount-boar`) | bottom-center, faces -z | <= 1500 tris |
 | `mount.ghosthorse` | gltf | `models/mounts/ghost_horse.glb` | placeholder (`mount-ghosthorse`) | bottom-center, faces -z | <= 1500 tris |
 | `mount.dragonling` | gltf | `models/mounts/dragonling.glb` | placeholder (`mount-dragonling`) | bottom-center, faces -z | <= 1800 tris |
+| `mount.broom` | gltf | `models/mounts/broom.glb` | placeholder (`mount-broom`) | bottom-center, faces -z | <= 400 tris |
 
 ### `tex.road.cobble`
 
@@ -458,6 +503,14 @@ Road, obstacles and collectibles.
 - **Placeholder tint / palette hint:** `#3f7a4a`
 - **Placeholder:** `mount-dragonling`
 - **Brief:** Very small dragon: same footprint as mount.wolf, with folded wings. <= 1.8k tris.
+
+### `mount.broom`
+
+- **File:** `public/assets/models/mounts/broom.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** bottom-center, faces -z
+- **Placeholder tint / palette hint:** `#a8863f`
+- **Placeholder:** `mount-broom`
+- **Brief:** Flying broom the runner stands on: 1.6 m long handle with a bound bristle head at the back, top surface ~0.25 m above the ground. Origin bottom centre. <= 400 tris.
 
 ## world (`public/assets/manifest/world.json`)
 

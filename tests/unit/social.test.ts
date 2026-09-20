@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { defaultProfile } from "../../src/core/store";
 import { claimBounties } from "../../src/meta/progression";
 import { rankNews, rankSnapshot, rivalText } from "../../src/meta/social";
-import { BOUNTIES, SEASON } from "../../src/shared/content/season";
+import { BOUNTIES, SEASON, versionAtLeast } from "../../src/shared/content/season";
 import type { Board, LeaderboardEntry } from "../../src/online/LeaderboardService";
 
 const board = (names: string[], me: string): Board => {
@@ -45,5 +45,17 @@ describe("meta/progression community bounties", () => {
     expect(p.owned.crestParts).toContain("crest.frame.gold");
     expect(claimBounties(p, states)).toEqual([]);
     expect(p.progress.seasonId).toBe(SEASON.id);
+  });
+});
+
+describe("shared/season client versions", () => {
+  it("accepts anything when no minimum is set, and compares dotted versions otherwise", () => {
+    expect(versionAtLeast("0.0.1", "")).toBe(true);
+    expect(versionAtLeast("0.2.0", "0.1.9")).toBe(true);
+    expect(versionAtLeast("0.1.9", "0.2.0")).toBe(false);
+    expect(versionAtLeast("1.0", "1.0.0")).toBe(true);
+    expect(versionAtLeast("0.10.0", "0.9.0")).toBe(true);
+    // a client that sends nothing counts as older than any minimum
+    expect(versionAtLeast("", "0.1.0")).toBe(false);
   });
 });

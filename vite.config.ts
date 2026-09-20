@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
+import pkg from "./package.json" with { type: "json" };
 import { defineConfig, loadEnv, type Plugin } from "vite";
 
 /**
@@ -114,6 +115,7 @@ export default defineConfig(({ mode }) => {
     base: "./",
     define: {
       __DEVTOOLS_BUILD__: JSON.stringify(devtoolsBuild),
+      __APP_VERSION__: JSON.stringify(pkg.version),
     },
     plugins: [assetFileIndex(), initialJsBudget(INITIAL_JS_GZIP_BUDGET_KB)],
     server: { port, strictPort: true, host: true },

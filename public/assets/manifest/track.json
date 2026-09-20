@@ -317,6 +317,16 @@
       "pivot": "bottom-center",
       "forward": "-z",
       "spec": "Very small dragon: same footprint as mount.wolf, with folded wings. <= 1.8k tris."
+    },
+    {
+      "id": "mount.broom",
+      "type": "gltf",
+      "src": "models/mounts/broom.glb",
+      "placeholder": "mount-broom",
+      "color": "#a8863f",
+      "pivot": "bottom-center",
+      "forward": "-z",
+      "spec": "Flying broom the runner stands on: 1.6 m long handle with a bound bristle head at the back, top surface ~0.25 m above the ground. Origin bottom centre. <= 400 tris."
     }
   ]
 }

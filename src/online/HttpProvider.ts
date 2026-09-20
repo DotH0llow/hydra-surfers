@@ -62,6 +62,8 @@ export class HttpProvider implements LeaderboardService {
         contracts: sub.contracts ?? 0,
         cause: sub.cause ?? "",
         house: sub.house ?? "",
+        version: sub.version ?? "",
+        powerup: sub.powerup ?? "",
         ...(sub.ghost ? { ghost: sub.ghost } : {}),
       });
       if (!res.ok) return local;

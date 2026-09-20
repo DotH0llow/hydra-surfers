@@ -269,19 +269,23 @@ registerMeshPlaceholder("runner", ({ entry }) => {
 });
 
 /** The royal guard giving chase: heavier, helmed, tabard over mail. */
-registerMeshPlaceholder("guard", ({ entry }) =>
-  humanoid({
-    height: 1.85,
+/** Whoever is chasing today: the manifest's `meta` dresses them (see char.chaser.*). */
+registerMeshPlaceholder("guard", ({ entry }) => {
+  const meta = (entry.meta ?? {}) as Record<string, unknown>;
+  const str = (k: string, fallback: string): string => (typeof meta[k] === "string" ? (meta[k] as string) : fallback);
+  const num = (k: string, fallback: number): number => (typeof meta[k] === "number" ? (meta[k] as number) : fallback);
+  return humanoid({
+    height: num("height", 1.85),
     shirt: entry.color ?? "#8d3b46",
-    pants: "#3a3a42",
-    skin: "#c99873",
-    accent: "#c9a227",
-    bulk: 1.25,
-    headgear: "helm",
-    back: "none",
-    cape: "#8d3b46",
-  }),
-);
+    pants: str("pants", "#3a3a42"),
+    skin: str("skin", "#c99873"),
+    accent: str("accent", "#c9a227"),
+    bulk: num("bulk", 1.25),
+    headgear: str("headgear", "helm") as Headgear,
+    back: str("back", "none") as BackItem,
+    cape: meta.cape === null ? null : str("cape", entry.color ?? "#8d3b46"),
+  });
+});
 
 registerMeshPlaceholder("coin", ({ entry }) => {
   const geo = new CylinderGeometry(0.35, 0.35, 0.08, 20, 1);

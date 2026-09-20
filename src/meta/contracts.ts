@@ -61,6 +61,8 @@ export const CONTRACT_POOL: readonly ContractDef[] = [
   { id: "cemetery", stat: "runs", perRun: false, base: 1, label: () => "Chegue ao Cemitério Antigo", requires: { biome: "cemetery" } },
   { id: "purist", stat: "distance", perRun: true, base: 800, label: (g) => `Corra ${g} m sem usar nenhum poder`, requires: { noPowerups: true } },
   { id: "daily-run", stat: "runs", perRun: false, base: 1, label: () => "Corra a Corrida do Dia", requires: { board: "daily" } },
+  { id: "weekly-run", stat: "runs", perRun: false, base: 1, label: () => "Encare o Desafio Semanal", requires: { board: "weekly" } },
+  { id: "score-total", stat: "score", perRun: false, base: 9000, label: (g) => `Some ${g} pontos somando suas corridas` },
 ];
 
 const SCOPE = {

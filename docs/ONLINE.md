@@ -43,7 +43,7 @@ Seeded boards give a limited number of **ranked attempts** per period (daily 3, 
 - a seeded board's run did not use that board's seed;
 - distance is impossible for the run time, or score/coins are impossible for the distance.
 
-This keeps obviously fabricated numbers off the boards without an arms race. Runs also carry `cause` (what ended them) for balance metrics; players can switch that off in the settings.
+This keeps obviously fabricated numbers off the boards without an arms race. Runs also carry `cause` (what ended them), `powerup` (what was running when they ended) and `version` (the build that posted them) for balance metrics; players can switch the first two off in the settings. Raising `MIN_CLIENT` in the season content makes the server answer `426 client_too_old` to builds older than that, so a fix that changes what a run can score cannot be dodged by not refreshing.
 
 ## Worker API (`worker/index.ts`)
 
@@ -72,7 +72,7 @@ Tests: `worker/index.test.ts` runs the real `schema.sql` and every query through
 5. Deploy (`npm run deploy` or push to `main`).
 6. Check `https://<your-worker>/api/health` shows `"db": true`.
 
-Re-running `worker/schema.sql` is always safe and creates tables added later (such as `ghosts`). A database created before houses existed also needs one migration: `npx wrangler d1 execute hydra-surfers --remote --file=worker/migrations/0002_houses.sql` (a database created from the current `schema.sql` already has the column; running the migration there fails harmlessly with "duplicate column").
+Re-running `worker/schema.sql` is always safe and creates tables added later (such as `ghosts`). A database created before these existed needs the matching migrations in `worker/migrations/` (houses, the public profile card, and the run metadata columns), for example: `npx wrangler d1 execute hydra-surfers --remote --file=worker/migrations/0002_houses.sql` (a database created from the current `schema.sql` already has the column; running the migration there fails harmlessly with "duplicate column").
 
 The schema changed from the first version (one `scores` table) to `players` + `runs`. The first version was never deployed with a database, so there is nothing to migrate.
 
@@ -83,6 +83,8 @@ There is no dashboard on purpose: with ~40 players a handful of queries answer e
 | question | query |
 |---|---|
 | What ends runs, and how far people get before it | `SELECT cause, COUNT(*) AS runs, ROUND(AVG(distance)) AS avg_m FROM runs WHERE cause != '' GROUP BY cause ORDER BY runs DESC` |
+| What people are holding when they die | `SELECT powerup, COUNT(*) AS runs FROM runs WHERE cause != '' GROUP BY powerup ORDER BY runs DESC` |
+| Which builds are still posting | `SELECT version, COUNT(*) AS runs, MAX(created_at) AS last FROM runs GROUP BY version` |
 | Players and runs per day | `SELECT date(created_at / 1000, 'unixepoch', '-3 hours') AS day, COUNT(DISTINCT player_id) AS players, COUNT(*) AS runs FROM runs GROUP BY day ORDER BY day` |
 | How long runs last (does anyone reach the late game at ~4 min?) | `SELECT CAST(duration / 60 AS INT) AS minutes, COUNT(*) AS runs FROM runs GROUP BY minutes ORDER BY minutes` |
 | Daily run turnout | `SELECT period, COUNT(DISTINCT player_id) AS players, SUM(ranked) AS ranked_runs FROM runs WHERE board = 'daily' GROUP BY period ORDER BY period DESC LIMIT 14` |

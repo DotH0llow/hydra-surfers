@@ -105,6 +105,7 @@ export interface RunSummary {
 export function addRunToLifetime(p: Profile, summary: RunSummary): void {
   const s = summary.stats;
   const st = p.stats;
+  if (summary.board === "daily") st.dailyRuns += s.runs;
   st.runs += s.runs;
   st.totalDistance += s.distance;
   st.totalCoins += s.coins;

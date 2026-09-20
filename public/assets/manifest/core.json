@@ -11,8 +11,22 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "cap", "back": "satchel", "accent": "#6b8f4a", "pants": "#5a4632" },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "cap",
+        "back": "satchel",
+        "accent": "#6b8f4a",
+        "pants": "#5a4632"
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Camponês, the starting runner. Height 1.7 m, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop, ~0.6 s stride), Jump, Roll, Stumble, Death, Idle (loop), LeanLeft, LeanRight."
     },
     {
@@ -24,8 +38,24 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "helm", "back": "shield", "cape": "#a8323a", "accent": "#c9a227", "pants": "#4a4f58", "bulk": 1.15 },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "helm",
+        "back": "shield",
+        "cape": "#a8323a",
+        "accent": "#c9a227",
+        "pants": "#4a4f58",
+        "bulk": 1.15
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Cavaleiro: mail and tabard, helm, shield slung on the back, crimson cloak. Same rig, size, orientation and clips as char.runner.default."
     },
     {
@@ -37,8 +67,22 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "hood", "back": "quiver", "accent": "#3f5230", "pants": "#4a4030" },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "hood",
+        "back": "quiver",
+        "accent": "#3f5230",
+        "pants": "#4a4030"
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Arqueira: hooded, quiver of arrows on the back. Same rig, size, orientation and clips as char.runner.default."
     },
     {
@@ -50,8 +94,23 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "hood", "back": "satchel", "cape": "#22252c", "accent": "#5a4a6b", "pants": "#2a2d34" },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "hood",
+        "back": "satchel",
+        "cape": "#22252c",
+        "accent": "#5a4a6b",
+        "pants": "#2a2d34"
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Ladino: dark hood and short cloak. Same rig, size, orientation and clips as char.runner.default."
     },
     {
@@ -63,8 +122,23 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "wizard", "back": "pack", "cape": "#38306b", "accent": "#6b5bb5", "pants": "#332c55" },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "wizard",
+        "back": "pack",
+        "cape": "#38306b",
+        "accent": "#6b5bb5",
+        "pants": "#332c55"
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Mago: pointed hat and robes. Same rig, size, orientation and clips as char.runner.default."
     },
     {
@@ -76,8 +150,22 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "cap", "back": "lute", "accent": "#c98a3a", "pants": "#6b4a2a" },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "cap",
+        "back": "lute",
+        "accent": "#c98a3a",
+        "pants": "#6b4a2a"
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Bardo: feathered cap, lute across the back. Same rig, size, orientation and clips as char.runner.default."
     },
     {
@@ -89,8 +177,23 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "none", "back": "none", "accent": "#6b3f2a", "pants": "#4a3226", "bulk": 1.3 },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "none",
+        "back": "none",
+        "accent": "#6b3f2a",
+        "pants": "#4a3226",
+        "bulk": 1.3
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Bárbaro: bare arms, fur and leather, heavier build. Same rig, size, orientation and clips as char.runner.default."
     },
     {
@@ -102,8 +205,22 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "circlet", "back": "satchel", "accent": "#7ac9b5", "pants": "#2a4a45" },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "circlet",
+        "back": "satchel",
+        "accent": "#7ac9b5",
+        "pants": "#2a4a45"
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Alquimista: apron, circlet and a satchel of phials. Same rig, size, orientation and clips as char.runner.default."
     },
     {
@@ -115,8 +232,22 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "hood", "back": "none", "accent": "#8a6a2a", "pants": "#8a6a2a" },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "hood",
+        "back": "none",
+        "accent": "#8a6a2a",
+        "pants": "#8a6a2a"
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Monge: plain habit, hood up. Same rig, size, orientation and clips as char.runner.default."
     },
     {
@@ -128,8 +259,24 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "meta": { "headgear": "helm", "back": "shield", "cape": "#4a4a52", "accent": "#a8323a", "pants": "#3f3f46", "bulk": 1.18 },
-      "animations": { "run": "Run", "jump": "Jump", "roll": "Roll", "stumble": "Stumble", "death": "Death", "idle": "Idle", "leanL": "LeanLeft", "leanR": "LeanRight" },
+      "meta": {
+        "headgear": "helm",
+        "back": "shield",
+        "cape": "#4a4a52",
+        "accent": "#a8323a",
+        "pants": "#3f3f46",
+        "bulk": 1.18
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
       "spec": "Mercenária: mismatched plate, battered shield. Same rig, size, orientation and clips as char.runner.default."
     },
     {
@@ -141,8 +288,105 @@
       "scale": 1,
       "pivot": "feet-center",
       "forward": "-z",
-      "animations": { "run": "Run", "catch": "Catch", "idle": "Idle" },
+      "animations": {
+        "run": "Run",
+        "catch": "Catch",
+        "idle": "Idle"
+      },
       "spec": "Guarda real who chases the runner. Height 1.85 m, stocky, helmed, tabard over mail, origin at feet centre, faces -Z, <= 6k tris, 1 material, 512x512 texture. Clips: Run (loop), Catch, Idle."
+    },
+    {
+      "id": "char.chaser.knight",
+      "type": "gltf",
+      "src": "models/characters/chaser_knight.glb",
+      "placeholder": "guard",
+      "color": "#6b7280",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "meta": {
+        "headgear": "helm",
+        "back": "shield",
+        "cape": "#3f4a6b",
+        "accent": "#c9c9d2",
+        "bulk": 1.35
+      },
+      "animations": {
+        "run": "Run",
+        "catch": "Catch",
+        "idle": "Idle"
+      },
+      "spec": "Cavaleiro da guarda: plate over mail, great helm, shield on the back. Same rig, size, orientation and clips as char.chaser.guard."
+    },
+    {
+      "id": "char.chaser.inquisitor",
+      "type": "gltf",
+      "src": "models/characters/chaser_inquisitor.glb",
+      "placeholder": "guard",
+      "color": "#2f2b33",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "meta": {
+        "headgear": "hood",
+        "back": "none",
+        "cape": "#1f1c24",
+        "accent": "#b3a05a",
+        "pants": "#2a2730",
+        "bulk": 1.1
+      },
+      "animations": {
+        "run": "Run",
+        "catch": "Catch",
+        "idle": "Idle"
+      },
+      "spec": "Inquisidor: long dark robe and hood, gilded trim, no armour. Same rig, size, orientation and clips as char.chaser.guard."
+    },
+    {
+      "id": "char.chaser.collector",
+      "type": "gltf",
+      "src": "models/characters/chaser_collector.glb",
+      "placeholder": "guard",
+      "color": "#6b4a2a",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "meta": {
+        "headgear": "cap",
+        "back": "satchel",
+        "cape": null,
+        "accent": "#c9a227",
+        "bulk": 1.05
+      },
+      "animations": {
+        "run": "Run",
+        "catch": "Catch",
+        "idle": "Idle"
+      },
+      "spec": "Cobrador do rei: padded coat, flat cap, satchel of ledgers, no cape. Same rig, size, orientation and clips as char.chaser.guard."
+    },
+    {
+      "id": "char.chaser.hunter",
+      "type": "gltf",
+      "src": "models/characters/chaser_hunter.glb",
+      "placeholder": "guard",
+      "color": "#3f5a42",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "meta": {
+        "headgear": "hood",
+        "back": "quiver",
+        "cape": "#4a3a2a",
+        "accent": "#8a6b3a",
+        "bulk": 1.15
+      },
+      "animations": {
+        "run": "Run",
+        "catch": "Catch",
+        "idle": "Idle"
+      },
+      "spec": "Caçador de recompensas: leathers, hood, quiver on the back. Same rig, size, orientation and clips as char.chaser.guard."
     },
     {
       "id": "fx.shadow.blob",

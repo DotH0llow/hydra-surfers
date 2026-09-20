@@ -474,6 +474,8 @@ export class App implements ScreenHost, DebugHost {
     const prevBest = this.store.get().stats.bestScore;
     const board = this.store.get().modes[mode.board];
     const prevBoardBest = board?.period === mode.period ? board.best : 0;
+    // what was running when it ended, for the balance queries (opt-out with the metrics setting)
+    const lastPowerup = this.powerups?.snapshot()[0]?.id ?? "";
     const holder: { report: RunReport | null } = { report: null };
     this.store.update((p) => {
       holder.report = applyRun(p, summary, Date.now());
@@ -509,6 +511,8 @@ export class App implements ScreenHost, DebugHost {
           // balance metrics are opt-out (settings)
           cause: this.store.get().settings.analytics ? r.cause : "",
           house: this.store.get().social.faction,
+          version: __APP_VERSION__,
+          powerup: this.store.get().settings.analytics ? lastPowerup : "",
           ghost: this.ghostToUpload(mode, r.score, prevBoardBest),
         })
         .then((res) => {

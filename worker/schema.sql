@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS runs (
   clean       REAL    NOT NULL DEFAULT 0,
   contracts   INTEGER NOT NULL DEFAULT 0,
   cause       TEXT    NOT NULL DEFAULT '',     -- what ended the run (balance metrics)
+  powerup     TEXT    NOT NULL DEFAULT '',     -- power-up active when it ended (balance metrics)
+  version     TEXT    NOT NULL DEFAULT '',     -- client build that posted it
   ranked      INTEGER NOT NULL DEFAULT 1,      -- 0 = practice after the ranked attempts were spent
   house       TEXT    NOT NULL DEFAULT '',     -- house the run was run for ('' = none)
   created_at  INTEGER NOT NULL

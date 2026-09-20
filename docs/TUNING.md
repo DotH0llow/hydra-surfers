@@ -20,7 +20,7 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 - The in-game editor (piece D2) builds itself from this registry. Adding an entry needs zero editor code.
 - After adding or changing entries run `npm run docs:tuning` to refresh this page.
 
-## Registry (319 fields in 49 groups)
+## Registry (321 fields in 49 groups)
 
 [Lanes](#lanes) · [Lane-switch feel](#switchFeel) · [Player movement](#player) · [Player hitbox](#playerHitbox) · [Walkable surfaces](#surface) · [Obstacle: barricade](#obsBarricade) · [Obstacle: hole in a broken bridge (jump only)](#obsHole) · [Obstacle: hanging beam (roll only)](#obsBeam) · [Obstacle: cargo wagon](#obsWagon) · [Obstacle: runaway cart](#obsRunaway) · [Obstacle: charging knight](#obsKnight) · [Obstacle: closing gate](#obsPortcullis) · [Obstacle: dragon fire](#obsFire) · [Obstacle: ramp](#obsRamp) · [Structure: gatehouse](#obsGate) · [Structure: lantern post](#obsLantern) · [Power-ups](#powerups) · [Curved world](#curve) · [Hoverboard](#hoverboard) · [Pickups](#pickups) · [Coins](#coins) · [Speed curve](#speed) · [Difficulty](#difficulty) · [Late game](#late) · [Power-up effects](#powerupFx) · [Equipment effects](#build) · [Biomes](#biome) · [Run events & weather](#events) · [Skill, near miss & combo](#skill) · [Runner animation](#anim) · [Ghost](#ghost) · [Dragon flyover](#dragon) · [Rain](#rain) · [Atmosphere & light](#atmosphere) · [Road](#track) · [Environment](#env) · [Run camera](#camera) · [Obstacles](#obstacles) · [Spawn pattern weights](#spawnWeights) · [Spawn pattern details](#spawnPatterns) · [Spawner](#spawn) · [Collision](#collision) · [Chaser](#chaser) · [Score](#score) · [Run flow](#run) · [Input](#input) · [HUD](#hud) · [Display](#display) · [Screen flow](#flow)
 
@@ -462,6 +462,8 @@ PLAYER.jumpHeight; // live number, updated in place (zero-allocation reads in th
 | `camera.homeLookAhead` | Home: look-at ahead | 8 | -10 | 40 | 0.5 | m |
 | `camera.homeFov` | Home: FOV | 55 | 25 | 100 | 0.5 | ° |
 | `camera.shakeAmplitude` | Crash shake amplitude | 0.22 | 0 | 2 | 0.01 | m |
+| `camera.eventShakeScale` | Road event shake (x crash amplitude) | 0.35 | 0 | 2 | 0.05 |  |
+| `camera.perfectShakeScale` | Perfect dodge kick (x crash amplitude) | 0.16 | 0 | 2 | 0.02 |  |
 | `camera.shakeDecay` | Crash shake decay | 6 | 0.5 | 30 | 0.5 | 1/s |
 | `camera.shakeFrequency` | Crash shake frequency | 18 | 1 | 60 | 0.5 | Hz |
 | `camera.speedFov` | Extra FOV at top speed (0 with reduced motion) | 5 | 0 | 20 | 0.5 | ° |

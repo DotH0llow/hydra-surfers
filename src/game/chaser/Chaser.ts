@@ -5,6 +5,7 @@
  * All numbers provisional (reference dossier marks on-screen duration as "measure").
  */
 import { Group, type Object3D } from "three";
+import { hash32 } from "../../core/rng";
 import { defineTuning } from "../../core/tuning";
 import { curveObject } from "../world/curve";
 import { HumanoidRig, type RigPose } from "../player/PlayerAnimator";
@@ -26,6 +27,12 @@ export const CHASER = defineTuning("chaser", "Chaser", {
 
 const pose: RigPose = { mode: "run", phase: 0, lean: 0, tuck: 0, roll: 0, squash: 0, crashT: 0, time: 0 };
 
+/** Who chases the runner; the run seed picks one (all the same behaviour, different silhouette). */
+const CHASERS = ["char.chaser.guard", "char.chaser.knight", "char.chaser.inquisitor", "char.chaser.collector", "char.chaser.hunter"] as const;
+
+/** Salt for the chaser pick, so it does not move when other seeded choices change. */
+const CHASER_SALT = 0xc4a5e;
+
 export class Chaser implements RunSystem {
   readonly id = "chaser";
   readonly order = 70;
@@ -38,6 +45,7 @@ export class Chaser implements RunSystem {
   private phase = 0;
   private root = new Group();
   private model!: Object3D;
+  private modelId = "";
   private rig!: HumanoidRig;
 
   get near(): boolean {
@@ -45,15 +53,27 @@ export class Chaser implements RunSystem {
   }
 
   init(ctx: RunContext): void {
-    this.model = ctx.assets.getModel("char.chaser.guard");
-    this.root.add(this.model);
     this.root.name = "chaser";
-    this.rig = new HumanoidRig(this.model);
+    this.setModel(ctx, CHASERS[0]);
     curveObject(this.root);
     ctx.scene.add(this.root);
   }
 
+  /** Swaps who is chasing (the run seed picks); the rig is rebuilt with the new model. */
+  private setModel(ctx: RunContext, id: string): void {
+    const useId = ctx.assets.has(id) ? id : CHASERS[0];
+    if (useId === this.modelId) return;
+    if (this.model) this.root.remove(this.model);
+    this.modelId = useId;
+    this.model = ctx.assets.getModel(useId);
+    this.root.add(this.model);
+    this.rig = new HumanoidRig(this.model);
+    curveObject(this.root);
+  }
+
   reset(ctx: RunContext, opts: ResolvedRunOptions): void {
+    // who chases is a pure function of the seed, so everyone on a seeded board is chased alike
+    this.setModel(ctx, CHASERS[hash32(opts.seed ^ CHASER_SALT) % CHASERS.length]);
     const far = opts.skipIntro || ctx.state.mode === "idle";
     this.gap = this.prevGap = far ? CHASER.farGap * ctx.rules.chaserGapMul : CHASER.startGap;
     this.nearT = far ? 0 : CHASER.startNearSeconds;
