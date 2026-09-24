@@ -33,7 +33,7 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 
 ## Status
 
-91 assets in 5 parts. 1 have files and 90 still use procedural placeholders.
+91 assets in 5 parts. 2 have files and 89 still use procedural placeholders.
 
 ## core (`public/assets/manifest/core.json`)
 
@@ -233,7 +233,7 @@ Road, obstacles and collectibles.
 | id | type | file (under public/assets/) | status | pivot / facing | budget |
 |---|---|---|---|---|---|
 | `tex.road.cobble` | texture | `textures/world/cobble-painted.png` | file 512x512 |  |  |
-| `tex.ground.field` | texture | `textures/world/field.png` | placeholder (`field`) |  |  |
+| `tex.ground.field` | texture | `textures/world/field-painted.png` | file 512x512 |  |  |
 | `env.road.rut` | gltf | `models/world/rut.glb` | placeholder (`road-rut`) | bottom-center, faces -z | <= 60 tris |
 | `env.road.stone` | gltf | `models/world/kerb.glb` | placeholder (`road-stone`) | bottom-center, faces -z | <= 60 tris |
 | `obstacle.barricade` | gltf | `models/obstacles/barricade.glb` | placeholder (`barricade`) | bottom-center, faces -z | <= 900 tris |
@@ -276,12 +276,12 @@ Road, obstacles and collectibles.
 
 ### `tex.ground.field`
 
-- **File:** `public/assets/textures/world/field.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
+- **File:** `public/assets/textures/world/field-painted.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
 - **Tiling:** repeat 12 x 40
 - **Colour space:** sRGB
 - **Placeholder tint / palette hint:** `#6f7a5a`
 - **Placeholder:** `field`
-- **Brief:** Tileable grass and packed earth beside the road. 512x512, seamless, one tile covers about 5 m.
+- **Brief:** Tileable hand-painted grass and packed earth beside the road. 512x512 PNG, seamless, one tile covers about 5 m.
 
 ### `env.road.rut`
 
