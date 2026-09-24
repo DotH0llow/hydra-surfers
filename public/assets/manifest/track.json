@@ -5,7 +5,7 @@
     {
       "id": "tex.road.cobble",
       "type": "texture",
-      "src": "textures/world/cobble.png",
+      "src": "textures/world/cobble-painted.png",
       "placeholder": "cobble",
       "color": "#9a8b73",
       "repeat": [
@@ -13,7 +13,7 @@
         4
       ],
       "srgb": true,
-      "spec": "Tileable cobbled road surface. 512x512 PNG/JPG, seamless both axes, viewed at a grazing angle; one tile covers 2.5 m x 2.5 m."
+      "spec": "Tileable hand-painted cobbled road surface. 512x512 PNG, seamless both axes, viewed at a grazing angle; one tile covers 2.5 m x 2.5 m."
     },
     {
       "id": "tex.ground.field",

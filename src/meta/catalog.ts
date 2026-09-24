@@ -37,6 +37,7 @@ export const CHARACTERS: readonly CatalogItem[] = [
   { id: "char.runner.alchemist", name: "Alquimista", price: 15000, currency: "coins", color: "#2f7a6b", note: "A explosão foi planejada." },
   { id: "char.runner.monk", name: "Monge", price: 20, currency: "keys", color: "#b58a3a", note: "Silêncio, exceto pelos passos." },
   { id: "char.runner.mercenary", name: "Mercenária", price: 25, currency: "keys", color: "#6b6b72", note: "Cobra caro para ser perseguida." },
+  { id: "char.runner.royal", name: "Herdeira Rubra", price: 11000, currency: "coins", color: "#7b3041", note: "Foge da coroa, mas não do estilo." },
 ];
 
 export const MOUNTS: readonly CatalogItem[] = [

@@ -33,7 +33,7 @@ A missing or broken file never breaks the game. The engine falls back to the ent
 
 ## Status
 
-90 assets in 5 parts. 0 have files and 90 still use procedural placeholders.
+91 assets in 5 parts. 1 have files and 90 still use procedural placeholders.
 
 ## core (`public/assets/manifest/core.json`)
 
@@ -51,6 +51,7 @@ Playable archetypes, the royal guard and shared effects. The placeholder reads i
 | `char.runner.alchemist` | gltf | `models/characters/alchemist.glb` | placeholder (`runner`) | feet-center, faces -z |  |
 | `char.runner.monk` | gltf | `models/characters/monk.glb` | placeholder (`runner`) | feet-center, faces -z |  |
 | `char.runner.mercenary` | gltf | `models/characters/mercenary.glb` | placeholder (`runner`) | feet-center, faces -z |  |
+| `char.runner.royal` | gltf | `models/characters/royal_runner.glb` | placeholder (`runner`) | feet-center, faces -z |  |
 | `char.chaser.guard` | gltf | `models/characters/guard.glb` | placeholder (`guard`) | feet-center, faces -z | <= 6000 tris |
 | `char.chaser.knight` | gltf | `models/characters/chaser_knight.glb` | placeholder (`guard`) | feet-center, faces -z |  |
 | `char.chaser.inquisitor` | gltf | `models/characters/chaser_inquisitor.glb` | placeholder (`guard`) | feet-center, faces -z |  |
@@ -158,6 +159,16 @@ Playable archetypes, the royal guard and shared effects. The placeholder reads i
 - **Placeholder:** `runner`
 - **Brief:** Mercenária: mismatched plate, battered shield. Same rig, size, orientation and clips as char.runner.default.
 
+### `char.runner.royal`
+
+- **File:** `public/assets/models/characters/royal_runner.glb` (gltf: .glb, .gltf)
+- **Pivot / facing:** feet-center, faces -z
+- **Scale applied by engine:** 1
+- **Animation clips required:** run → `Run`, jump → `Jump`, roll → `Roll`, stumble → `Stumble`, death → `Death`, idle → `Idle`, leanL → `LeanLeft`, leanR → `LeanRight`
+- **Placeholder tint / palette hint:** `#7b3041`
+- **Placeholder:** `runner`
+- **Brief:** Herdeira Rubra: crown, crimson travelling cloak and a gilded shield. Same rig, size, orientation and clips as char.runner.default.
+
 ### `char.chaser.guard`
 
 - **File:** `public/assets/models/characters/guard.glb` (gltf: .glb, .gltf)
@@ -221,7 +232,7 @@ Road, obstacles and collectibles.
 
 | id | type | file (under public/assets/) | status | pivot / facing | budget |
 |---|---|---|---|---|---|
-| `tex.road.cobble` | texture | `textures/world/cobble.png` | placeholder (`cobble`) |  |  |
+| `tex.road.cobble` | texture | `textures/world/cobble-painted.png` | file 512x512 |  |  |
 | `tex.ground.field` | texture | `textures/world/field.png` | placeholder (`field`) |  |  |
 | `env.road.rut` | gltf | `models/world/rut.glb` | placeholder (`road-rut`) | bottom-center, faces -z | <= 60 tris |
 | `env.road.stone` | gltf | `models/world/kerb.glb` | placeholder (`road-stone`) | bottom-center, faces -z | <= 60 tris |
@@ -256,12 +267,12 @@ Road, obstacles and collectibles.
 
 ### `tex.road.cobble`
 
-- **File:** `public/assets/textures/world/cobble.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
+- **File:** `public/assets/textures/world/cobble-painted.png` (texture: .png, .jpg, .jpeg, .webp, .ktx2)
 - **Tiling:** repeat 1 x 4
 - **Colour space:** sRGB
 - **Placeholder tint / palette hint:** `#9a8b73`
 - **Placeholder:** `cobble`
-- **Brief:** Tileable cobbled road surface. 512x512 PNG/JPG, seamless both axes, viewed at a grazing angle; one tile covers 2.5 m x 2.5 m.
+- **Brief:** Tileable hand-painted cobbled road surface. 512x512 PNG, seamless both axes, viewed at a grazing angle; one tile covers 2.5 m x 2.5 m.
 
 ### `tex.ground.field`
 

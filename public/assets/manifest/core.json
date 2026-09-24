@@ -280,6 +280,36 @@
       "spec": "Mercenária: mismatched plate, battered shield. Same rig, size, orientation and clips as char.runner.default."
     },
     {
+      "id": "char.runner.royal",
+      "type": "gltf",
+      "src": "models/characters/royal_runner.glb",
+      "placeholder": "runner",
+      "color": "#7b3041",
+      "scale": 1,
+      "pivot": "feet-center",
+      "forward": "-z",
+      "meta": {
+        "headgear": "crown",
+        "back": "shield",
+        "cape": "#9d2740",
+        "accent": "#e8c25a",
+        "pants": "#33273b",
+        "skin": "#9c654b",
+        "bulk": 1.08
+      },
+      "animations": {
+        "run": "Run",
+        "jump": "Jump",
+        "roll": "Roll",
+        "stumble": "Stumble",
+        "death": "Death",
+        "idle": "Idle",
+        "leanL": "LeanLeft",
+        "leanR": "LeanRight"
+      },
+      "spec": "Herdeira Rubra: crown, crimson travelling cloak and a gilded shield. Same rig, size, orientation and clips as char.runner.default."
+    },
+    {
       "id": "char.chaser.guard",
       "type": "gltf",
       "src": "models/characters/guard.glb",

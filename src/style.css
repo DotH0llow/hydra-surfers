@@ -845,9 +845,11 @@ body {
 
 .home.tavern {
   justify-content: flex-start;
-  gap: 8px;
+  gap: 10px;
   overflow-y: auto;
   pointer-events: none;
+  scrollbar-width: thin;
+  background: linear-gradient(180deg, rgba(13, 8, 5, 0.15), rgba(13, 8, 5, 0.52));
 }
 .tv-header {
   display: flex;
@@ -856,7 +858,8 @@ body {
   width: 100%;
   padding: 8px 10px;
   border-radius: 14px;
-  background: var(--yd-panel);
+  background: linear-gradient(100deg, rgba(59, 41, 27, 0.96), rgba(32, 23, 16, 0.92));
+  border: 1px solid rgba(232, 194, 90, 0.32);
   cursor: pointer;
   pointer-events: auto;
 }
@@ -996,7 +999,7 @@ body {
 .tv-modes {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   width: 100%;
 }
 .mode-card {
@@ -1009,7 +1012,8 @@ body {
   border: 0;
   border-left: 5px solid var(--yd-primary);
   border-radius: 12px;
-  background: var(--yd-panel);
+  background: linear-gradient(100deg, rgba(53, 38, 27, 0.94), rgba(35, 25, 18, 0.92));
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
   color: var(--yd-paper);
   text-align: left;
   cursor: pointer;
@@ -1018,6 +1022,13 @@ body {
 }
 .mode-card:active {
   transform: translateY(1px);
+}
+.mode-card:focus-visible,
+.tv-header:focus-visible,
+.tv-build:focus-visible,
+.tv-nav .btn:focus-visible {
+  outline: 3px solid #f3d77b;
+  outline-offset: 2px;
 }
 .mode-card .mode-name {
   font-family: var(--yd-font-display);
@@ -1067,7 +1078,7 @@ body {
 .tv-nav {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 7px;
   width: 100%;
 }
 .tv-nav .nav-btn {
@@ -1091,7 +1102,20 @@ body {
   line-height: 20px;
 }
 .home.tavern .hint {
-  margin-top: auto;
+  margin: auto 0 2px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: rgba(18, 12, 8, 0.58);
+}
+
+/* Keep the hub compact enough to make the next action obvious on smaller phones. */
+@media (max-height: 760px) {
+  .tv-header { padding: 6px 8px; }
+  .tv-welcome { padding: 8px 10px; }
+  .mode-card { padding: 8px 10px; }
+  .mode-card .mode-name { font-size: 16px; }
+  .mode-card.mode-normal .mode-name { font-size: 19px; }
+  .tv-nav .nav-btn { min-height: 38px; font-size: 12px; }
 }
 
 /* ------------------------------------------------------------------ contracts, arsenal */
