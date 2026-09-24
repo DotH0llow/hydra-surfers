@@ -2,7 +2,7 @@
  * App — renderer, scene, loop, run, UI routing, input and the debug host.
  * Shared file: change additively.
  */
-import { PerspectiveCamera, SRGBColorSpace, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, PCFSoftShadowMap, PerspectiveCamera, SRGBColorSpace, Scene, WebGLRenderer } from "three";
 import brand from "./brand/brand.json";
 import type { AssetLibrary } from "./assets/AssetLibrary";
 import { AudioBus } from "./audio/AudioBus";
@@ -116,6 +116,12 @@ export class App implements ScreenHost, DebugHost {
   ) {
     this.renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: false });
     this.renderer.outputColorSpace = SRGBColorSpace;
+    // A compact cinematic pass that works on mobile: soft sun shadows and filmic contrast make
+    // the low-poly silhouettes feel intentional without post-processing or extra frame buffers.
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = PCFSoftShadowMap;
+    this.renderer.toneMapping = ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.08;
     this.renderer.info.autoReset = true;
     this.run = new Run({ bus, assets, scene: this.scene, camera3: this.camera3 });
     this.loop = new Loop({

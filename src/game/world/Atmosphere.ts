@@ -7,7 +7,7 @@
  * global scales on top (thicker fog everywhere, dimmer sun everywhere). That keeps one slider from
  * having to be re-balanced eight times.
  */
-import { Color, DirectionalLight, Fog, HemisphereLight } from "three";
+import { Color, DirectionalLight, Fog, HemisphereLight, PointLight } from "three";
 import { defineTuning } from "../../core/tuning";
 import type { RunContext, RunSystem } from "../types";
 import { BIOMES, type BiomeDef } from "./biomes";
@@ -35,6 +35,8 @@ export class Atmosphere implements RunSystem {
   private readonly fog = new Fog(new Color(BIOMES[0].fog), 60, 200);
   private readonly hemi = new HemisphereLight(0xdfefff, 0x5d5a52, 1.7);
   private readonly sun = new DirectionalLight(0xfff1dc, 2.2);
+  /** Gentle warm fill close to the runner: keeps the character readable in mines and storms. */
+  private readonly runnerFill = new PointLight(0xffb45d, 0.8, 18, 2);
   private readonly rain = new Rain();
   private biomes: BiomeSystem | undefined;
   private events: EventDirector | undefined;
@@ -44,7 +46,16 @@ export class Atmosphere implements RunSystem {
     this.events = ctx.getSystem<EventDirector>("events");
     ctx.scene.background = this.sky;
     ctx.scene.fog = this.fog;
-    ctx.scene.add(this.hemi, this.sun, this.sun.target, this.rain.mesh);
+    this.sun.castShadow = true;
+    this.sun.shadow.mapSize.set(1024, 1024);
+    this.sun.shadow.camera.left = -24;
+    this.sun.shadow.camera.right = 24;
+    this.sun.shadow.camera.top = 24;
+    this.sun.shadow.camera.bottom = -12;
+    this.sun.shadow.camera.near = 1;
+    this.sun.shadow.camera.far = 110;
+    this.sun.shadow.bias = -0.00035;
+    ctx.scene.add(this.hemi, this.sun, this.sun.target, this.runnerFill, this.rain.mesh);
   }
 
   reset(): void {
@@ -80,6 +91,9 @@ export class Atmosphere implements RunSystem {
     const el = (ATMOS.sunElevation * Math.PI) / 180;
     const az = (ATMOS.sunAzimuth * Math.PI) / 180;
     this.sun.position.set(Math.sin(az) * Math.cos(el) * 50, Math.sin(el) * 50, Math.cos(az) * Math.cos(el) * 50);
+    this.sun.target.position.set(0, 0, -32);
+    this.runnerFill.position.set(ctx.player.x, 3.5, 2.5);
+    this.runnerFill.intensity = Math.max(0.28, 0.85 * this.hemi.intensity);
 
     const cam = ctx.camera3;
     if (cam.far !== ATMOS.drawDistance) {

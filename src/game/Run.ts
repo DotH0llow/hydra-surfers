@@ -22,6 +22,7 @@ import "./world/events";
 import "./skill/SkillSystem";
 import "./ghost/Ghost";
 import "./world/Dragon";
+import "./vfx/RunVfx";
 import { Atmosphere } from "./world/Atmosphere";
 import { Track } from "./world/Track";
 import { Environment } from "./world/Environment";

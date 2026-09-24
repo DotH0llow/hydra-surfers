@@ -396,6 +396,13 @@ export class AssetLibrary {
     });
     // placeholders are built from many primitives: merge the static ones to cut draw calls
     mergeStaticMeshes(proto);
+    proto.traverse((o) => {
+      const mesh = o as Mesh;
+      if (mesh.isMesh) {
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+    });
     rec = { proto, clips: [], placeholder: true, skinned: false };
     this.models.set(id, rec);
     return rec;

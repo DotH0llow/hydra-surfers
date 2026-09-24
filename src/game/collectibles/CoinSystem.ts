@@ -69,6 +69,7 @@ export class CoinSystem implements RunSystem {
     const parts = ctx.assets.getMeshParts("collect.coin");
     this.mesh = new InstancedMesh(parts.geometry, parts.material, COIN_CAPACITY);
     this.mesh.name = "coins";
+    this.mesh.castShadow = true;
     this.mesh.count = 0;
     curveObject(this.mesh);
     ctx.scene.add(this.mesh);

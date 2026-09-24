@@ -18,7 +18,7 @@
     {
       "id": "tex.ground.field",
       "type": "texture",
-      "src": "textures/world/field.png",
+      "src": "textures/world/field-painted.png",
       "placeholder": "field",
       "color": "#6f7a5a",
       "repeat": [
@@ -26,7 +26,7 @@
         40
       ],
       "srgb": true,
-      "spec": "Tileable grass and packed earth beside the road. 512x512, seamless, one tile covers about 5 m."
+      "spec": "Tileable hand-painted grass and packed earth beside the road. 512x512 PNG, seamless, one tile covers about 5 m."
     },
     {
       "id": "env.road.rut",

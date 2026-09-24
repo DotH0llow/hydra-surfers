@@ -144,6 +144,8 @@ export class Environment implements RunSystem {
     for (const part of ctx.assets.getMeshPartList(assetId)) {
       const mesh = new InstancedMesh(part.geometry, part.material, PROP_CAP);
       mesh.name = `prop:${assetId}`;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       mesh.count = 0;
       mesh.visible = false;
       // make sure the instance colour attribute exists before the first frame writes to it

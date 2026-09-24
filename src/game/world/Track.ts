@@ -117,6 +117,7 @@ export class Track implements RunSystem {
       tex.needsUpdate = true;
       this.groundMat = new MeshLambertMaterial({ map: tex });
       const mesh = new Mesh(new PlaneGeometry(TRACK.groundWidth, len, 6, Math.ceil(len / 5)), this.groundMat);
+      mesh.receiveShadow = true;
       mesh.userData.ownMaterial = true;
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.set(0, TRACK.groundY, TRACK.behind + tile - len / 2);
@@ -132,6 +133,7 @@ export class Track implements RunSystem {
       tex.needsUpdate = true;
       this.roadMat = new MeshLambertMaterial({ map: tex });
       const mesh = new Mesh(new PlaneGeometry(width, len, 3, Math.ceil(len / 2.5)), this.roadMat);
+      mesh.receiveShadow = true;
       mesh.userData.ownMaterial = true;
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.set(0, TRACK.roadY, TRACK.behind + tile - len / 2);
@@ -140,6 +142,8 @@ export class Track implements RunSystem {
       const h = Math.max(0.01, TRACK.roadY - TRACK.groundY);
       this.bedMat = new MeshLambertMaterial({ color: 0x6b645a });
       const bed = new Mesh(new BoxGeometry(width + 0.3, h, len, 1, 1, Math.ceil(len / 5)), this.bedMat);
+      bed.castShadow = true;
+      bed.receiveShadow = true;
       bed.userData.ownMaterial = true;
       bed.position.set(0, TRACK.roadY - 0.004 - h / 2, TRACK.behind + tile - len / 2);
       this.road.add(bed);
@@ -151,6 +155,8 @@ export class Track implements RunSystem {
       const parts = assets.getMeshParts("env.road.stone");
       this.stoneMat = parts.material as MeshLambertMaterial;
       const inst = new InstancedMesh(parts.geometry, parts.material, n * 2);
+      inst.castShadow = true;
+      inst.receiveShadow = true;
       let k = 0;
       tmpQ.identity();
       tmpS.set(1, 1, 1);
@@ -172,6 +178,7 @@ export class Track implements RunSystem {
       const parts = assets.getMeshParts("env.road.rut");
       this.rutMat = parts.material as MeshLambertMaterial;
       const inst = new InstancedMesh(parts.geometry, parts.material, n * 6);
+      inst.receiveShadow = true;
       let k = 0;
       tmpQ.identity();
       tmpS.set(1, 1, piece);
